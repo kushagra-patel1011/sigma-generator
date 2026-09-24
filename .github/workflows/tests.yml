@@ -39,3 +39,35 @@ jobs:
             --data tests/fixtures/mini-attack.json --offline --chains \
             --deterministic --output-dir "$RUNNER_TEMP/out"
           sigma-gen validate "$RUNNER_TEMP/out"
+
+  corpus:
+    # Every technique in the pinned ATT&CK release against tests/corpus/baseline.json.
+    # Run on both interpreters so the digest is shown to be identical on each.
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.9", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt pytest
+
+      - name: Cache the pinned ATT&CK bundle
+        uses: actions/cache@v4
+        with:
+          path: data/corpus
+          # The bundle is pinned by sha256 in tools/corpus.py; a new pin misses the cache.
+          key: attack-corpus-${{ hashFiles('tools/corpus.py') }}
+
+      - name: Fetch the pinned ATT&CK bundle
+        run: python -m tools.corpus fetch
+
+      - name: Compare the corpus with the baseline
+        run: python -m pytest -q -m corpus
