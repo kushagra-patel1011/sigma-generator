@@ -7,7 +7,10 @@ deterministic: no model is called at runtime, and every decision is written into
 ## Commands
 
 ```bash
-python -m pytest                       # 361 offline tests, ~10s
+python -m pytest                       # offline unit tests, ~10s
+python -m tools.corpus fetch           # pinned ATT&CK 19.2 for the corpus snapshot (~55 MB, once)
+python -m pytest -m corpus             # full-corpus snapshot against tests/corpus/baseline.json
+python -m tools.corpus bless           # accept intended drift as the new baseline
 python -m src.main generate T1003.001 --chains
 python -m src.main quality --group APT29
 python -m src.main gaps T1621
@@ -32,6 +35,7 @@ passes; the tests that need it skip themselves.
 | `src/web/` | Standard-library HTTP server plus a dependency-free single-page app |
 | `src/main.py` | The CLI |
 | `src/data/tools.yml` | Curated tool vocabulary used when mining ATT&CK prose |
+| `tools/corpus.py` | Corpus snapshot: digest of every technique's output, drift report, re-bless (dev only, not packaged) |
 
 ## Data
 
@@ -53,7 +57,9 @@ Generated output goes to `output/` and is ignored by git.
 - **Files are written with LF line endings** (`.gitattributes` enforces it) so runs on Windows, Linux
   and macOS produce byte-identical rules.
 - **Rules must stay valid.** `validate_rule` and, when installed, pySigma check every generated file.
-  A change that alters generated content should be checked across the whole corpus, not one technique.
+  A change that alters generated content must be checked across the whole corpus, not one technique:
+  run `python -m pytest -m corpus`, read the drift, and commit a re-blessed `tests/corpus/baseline.json`
+  with the change only when every line of that drift is intended.
 - **Paths given on the command line are relative to the working directory**; only the built-in
   defaults resolve against the checkout (see `resolve_path` in `src/utils.py`).
 

@@ -504,7 +504,7 @@ pip install -r requirements-dev.txt
 python -m pytest
 ```
 
-The 358 tests run offline against small fixtures under `tests/fixtures/`:
+The unit tests run offline against small fixtures under `tests/fixtures/`:
 
 - **ATT&CK:** a slice of v19.2, including APT29, Mimikatz and the SolarWinds campaign, plus one technique rewritten
   into the pre-v18 shape.
@@ -521,6 +521,22 @@ The tests cover:
 - both validators
 - the CLI end to end
 - the web UI's API and its security controls: CSRF, Host header, content type, body size and static-file allowlist
+
+### Corpus snapshot
+
+The unit tests pin behaviours one at a time. The corpus snapshot pins the whole output: every active technique in
+ATT&CK 19.2 (pinned by sha256), every analytic's rule, chain and count rule, reduced to a digest of quality tier,
+level, logsource, selection fields and values, condition, correlation type, threshold, time window and group-by.
+The digest is committed at `tests/corpus/baseline.json`, and any change to it is reported technique by technique.
+
+```bash
+python -m tools.corpus fetch      # download the pinned ATT&CK bundle once (~55 MB, into data/corpus/)
+python -m pytest -m corpus        # or: python -m tools.corpus check
+python -m tools.corpus bless      # print the drift, then accept it as the new baseline
+```
+
+It is excluded from the default `pytest` run and runs as its own CI job. Re-bless only when a change to generated
+content is intended, and commit the baseline with the change so the drift is reviewed with the code that caused it.
 
 ---
 

@@ -39,3 +39,8 @@ packages = ["sigma_generator", "sigma_generator.templates", "sigma_generator.web
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+# The corpus snapshot needs the pinned ATT&CK bundle; run it with `pytest -m corpus`.
+addopts = "-m 'not corpus'"
+markers = [
+    "corpus: full-corpus snapshot against tests/corpus/baseline.json (needs `python -m tools.corpus fetch`)",
+]

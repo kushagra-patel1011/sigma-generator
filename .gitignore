@@ -1,6 +1,8 @@
 # ATT&CK cache (large, re-downloadable)
 data/*.json
 data/.attack-meta.json
+# Pinned ATT&CK release for the corpus snapshot (python -m tools.corpus fetch)
+data/corpus/
 
 # Generated artefacts
 output/sigma/*.yml
