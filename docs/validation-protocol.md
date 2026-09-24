@@ -7,8 +7,10 @@ of the results cannot be adjusted to fit them.
 
 ## 1. Question
 
-The generator grades every rule **strong**, **moderate** or **weak** by what its detection block contains (see
-`CLAUDE.md`, "Rule quality model"). Those grades have never been checked against attacks or real activity. Round 1
+The generator grades every rule by what its detection block contains: **strong** (two or more selections with
+specific values), **moderate** (one subject selection such as a registry key, target process, file or port, or
+several specific values in one selection) or **weak** (only an event type, a single value, or values common in
+normal activity). Those grades have never been checked against attacks or real activity. Round 1
 asks whether they mean what they claim: that a strong rule detects the technique it was written for, and alerts
 less often on normal activity than a weak one.
 
@@ -22,10 +24,11 @@ Everything below is fixed by this commit. Moving any pin is an amendment (sectio
 | ATT&CK | Enterprise 19.2, sha256 `dc1639caa5501d720e280cf1cbd8fbe009884a0c9b3e6e9ed9d0c25166c3d8f4` (`tools/corpus.py`) |
 | Corpus | `tests/corpus/baseline.json` must match the generator with no drift when the sample is drawn |
 | Atomic Red Team | redcanaryco/atomic-red-team `388942adbd9641f4dfdcf079d7efe9a75ec0ac43`; `atomics/Indexes/index.yaml` sha256 `08f8bd071d96261e12e520a8bba4ef85df33e611491f2435671d4f8fe94c49a4` |
-| Test runner | redcanaryco/invoke-atomicredteam `v2.3.0` (`ad1356ae4fdeffa9e9a5f7e76af8310620af762c`) |
-| Sysmon configuration | olafhartong/sysmon-modular `082cba578667a5f57b44a8e64bc02548d2338859`, `sysmonconfig.xml` |
-| Sysmon binary | The same `Sysmon64.exe` on every host; its version and sha256 are recorded at install and published |
-| Audit policy and log sizes | Yamato-Security/EnableWindowsLogSettings `6d2c0a15351650309d9bb325d63c5ef051a2157d`, applied on every host |
+| Test runner | redcanaryco/invoke-atomicredteam `v2.3.0` (`ad1356ae4fdeffa9e9a5f7e76af8310620af762c`; its manifest reports `2.1.0`, so it is identified by the tag commit), `-TimeoutSeconds 300`; its `powershell-yaml` dependency's version and folder hash are recorded at install |
+| Sysmon configuration | olafhartong/sysmon-modular release `configs-082cba578667` (built from commit `082cba578667a5f57b44a8e64bc02548d2338859`), asset `sysmonconfig-15.21.xml`, sha256 `f115aac5770dae468e5cfb48c58a8b6e37588208a31f1b746812c534577a244b` |
+| Sysmon binary | Sysmon 15.21, the same `Sysmon64.exe` on every host; its sha256 is recorded at install and published |
+| Audit policy and log sizes | Yamato-Security/EnableWindowsLogSettings `6d2c0a15351650309d9bb325d63c5ef051a2157d`, `YamatoSecurityConfigureWinEventLogs.bat`, applied on every host, plus two additions it leaves out: the Sysmon log at 1 GB, and PowerShell module and script-block logging under the native `HKLM\SOFTWARE\Policies` path as well as `Wow6432Node` |
+| Lab procedure | `docs/validation/lab-build.md` and the scripts in `tools/lab/` |
 | Sigma conversion | Yamato-Security/sigma-to-hayabusa-converter `3786d70d362455cbd89110d36b678307c8f9c889` |
 | Detection engine (backend) | Yamato-Security/hayabusa `v4.1.0` (`11a7f64accf9fa815a92aea1b36e174975f1df9a`), official release binary |
 
@@ -85,8 +88,12 @@ rate (section 11), not the pooled test count, is the primary measure.
 **Attack host.** One Windows 11 Enterprise VM (build recorded), standalone workgroup, local administrator,
 Microsoft Defender real-time protection and tamper protection disabled so that tests are not blocked before they
 produce telemetry. A clean snapshot is taken after installing Sysmon, the audit policy and the test runner.
-Tests that need a domain, a second host or network services the VM does not have will fail their prerequisites,
-and are reported as such (section 8).
+**There is no domain in round 1.** Tests that need a domain, a second host or network services the VM does not
+have will fail their prerequisites and are reported as such (section 8). A sampled rule all of whose tests fail
+that way is substituted (section 4). A domain-dependent test that has no prerequisite to fail runs anyway and stays
+in the denominator, because what it does on a workgroup host is what was tested. Before the snapshot, a telemetry
+acceptance test (`tools/lab/Test-Telemetry.ps1`) must show every recorded logsource producing events. Its output is
+published.
 
 **Benign hosts.** No attack test is ever run on these:
 
@@ -102,10 +109,19 @@ noise criterion (section 12).
 **Telemetry on every host:** Sysmon with the pinned configuration, and the pinned audit policy and log sizes
 (including process-creation command lines and PowerShell script-block logging). Logs are exported as `.evtx`.
 
-**Host-days.** A benign host-day is one UTC calendar day for which the Sysmon, Security, System and PowerShell
-logs are complete. That means the earliest retained event is before the day starts, and there is no log-clear event
-(Security 1102, System 104) and no Sysmon service stop during the day. Incomplete days are excluded and
-counted in the results.
+**Host-days.** A benign host-day is one UTC calendar day that meets all of these:
+
+- the Sysmon, Security, System and PowerShell logs are complete: the earliest retained event in each is before the
+  day starts;
+- there is no log-clear event (Security 1102, System 104) and no Sysmon configuration change (Sysmon 16);
+- there is no Sysmon gap. A gap is a Sysmon "Stopped" state change (Sysmon 4) *not* followed within 5 minutes by a
+  Windows shutdown or restart (System 1074 or 6006). Switching the machine off is not a gap;
+- the host was in use for at least **4 active hours**, meaning distinct UTC hours with at least one Sysmon event;
+- the lab runner did not run on that host that day. This only matters if the real endpoint is also the Hyper-V
+  host.
+
+Days that fail are excluded from the denominators, and counted and published with the reason.
+`tools/lab/Export-BenignDay.ps1` records this evidence every day.
 
 **Clocks.** Every host synchronises to the same NTP source through w32time. `w32tm /query /status` is recorded at
 the start and end of every test batch and every benign collection, and published. Detection windows (section 8)
@@ -135,12 +151,12 @@ cannot run cannot alert, and counting it as quiet would flatter its tier) and re
 For each sampled rule, for each of its ART tests, in order:
 
 1. Restore the attack host's clean snapshot, boot, and wait 5 minutes for start-up activity to settle.
-2. Run the test's prerequisite step (`Invoke-AtomicTest -GetPrereqs`). If it fails, record **prerequisites
-   failed** with the runner's output, and move to the next test. The test is not executed and is excluded from the
+2. Run the test's prerequisite step (`Invoke-AtomicTest -GetPrereqs`), then `-CheckPrereqs`. If the check does not
+   report "Prerequisites met", record **prerequisites failed** with the runner's output, and move to the next test. The test is not executed and is excluded from the
    detection denominator.
-3. Leave the host idle for a **quiet period** of 10 minutes, with no test activity.
-4. Record `t0` (UTC, attack host), run the test, and record `t1` when the runner returns. If the runner reports
-   that the test itself failed, record **execution failed**. The test stays in the denominator, since the attempt
+3. Leave the host idle for a **quiet period** of 5 minutes, with no test activity.
+4. Record `t0` (UTC, attack host), run the test, and record `t1` when the runner returns. If the runner's execution
+   log shows a nonzero or missing exit code, or the runner reports a timeout, record **execution failed**. The test stays in the denominator, since the attempt
    produced whatever telemetry it produced.
 5. The **execution window** is `[t0 - 5 s, t1 + 60 s]`. Cleanup (`-Cleanup`) runs only after the window closes.
 6. Export the host's logs.
@@ -248,6 +264,11 @@ results, before any other number. It says the tiers are wrong in that respect.
 ## 13. Limitations stated in advance
 
 - Windows only. Linux, macOS and cloud rules are not tested in round 1.
+- No domain. Techniques that only work against Active Directory are under-represented: their tests fail
+  prerequisites and those rules are substituted, or they run without a domain to act on. Every substitution is
+  published with the failed prerequisites, so the gap is visible rather than silent.
+- Tests run through a remote PowerShell session, not an interactive desktop. Tests that need a logged-on desktop
+  (screen capture, keylogging, GUI automation) may fail or behave differently. They are reported as they happen.
 - Only rules whose technique has automated ART tests are eligible, and that favours strong rules (section 3).
 - ART tests are published procedures run in isolation. They are not intrusions, and a rule detecting them says
   little about variants ART does not include.
@@ -269,4 +290,35 @@ made here.
 
 ### Amendment log
 
-(none)
+**Amendment 1, 2026-09-24.** Made before any ART test was executed or any benign log evaluated. The seed and the
+drawn sample are unchanged.
+
+1. **Quiet period: 10 minutes to 5 minutes** (section 8, step 3). Reason: lab time. Each test drops from about 17-20
+   minutes to about 12-15 minutes (snapshot restore, boot, settling, prerequisites, quiet period, execution and log
+   export), so the 280 tests take roughly 56-70 hours instead of 80-95. The null window still has the execution
+   window's full length whenever a test runs for under about 3 minutes 55 seconds. Longer tests get the whole quiet
+   period as their null window and are flagged, as step 7 already provides.
+2. **No domain in round 1** (sections 6 and 13). Domain-dependent tests fail prerequisites or run against a
+   workgroup host. Rules are substituted under the existing rule in section 4, every substitution is published, and
+   the under-representation of Active Directory techniques is a stated limitation.
+3. **Confirmed unchanged:** every mapped ART test runs, including all 92 for T1112, and false positives are
+   measured on all 322 Windows rules.
+4. **Sysmon configuration pin made exact** (section 2). The pinned commit no longer holds a prebuilt
+   `sysmonconfig.xml`; the maintainer publishes it as a release asset instead. The release built from that exact
+   commit (`configs-082cba578667`) is pinned. `sysmonconfig.xml` in that release is an alias of
+   `sysmonconfig-15.21.xml`, with the same sha256, which fixes the Sysmon binary at 15.21.
+5. **Telemetry settings the pinned audit script leaves out** (section 2). The script leaves the Sysmon log size
+   commented out, and writes the PowerShell logging policy only under `Wow6432Node`. The Sysmon log is set to 1 GB,
+   and the logging policy is also written under the native path. The acceptance test in section 6 checks the
+   result on the built host.
+6. **Runner behaviour made exact** (sections 2 and 8). `-GetPrereqs` reports no status, so the prerequisite outcome
+   is read from `-CheckPrereqs`. An execution failure is a nonzero or missing exit code in the runner's execution log,
+   or a timeout, with a 300-second timeout.
+7. **Host-day definition made workable** (section 6). The original rule excluded any day with a Sysmon service
+   stop. On a daily-use machine that is shut down or restarted, that would exclude almost every day. Meanwhile a
+   day the machine spent switched off would have counted as a complete host-day with no activity, inflating the
+   denominator. A gap is now Sysmon stopping while Windows keeps running, and a host-day needs at least 4 active
+   hours. If the real endpoint also hosts the attack VM, days on which the runner ran there are excluded, because
+   its activity is not the endpoint's normal use.
+8. **Editorial** (section 1). The tier definitions are now stated inline instead of pointing to the project guide
+   by filename.
