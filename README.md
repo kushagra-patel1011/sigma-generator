@@ -480,17 +480,37 @@ Copy `.env.example` to `.env`. Every value is optional, and command-line flags t
 ## How it works
 
 ```mermaid
-flowchart LR
-    A[Technique / group ID] --> B[attack_fetcher<br/>techniques, analytics,<br/>groups, procedures]
-    B --> C[mappings<br/>log source -> Sigma logsource<br/>+ confidence]
-    C --> D[sigma_generator<br/>rank, mine, place,<br/>rules + correlation chains]
-    E[sigmahq<br/>community rule index] --> F[coverage & gaps]
-    C --> F
-    F --> D
-    D --> G[packs<br/>per-actor folders]
-    D --> H[stix_builder<br/>bundles & reports]
-    G --> H
-    D --> I[service<br/>shared by CLI and web UI]
+flowchart TB
+    subgraph frontends[Three ways in, one engine]
+        CLI["CLI<br/>main.py"]
+        SERVER["Local web UI<br/>web/server.py"]
+        BROWSER["Browser build<br/>tools/webapp.py + Pyodide<br/>no server at all"]
+    end
+
+    SERVICE["service.py<br/>one layer behind every front end"]
+    FETCH["attack_fetcher.py<br/>techniques, analytics,<br/>groups, procedures"]
+    MAP["mappings.py<br/>log source to Sigma logsource<br/>+ confidence"]
+    HQ["sigmahq.py<br/>community rule index"]
+    GAPS["coverage and gaps"]
+    GEN["sigma_generator.py<br/>rank, mine, place, grade<br/>rules + correlations"]
+    PACKS["packs.py<br/>per-actor folders"]
+    STIX["stix_builder.py<br/>bundles and reports"]
+    CORPUS["tools/corpus.py<br/>every technique digested and<br/>compared with a baseline in CI"]
+
+    CLI --> SERVICE
+    SERVER --> SERVICE
+    BROWSER --> SERVICE
+    SERVICE --> FETCH
+    FETCH --> MAP
+    MAP --> GEN
+    SERVICE --> HQ
+    HQ --> GAPS
+    MAP --> GAPS
+    GAPS --> GEN
+    GEN --> PACKS
+    GEN --> STIX
+    PACKS --> STIX
+    GEN -.-> CORPUS
 ```
 
 | Module | Responsibility |
