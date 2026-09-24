@@ -1,5 +1,7 @@
 # Project guide
 
+Instructions for anyone — person or coding agent — working in this repository.
+
 sigma-generator turns MITRE ATT&CK techniques, groups, software and campaigns into draft Sigma
 detection rules, Sigma correlation rules and STIX 2.1 bundles. Everything is rule-based and
 deterministic: no model is called at runtime, and every decision is written into the output banner.
