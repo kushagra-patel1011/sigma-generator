@@ -1,0 +1,7 @@
+# Keep line endings stable across platforms: Sigma rules, YAML and Python are
+# written with LF, and the tests compare generated text byte for byte.
+* text=auto eol=lf
+
+*.png binary
+*.jpg binary
+*.zip binary

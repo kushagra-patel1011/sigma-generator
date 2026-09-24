@@ -1,0 +1,231 @@
+# Tool lexicon for artefact extraction.
+#
+# The extractor only treats a word in ATT&CK prose as a tool name when it is
+# listed here. A fixed vocabulary is deliberate: guessing tool names from
+# English text ("Processes executing suspicious binaries") produces nonsense
+# selections, while a curated list stays precise and reviewable.
+#
+# Sources: LOLBAS (https://lolbas-project.github.io), GTFOBins
+# (https://gtfobins.github.io), LOOBins (https://www.loobins.io) and tooling that
+# ATT&CK itself names repeatedly.
+#
+# windows / unix: matched as whole words, case-insensitively, at least 4 letters.
+# contextual:     names that are short or ordinary English words. They count only
+#                 when followed by one of the listed arguments, or when written with
+#                 an .exe suffix (Windows).
+
+windows:
+  - adfind
+  - attrib
+  - auditpol
+  - bcdedit
+  - bitsadmin
+  - bloodhound
+  - certreq
+  - certutil
+  - cmdkey
+  - cmstp
+  - computerdefaults
+  - cscript
+  - diskshadow
+  - dnscmd
+  - dsquery
+  - esentutl
+  - eventvwr
+  - extrac32
+  - findstr
+  - fodhelper
+  - forfiles
+  - gpupdate
+  - icacls
+  - installutil
+  - ipconfig
+  - klist
+  - lazagne
+  - makecab
+  - manage-bde
+  - mavinject
+  - mimikatz
+  - msbuild
+  - mshta
+  - msiexec
+  - mstsc
+  - net1
+  - netsh
+  - netstat
+  - nltest
+  - ntdsutil
+  - odbcconf
+  - pcalua
+  - plink
+  - powershell
+  - procdump
+  - psexec
+  - pwsh
+  - qwinsta
+  - reagentc
+  - regasm
+  - regedit
+  - regsvcs
+  - regsvr32
+  - rubeus
+  - rundll32
+  - runas
+  - schtasks
+  - sdclt
+  - secedit
+  - sharphound
+  - systeminfo
+  - takeown
+  - taskkill
+  - tasklist
+  - vssadmin
+  - wbadmin
+  - wevtutil
+  - whoami
+  - winrs
+  - wmic
+  - wscript
+  - wusa
+
+unix:
+  - auditctl
+  - base64
+  - chattr
+  - chmod
+  - chown
+  - chpasswd
+  - codesign
+  - crontab
+  - csrutil
+  - docker
+  - dscl
+  - gcloud
+  - gsutil
+  - hdiutil
+  - insmod
+  - iptables
+  - journalctl
+  - kextload
+  - kextunload
+  - killall
+  - kmutil
+  - kubectl
+  - launchctl
+  - ldapsearch
+  - masscan
+  - modprobe
+  - ncat
+  - netcat
+  - networksetup
+  - nmap
+  - nsenter
+  - openssl
+  - osacompile
+  - osascript
+  - pfctl
+  - pkexec
+  - pkgutil
+  - plutil
+  - rmmod
+  - rsync
+  - scutil
+  - screencapture
+  - setcap
+  - setfacl
+  - shred
+  - socat
+  - spctl
+  - sqlite3
+  - ssh-keygen
+  - strace
+  - sudo
+  - systemctl
+  - systemsetup
+  - tccutil
+  - tcpdump
+  - tshark
+  - unshare
+  - useradd
+  - usermod
+  - visudo
+  - wget
+  - xattr
+
+# Tools that exist on both families (curl ships with Windows 10 and later).
+both:
+  - curl
+  - ssh
+  - scp
+  - sftp
+  - rclone
+  - nslookup
+
+contextual:
+  windows:
+    reg: [add, query, delete, save, export, import, load, copy]
+    sc: [create, config, start, stop, delete, qc, query, description, failure]
+    net: [user, group, localgroup, use, share, view, start, stop, accounts, session]
+    cmd: ["/c", "/k", "/q"]
+    query: [user, session, process]
+    arp: ["-a"]
+    ftp: ["-s:"]
+  unix:
+    nc: ["-e", "-l", "-lvp", "-nv", "-z"]
+    dd: ["if="]
+    tar: ["-c", "-x", "-czf", "-xzf", czf, xzf]
+    zip: ["-r", "-e", "-P"]
+    rm: ["-rf", "-f"]
+    security: [find-generic-password, find-internet-password, dump-keychain, add-trusted-cert, delete-certificate, unlock-keychain]
+    defaults: [write, read, delete, import]
+    profiles: [install, remove, list, show]
+    history: ["-c", "-w"]
+    unset: [HISTFILE]
+    mount: ["-t", "-o"]
+
+# Files Windows itself ships. ATT&CK prose names their paths because attacks *use*
+# them ("rundll32.exe C:\Windows\System32\comsvcs.dll, MiniDump"), so a path ending
+# in one of these is never treated as a file an attacker created. A dropped DLL
+# with its own name (mimilib.dll copied into System32) is still a creation target.
+# Sources: LOLBAS libraries and the credential providers ATT&CK names.
+windows_system_files:
+  - advapi32.dll
+  - advpack.dll
+  - amsi.dll
+  - comsvcs.dll
+  - cryptdll.dll
+  - dbgcore.dll
+  - dbghelp.dll
+  - desk.cpl
+  - ieadvpack.dll
+  - ieframe.dll
+  - kerberos.dll
+  - kernel32.dll
+  - lsasrv.dll
+  - mshtml.dll
+  - msv1_0.dll
+  - netapi32.dll
+  - ntdll.dll
+  - pcwutl.dll
+  - samlib.dll
+  - samsrv.dll
+  - sechost.dll
+  - setupapi.dll
+  - shdocvw.dll
+  - shell32.dll
+  - syssetup.dll
+  - url.dll
+  - user32.dll
+  - vaultcli.dll
+  - wdigest.dll
+  - winhttp.dll
+  - wininet.dll
+  - ws2_32.dll
+  - zipfldr.dll
+  - cmd.exe
+  - lsass.exe
+  - powershell.exe
+  - regsvr32.exe
+  - rundll32.exe
+  - svchost.exe
+  - werfault.exe

@@ -1,0 +1,34 @@
+# Base scaffold for every generated Sigma rule.
+#
+# This file is loaded at runtime, not copied blindly:
+#
+#   * KEY ORDER - rendered rules follow the order of the keys below
+#     (SigmaHQ's conventional order out of the box).
+#   * CONCRETE VALUES - `status`, `author`, `level` and `falsepositives` become
+#     defaults for every generated rule.  Command-line flags still win.
+#   * <PLACEHOLDERS> - values written as <...> are filled in by the generator.
+#
+# `level` ships as a placeholder so it is derived from the technique's ATT&CK
+# tactic (credential access -> high, discovery -> low, ...).  Replace it with a
+# concrete level such as `level: high` to pin every rule to that level.
+# See the Sigma specification: https://github.com/SigmaHQ/sigma-specification
+
+title: <generated from the ATT&CK technique and its log source>
+id: <deterministic or random UUID>
+status: experimental
+description: <ATT&CK technique summary + analytic description>
+references:
+    - <ATT&CK technique URL>
+author: sigma-generator
+date: <generation date>
+tags:
+    - <attack.tactic>
+    - <attack.technique_id>
+logsource: <resolved from the ATT&CK analytic log source>
+detection:
+    condition: <assembled from the selections below>
+fields: []
+falsepositives:
+    - Unknown
+level: <derived from the ATT&CK tactic>
+

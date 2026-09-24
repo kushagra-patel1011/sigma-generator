@@ -1,0 +1,254 @@
+{
+  "type": "bundle",
+  "id": "bundle--93ee3506-b8fa-51ec-b421-1dba233b31e1",
+  "objects": [
+    {
+      "type": "marking-definition",
+      "spec_version": "2.1",
+      "id": "marking-definition--613f2e26-407d-48c7-9eca-b8e91df99dc9",
+      "created": "2017-01-20T00:00:00.000Z",
+      "definition_type": "tlp",
+      "name": "TLP:WHITE",
+      "definition": {
+        "tlp": "white"
+      }
+    },
+    {
+      "type": "identity",
+      "spec_version": "2.1",
+      "id": "identity--ae680a5e-6d35-5cfc-b288-78d29d770eed",
+      "created": "2026-09-17T11:13:16.982Z",
+      "modified": "2026-09-17T11:13:16.982Z",
+      "name": "sigma-generator",
+      "description": "Automated draft detection authoring (sigma-generator v1.1.0). Rules in this bundle are machine-generated from MITRE ATT&CK and require analyst review before deployment.",
+      "identity_class": "system"
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--005a06c6-14bf-4118-afa0-ebcd8aebb0c9",
+      "created": "2019-11-27T14:58:00.429Z",
+      "modified": "2026-05-12T15:12:00.618Z",
+      "name": "Scheduled Task",
+      "description": "Adversaries may abuse the Windows Task Scheduler to perform task scheduling for initial or recurring execution of malicious code. There are multiple ways to access the Task Scheduler in Windows. The schtasks utility can be run directly on the command line, or the Task Scheduler can be opened through the GUI within the Administrator Tools section of the Control Panel. In some cases, adversaries have used a .NET wrapper for the Windows Task Scheduler, and alternatively, adversaries have used the Windows netapi32 library and Windows Management Instrumentation (WMI) to create a scheduled task. Adversaries may also utilize the Powershell Cmdlet `Invoke-CimMethod`, which leverages WMI class `PS_ScheduledTask` to create a scheduled task via an XML path.\n\nAn adversary may use Windows Task Scheduler to execute programs at system startup or on a scheduled basis for persistence. The Windows Task Scheduler can also be abused to conduct remote Execution as part of Lateral Movement and/or to run a process under the context of a specified account (such as SYSTEM). Similar to System Binary Proxy Execution, adversaries have also abused the Windows Task Scheduler to potentially mask one-time execution under signed/trusted system processes.\n\nAdversaries may also create \"hidden\" scheduled tasks (i.e. Hide Artifacts) that may not be visible to defender tools and manual queries used to enumerate tasks. Specifically, an adversary may hide a task from `schtasks /query` and the Task Scheduler by deleting the associated Security Descriptor (SD) registry value (where deletion of this value must be completed using SYSTEM permissions). Adversaries may also employ alternate methods to hide tasks, such as altering the metadata (e.g., `Index` value) within associated registry keys.",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1053.005",
+          "url": "https://attack.mitre.org/techniques/T1053/005"
+        },
+        {
+          "source_name": "ProofPoint Serpent",
+          "url": "https://www.proofpoint.com/us/blog/threat-insight/serpent-no-swiping-new-backdoor-targets-french-entities-unique-attack-chain"
+        },
+        {
+          "source_name": "Defending Against Scheduled Task Attacks in Windows Environments",
+          "url": "https://blog.qualys.com/vulnerabilities-threat-research/2022/06/20/defending-against-scheduled-task-attacks-in-windows-environments"
+        },
+        {
+          "source_name": "Twitter Leoloobeek Scheduled Task",
+          "url": "https://x.com/leoloobeek/status/939248813465853953"
+        },
+        {
+          "source_name": "Tarrask scheduled task",
+          "url": "https://www.microsoft.com/security/blog/2022/04/12/tarrask-malware-uses-scheduled-tasks-for-defense-evasion/"
+        },
+        {
+          "source_name": "Microsoft Scheduled Task Events Win10",
+          "url": "https://docs.microsoft.com/en-us/windows/security/threat-protection/auditing/audit-other-object-access-events"
+        }
+      ],
+      "object_marking_refs": [
+        "marking-definition--613f2e26-407d-48c7-9eca-b8e91df99dc9"
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "execution"
+        },
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "persistence"
+        },
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "privilege-escalation"
+        }
+      ],
+      "x_mitre_platforms": [
+        "Windows"
+      ],
+      "x_mitre_is_subtechnique": true
+    },
+    {
+      "type": "indicator",
+      "spec_version": "2.1",
+      "id": "indicator--10210396-7be1-5d23-8fac-7d96bcf3f8f5",
+      "created_by_ref": "identity--ae680a5e-6d35-5cfc-b288-78d29d770eed",
+      "created": "2026-09-17T11:13:16.982Z",
+      "modified": "2026-09-17T11:13:16.982Z",
+      "name": "Potential Scheduled Task Activity Via Process Creation",
+      "description": "Draft Sigma rule for T1053.005 (Scheduled Task). Log source: process_creation/windows (resolved from Sysmon EventCode 1). Rule quality: strong - two or more independent behavioural signals. Derived from ATT&CK detection strategy DET0441 / analytic AN1221. Machine-generated draft - validate against real telemetry before deployment.",
+      "indicator_types": [
+        "anomalous-activity"
+      ],
+      "pattern": "title: Potential Scheduled Task Activity Via Process Creation\nid: 10210396-7be1-5d23-8fac-7d96bcf3f8f5\nstatus: experimental\ndescription: |\n    Draft detection for T1053.005 (Scheduled Task), derived from ATT&CK detection strategy DET0441 /\n    analytic AN1221.\n    Adversaries may abuse the Windows Task Scheduler to perform task scheduling for initial or\n    recurring execution of malicious code. There are multiple ways to access the Task Scheduler in\n    Windows.\n    ATT&CK analytic: Detects the creation, modification, or deletion of scheduled tasks through Task\n    Scheduler, WMI, PowerShell, or API-based methods followed by execution from svchost.exe or\n    taskeng.exe. Includes detection of hidden or anomalous scheduled tasks, especially those created\n    under SYSTEM or suspicious user contexts.\n    Generated draft - the selection values below were mined from ATT&CK and must be validated\n    against real telemetry before this rule is deployed.\nreferences:\n    - https://attack.mitre.org/techniques/T1053/005\n    - https://attack.mitre.org/detectionstrategies/DET0441\n    - https://attack.mitre.org/detectionstrategies/DET0441#AN1221\n    - https://www.proofpoint.com/us/blog/threat-insight/serpent-no-swiping-new-backdoor-targets-french-entities-unique-attack-chain\n    - https://blog.qualys.com/vulnerabilities-threat-research/2022/06/20/defending-against-scheduled-task-attacks-in-windows-environments\n    - https://x.com/leoloobeek/status/939248813465853953\nauthor: sigma-generator\ndate: 2026-09-17\ntags:\n    - attack.execution\n    - attack.persistence\n    - attack.privilege-escalation\n    - attack.t1053\n    - attack.t1053.005\nlogsource:\n    category: process_creation\n    product: windows\ndetection:\n    selection_image:\n        Image|endswith:\n            - '\\powershell.exe'\n            - '\\schtasks.exe'\n            - '\\taskeng.exe'\n    selection_indicator_content:\n        CommandLine|contains:\n            - Invoke-CimMethod\n    condition: selection_image and selection_indicator_content\nfields:\n    - Image\n    - CommandLine\n    - ParentImage\n    - User\nfalsepositives:\n    - Legitimate administrative or software-deployment use of powershell.exe, schtasks.exe, taskeng.exe\n    - 'Environment-specific tuning of TimeWindow: Defines threshold for grouping task creation and associated execution within suspicious time proximity.'\n    - 'Environment-specific tuning of UserContext: Filters based on non-standard user accounts or execution under SYSTEM when not typical for the environment.'\n    - 'Environment-specific tuning of TaskNamePattern: Allows defenders to flag obfuscated, randomized, or suspicious task names outside normal conventions.'\n    - Unknown\nlevel: high\n",
+      "pattern_type": "sigma",
+      "pattern_version": "2.0",
+      "valid_from": "2026-09-17T11:13:16.982Z",
+      "labels": [
+        "sigma-rule",
+        "draft",
+        "attack.t1053.005",
+        "sigma-level.high",
+        "quality.strong",
+        "platform.windows"
+      ],
+      "confidence": 95,
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1053.005",
+          "url": "https://attack.mitre.org/techniques/T1053/005"
+        },
+        {
+          "source_name": "mitre-attack",
+          "url": "https://attack.mitre.org/detectionstrategies/DET0441"
+        },
+        {
+          "source_name": "mitre-attack",
+          "url": "https://attack.mitre.org/detectionstrategies/DET0441#AN1221"
+        },
+        {
+          "source_name": "reference",
+          "url": "https://www.proofpoint.com/us/blog/threat-insight/serpent-no-swiping-new-backdoor-targets-french-entities-unique-attack-chain"
+        },
+        {
+          "source_name": "reference",
+          "url": "https://blog.qualys.com/vulnerabilities-threat-research/2022/06/20/defending-against-scheduled-task-attacks-in-windows-environments"
+        },
+        {
+          "source_name": "reference",
+          "url": "https://x.com/leoloobeek/status/939248813465853953"
+        }
+      ],
+      "object_marking_refs": [
+        "marking-definition--613f2e26-407d-48c7-9eca-b8e91df99dc9"
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "execution"
+        },
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "persistence"
+        },
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "privilege-escalation"
+        }
+      ]
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--fed7a6e0-6f70-539e-8bb7-37909405cfd1",
+      "created_by_ref": "identity--ae680a5e-6d35-5cfc-b288-78d29d770eed",
+      "created": "2026-09-17T11:13:16.982Z",
+      "modified": "2026-09-17T11:13:16.982Z",
+      "relationship_type": "indicates",
+      "source_ref": "indicator--10210396-7be1-5d23-8fac-7d96bcf3f8f5",
+      "target_ref": "attack-pattern--005a06c6-14bf-4118-afa0-ebcd8aebb0c9",
+      "object_marking_refs": [
+        "marking-definition--613f2e26-407d-48c7-9eca-b8e91df99dc9"
+      ],
+      "description": "Draft Sigma rule detecting T1053.005 (Scheduled Task)."
+    },
+    {
+      "type": "indicator",
+      "spec_version": "2.1",
+      "id": "indicator--17d1b102-1c45-51fd-b38d-ec34371c621b",
+      "created_by_ref": "identity--ae680a5e-6d35-5cfc-b288-78d29d770eed",
+      "created": "2026-09-17T11:13:16.982Z",
+      "modified": "2026-09-17T11:13:16.982Z",
+      "name": "Potential Scheduled Task Attack Chain Via Windows Security And Process Creation",
+      "description": "Draft Sigma correlation rule for T1053.005 (Scheduled Task). Log sources: windows/security + process_creation/windows (resolved from Windows Security (EventID 4698); Windows Security (EventID 4702) + Sysmon EventCode 1). Fires when 2 behaviours occur together within 10m; the pattern holds the correlation and its base rules. Rule quality: moderate - one behavioural signal - review for noise. Derived from ATT&CK detection strategy DET0441 / analytic AN1221. Machine-generated draft - validate against real telemetry before deployment.",
+      "indicator_types": [
+        "anomalous-activity"
+      ],
+      "pattern": "title: Potential Scheduled Task Attack Chain Via Windows Security And Process Creation\nid: 17d1b102-1c45-51fd-b38d-ec34371c621b\nstatus: experimental\ndescription: |\n    Draft correlation for T1053.005 (Scheduled Task). ATT&CK analytic AN1221 (strategy DET0441)\n    describes this technique as 2 observable behaviours; this rule fires when all of them occur on\n    the same host within 10m.\n    Steps: 1) Windows Security; 2) Process Creation.\n    ATT&CK analytic: Detects the creation, modification, or deletion of scheduled tasks through Task\n    Scheduler, WMI, PowerShell, or API-based methods followed by execution from svchost.exe or\n    taskeng.exe. Includes detection of hidden or anomalous scheduled tasks, especially those created\n    under SYSTEM or suspicious user contexts.\n    Generated draft - step selections were mined from ATT&CK and must be validated against real\n    telemetry before this rule is deployed.\nreferences:\n    - https://attack.mitre.org/techniques/T1053/005\n    - https://attack.mitre.org/detectionstrategies/DET0441\n    - https://attack.mitre.org/detectionstrategies/DET0441#AN1221\n    - https://www.proofpoint.com/us/blog/threat-insight/serpent-no-swiping-new-backdoor-targets-french-entities-unique-attack-chain\n    - https://blog.qualys.com/vulnerabilities-threat-research/2022/06/20/defending-against-scheduled-task-attacks-in-windows-environments\n    - https://x.com/leoloobeek/status/939248813465853953\nauthor: sigma-generator\ndate: 2026-09-17\ntags:\n    - attack.execution\n    - attack.persistence\n    - attack.privilege-escalation\n    - attack.t1053\n    - attack.t1053.005\ncorrelation:\n    type: temporal\n    rules:\n        - step1_security\n        - step2_process_creation\n    group-by:\n        - Computer\n    timespan: 10m\nfalsepositives:\n    - Legitimate administrative or software-deployment use of schtasks.exe, taskeng.exe\n    - 'Environment-specific tuning of TimeWindow: Defines threshold for grouping task creation and associated execution within suspicious time proximity.'\n    - 'Environment-specific tuning of UserContext: Filters based on non-standard user accounts or execution under SYSTEM when not typical for the environment.'\n    - 'Environment-specific tuning of TaskNamePattern: Allows defenders to flag obfuscated, randomized, or suspicious task names outside normal conventions.'\n    - Unknown\nlevel: high\n---\ntitle: 'Scheduled Task - Step 1: Windows Security'\nid: 103d7dc7-f661-549a-981d-520f53f93243\nname: step1_security\nlogsource:\n    product: windows\n    service: security\ndetection:\n    selection_source:\n        EventID:\n            - 4698\n            - 4702\n    selection_indicator_content:\n        TaskContent|contains:\n            - Invoke-CimMethod\n    condition: selection_source and selection_indicator_content\n---\ntitle: 'Scheduled Task - Step 2: Process Creation'\nid: b0c2f12c-2e0b-50ef-a734-13d20a2ac234\nname: step2_process_creation\nlogsource:\n    category: process_creation\n    product: windows\ndetection:\n    selection_image:\n        Image|endswith:\n            - '\\schtasks.exe'\n            - '\\taskeng.exe'\n    condition: selection_image\n",
+      "pattern_type": "sigma",
+      "pattern_version": "2.0",
+      "valid_from": "2026-09-17T11:13:16.982Z",
+      "labels": [
+        "sigma-correlation-rule",
+        "draft",
+        "attack.t1053.005",
+        "sigma-level.high",
+        "quality.moderate",
+        "platform.windows"
+      ],
+      "confidence": 95,
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1053.005",
+          "url": "https://attack.mitre.org/techniques/T1053/005"
+        },
+        {
+          "source_name": "mitre-attack",
+          "url": "https://attack.mitre.org/detectionstrategies/DET0441"
+        },
+        {
+          "source_name": "mitre-attack",
+          "url": "https://attack.mitre.org/detectionstrategies/DET0441#AN1221"
+        },
+        {
+          "source_name": "reference",
+          "url": "https://www.proofpoint.com/us/blog/threat-insight/serpent-no-swiping-new-backdoor-targets-french-entities-unique-attack-chain"
+        },
+        {
+          "source_name": "reference",
+          "url": "https://blog.qualys.com/vulnerabilities-threat-research/2022/06/20/defending-against-scheduled-task-attacks-in-windows-environments"
+        },
+        {
+          "source_name": "reference",
+          "url": "https://x.com/leoloobeek/status/939248813465853953"
+        }
+      ],
+      "object_marking_refs": [
+        "marking-definition--613f2e26-407d-48c7-9eca-b8e91df99dc9"
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "execution"
+        },
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "persistence"
+        },
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "privilege-escalation"
+        }
+      ]
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--98e74224-6622-5716-af18-e374a0af574c",
+      "created_by_ref": "identity--ae680a5e-6d35-5cfc-b288-78d29d770eed",
+      "created": "2026-09-17T11:13:16.982Z",
+      "modified": "2026-09-17T11:13:16.982Z",
+      "relationship_type": "indicates",
+      "source_ref": "indicator--17d1b102-1c45-51fd-b38d-ec34371c621b",
+      "target_ref": "attack-pattern--005a06c6-14bf-4118-afa0-ebcd8aebb0c9",
+      "object_marking_refs": [
+        "marking-definition--613f2e26-407d-48c7-9eca-b8e91df99dc9"
+      ],
+      "description": "Draft Sigma correlation rule detecting T1053.005 (Scheduled Task)."
+    }
+  ]
+}

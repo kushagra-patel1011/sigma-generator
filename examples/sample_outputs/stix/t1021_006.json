@@ -1,0 +1,149 @@
+{
+  "type": "bundle",
+  "id": "bundle--1ddc82de-9220-578a-9f89-1afea2cc15b3",
+  "objects": [
+    {
+      "type": "marking-definition",
+      "spec_version": "2.1",
+      "id": "marking-definition--613f2e26-407d-48c7-9eca-b8e91df99dc9",
+      "created": "2017-01-20T00:00:00.000Z",
+      "definition_type": "tlp",
+      "name": "TLP:WHITE",
+      "definition": {
+        "tlp": "white"
+      }
+    },
+    {
+      "type": "identity",
+      "spec_version": "2.1",
+      "id": "identity--ae680a5e-6d35-5cfc-b288-78d29d770eed",
+      "created": "2026-09-17T11:13:17.102Z",
+      "modified": "2026-09-17T11:13:17.102Z",
+      "name": "sigma-generator",
+      "description": "Automated draft detection authoring (sigma-generator v1.1.0). Rules in this bundle are machine-generated from MITRE ATT&CK and require analyst review before deployment.",
+      "identity_class": "system"
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--60d0c01d-e2bf-49dd-a453-f8a9c9fa6f65",
+      "created": "2020-02-11T18:29:47.757Z",
+      "modified": "2025-10-24T17:48:51.000Z",
+      "name": "Windows Remote Management",
+      "description": "Adversaries may use Valid Accounts to interact with remote systems using Windows Remote Management (WinRM). The adversary may then perform actions as the logged-on user.\n\nWinRM is the name of both a Windows service and a protocol that allows a user to interact with a remote system (e.g., run an executable, modify the Registry, modify services). It may be called with the `winrm` command or by any number of programs such as PowerShell. WinRM can be used as a method of remotely interacting with Windows Management Instrumentation.",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1021.006",
+          "url": "https://attack.mitre.org/techniques/T1021/006"
+        },
+        {
+          "source_name": "Medium Detecting Lateral Movement",
+          "url": "https://medium.com/threatpunter/detecting-lateral-movement-using-sysmon-and-splunk-318d3be141bc"
+        },
+        {
+          "source_name": "Jacobsen 2014",
+          "url": "https://www.slideshare.net/kieranjacobsen/lateral-movement-with-power-shell-2"
+        },
+        {
+          "source_name": "MSDN WMI",
+          "url": "https://msdn.microsoft.com/en-us/library/aa394582.aspx"
+        },
+        {
+          "source_name": "Microsoft WinRM",
+          "url": "https://learn.microsoft.com/en-us/windows/win32/winrm/portal"
+        }
+      ],
+      "object_marking_refs": [
+        "marking-definition--613f2e26-407d-48c7-9eca-b8e91df99dc9"
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "lateral-movement"
+        }
+      ],
+      "x_mitre_platforms": [
+        "Windows"
+      ],
+      "x_mitre_is_subtechnique": true
+    },
+    {
+      "type": "indicator",
+      "spec_version": "2.1",
+      "id": "indicator--f9a1728a-2d37-50cc-adec-3087cdccdce4",
+      "created_by_ref": "identity--ae680a5e-6d35-5cfc-b288-78d29d770eed",
+      "created": "2026-09-17T11:13:17.102Z",
+      "modified": "2026-09-17T11:13:17.102Z",
+      "name": "Potential Windows Remote Management Activity Via Zeek Conn",
+      "description": "Draft Sigma rule for T1021.006 (Windows Remote Management). Log source: zeek/conn (resolved from network security monitoring (flow)). Rule quality: moderate - one behavioural signal - review for noise. Derived from ATT&CK detection strategy DET0477 / analytic AN1313. Machine-generated draft - validate against real telemetry before deployment.",
+      "indicator_types": [
+        "anomalous-activity"
+      ],
+      "pattern": "title: Potential Windows Remote Management Activity Via Zeek Conn\nid: f9a1728a-2d37-50cc-adec-3087cdccdce4\nstatus: experimental\ndescription: |\n    Draft detection for T1021.006 (Windows Remote Management), derived from ATT&CK detection\n    strategy DET0477 / analytic AN1313.\n    Adversaries may use Valid Accounts to interact with remote systems using Windows Remote\n    Management (WinRM). The adversary may then perform actions as the logged-on user.\n    ATT&CK analytic: Adversaries using WinRM to remotely execute commands, launch child processes,\n    or access WMI. The detection chain includes service use, network activity, remote session logon,\n    and process creation within a short temporal window.\n    Generated draft - the selection values below were mined from ATT&CK and must be validated\n    against real telemetry before this rule is deployed.\nreferences:\n    - https://attack.mitre.org/techniques/T1021/006\n    - https://attack.mitre.org/detectionstrategies/DET0477\n    - https://attack.mitre.org/detectionstrategies/DET0477#AN1313\n    - https://medium.com/threatpunter/detecting-lateral-movement-using-sysmon-and-splunk-318d3be141bc\n    - https://www.slideshare.net/kieranjacobsen/lateral-movement-with-power-shell-2\n    - https://msdn.microsoft.com/en-us/library/aa394582.aspx\nauthor: sigma-generator\ndate: 2026-09-17\ntags:\n    - attack.lateral-movement\n    - attack.t1021\n    - attack.t1021.006\nlogsource:\n    product: zeek\n    service: conn\ndetection:\n    selection_port:\n        id.resp_p:\n            - 5985\n            - 5986\n    condition: selection_port\nfields:\n    - id.orig_h\n    - id.resp_h\n    - id.resp_p\n    - proto\n    - service\nfalsepositives:\n    - 'Environment-specific tuning of TimeWindow: Defines max time between remote shell creation and child process execution (e.g., 60 seconds)'\n    - 'Environment-specific tuning of UserContext: Scope to unexpected remote user logons (non-admins, service accounts)'\n    - 'Environment-specific tuning of CommandLineAnomalyScore: Score for suspicious command usage via WinRM (e.g., encoded PowerShell)'\n    - Unknown\nlevel: medium\n",
+      "pattern_type": "sigma",
+      "pattern_version": "2.0",
+      "valid_from": "2026-09-17T11:13:17.102Z",
+      "labels": [
+        "sigma-rule",
+        "draft",
+        "attack.t1021.006",
+        "sigma-level.medium",
+        "quality.moderate",
+        "platform.windows"
+      ],
+      "confidence": 75,
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1021.006",
+          "url": "https://attack.mitre.org/techniques/T1021/006"
+        },
+        {
+          "source_name": "mitre-attack",
+          "url": "https://attack.mitre.org/detectionstrategies/DET0477"
+        },
+        {
+          "source_name": "mitre-attack",
+          "url": "https://attack.mitre.org/detectionstrategies/DET0477#AN1313"
+        },
+        {
+          "source_name": "reference",
+          "url": "https://medium.com/threatpunter/detecting-lateral-movement-using-sysmon-and-splunk-318d3be141bc"
+        },
+        {
+          "source_name": "reference",
+          "url": "https://www.slideshare.net/kieranjacobsen/lateral-movement-with-power-shell-2"
+        },
+        {
+          "source_name": "reference",
+          "url": "https://msdn.microsoft.com/en-us/library/aa394582.aspx"
+        }
+      ],
+      "object_marking_refs": [
+        "marking-definition--613f2e26-407d-48c7-9eca-b8e91df99dc9"
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "lateral-movement"
+        }
+      ]
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--aa625cab-9e6e-5c53-bb3b-dd5f97d88f1f",
+      "created_by_ref": "identity--ae680a5e-6d35-5cfc-b288-78d29d770eed",
+      "created": "2026-09-17T11:13:17.102Z",
+      "modified": "2026-09-17T11:13:17.102Z",
+      "relationship_type": "indicates",
+      "source_ref": "indicator--f9a1728a-2d37-50cc-adec-3087cdccdce4",
+      "target_ref": "attack-pattern--60d0c01d-e2bf-49dd-a453-f8a9c9fa6f65",
+      "object_marking_refs": [
+        "marking-definition--613f2e26-407d-48c7-9eca-b8e91df99dc9"
+      ],
+      "description": "Draft Sigma rule detecting T1021.006 (Windows Remote Management)."
+    }
+  ]
+}

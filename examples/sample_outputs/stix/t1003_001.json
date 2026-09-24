@@ -1,0 +1,230 @@
+{
+  "type": "bundle",
+  "id": "bundle--6b0f1c6e-66f0-5ee2-9d79-fb91c3e70d9c",
+  "objects": [
+    {
+      "type": "marking-definition",
+      "spec_version": "2.1",
+      "id": "marking-definition--613f2e26-407d-48c7-9eca-b8e91df99dc9",
+      "created": "2017-01-20T00:00:00.000Z",
+      "definition_type": "tlp",
+      "name": "TLP:WHITE",
+      "definition": {
+        "tlp": "white"
+      }
+    },
+    {
+      "type": "identity",
+      "spec_version": "2.1",
+      "id": "identity--ae680a5e-6d35-5cfc-b288-78d29d770eed",
+      "created": "2026-09-17T11:13:16.927Z",
+      "modified": "2026-09-17T11:13:16.927Z",
+      "name": "sigma-generator",
+      "description": "Automated draft detection authoring (sigma-generator v1.1.0). Rules in this bundle are machine-generated from MITRE ATT&CK and require analyst review before deployment.",
+      "identity_class": "system"
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--65f2d882-3f41-4d48-8a06-29af77ec9f90",
+      "created": "2020-02-11T18:41:44.783Z",
+      "modified": "2026-05-12T15:12:00.637Z",
+      "name": "LSASS Memory",
+      "description": "Adversaries may attempt to access credential material stored in the process memory of the Local Security Authority Subsystem Service (LSASS). After a user logs on, the system generates and stores a variety of credential materials in LSASS process memory. These credential materials can be harvested by an administrative user or SYSTEM and used to conduct Lateral Movement using Use Alternate Authentication Material.\n\nAs well as in-memory techniques, the LSASS process memory can be dumped from the target host and analyzed on a local system.\n\nFor example, on the target host use procdump:\n\n* procdump -ma lsass.exe lsass_dump\n\nLocally, mimikatz can be run using:\n\n* sekurlsa::Minidump lsassdump.dmp\n* sekurlsa::logonPasswords\n\nBuilt-in Windows tools such as `comsvcs.dll` can also be used:\n\n* rundll32.exe C:\\Windows\\System32\\comsvcs.dll MiniDump PID lsass.dmp full\n\nSimilar to Image File Execution Options Injection, the silent process exit mechanism can be abused to create a memory dump of `lsass.exe` through Windows Error Reporting (`WerFault.exe`).\n\nWindows Security Support Provider (SSP) DLLs are loaded into LSASS process at system start. Once loaded into the LSA, SSP DLLs have access to encrypted and plaintext passwords that are stored in Windows, such as any logged-on user's Domain password or smart card PINs. The SSP configuration is stored in two Registry keys: HKLM\\SYSTEM\\CurrentControlSet\\Control\\Lsa\\Security Packages and HKLM\\SYSTEM\\CurrentControlSet\\Control\\Lsa\\OSConfig\\Security Packages. An adversary may modify these Registry keys to add new SSPs, which will be loaded the next time the system boots, or when the AddSecurityPackage Windows API function is called.\n\nThe following SSPs can be used to access credentials:\n\n* Msv: Interactive logons, batch logons, and service logons are done through the MSV authentication package.\n* Wdigest: The Digest Authentication protocol is designed for use with Hypertext Transfer Protocol (HTTP) and Simple Authentication Security Layer (SASL) exchanges.\n* Kerberos: Preferred for mutual client-server domain authentication in Windows 2000 and later.\n* CredSSP: Provides SSO and Network Level Authentication for Remote Desktop Services.",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1003.001",
+          "url": "https://attack.mitre.org/techniques/T1003/001"
+        },
+        {
+          "source_name": "Medium Detecting Attempts to Steal Passwords from Memory",
+          "url": "https://medium.com/threatpunter/detecting-attempts-to-steal-passwords-from-memory-558f16dce4ea"
+        },
+        {
+          "source_name": "Deep Instinct LSASS",
+          "url": "https://www.deepinstinct.com/blog/lsass-memory-dumps-are-stealthier-than-ever-before-part-2"
+        },
+        {
+          "source_name": "Graeber 2014",
+          "url": "http://docplayer.net/20839173-Analysis-of-malicious-security-support-provider-dlls.html"
+        },
+        {
+          "source_name": "Volexity Exchange Marauder March 2021",
+          "url": "https://www.volexity.com/blog/2021/03/02/active-exploitation-of-microsoft-exchange-zero-day-vulnerabilities/"
+        },
+        {
+          "source_name": "Powersploit",
+          "url": "https://github.com/mattifestation/PowerSploit"
+        }
+      ],
+      "object_marking_refs": [
+        "marking-definition--613f2e26-407d-48c7-9eca-b8e91df99dc9"
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "credential-access"
+        }
+      ],
+      "x_mitre_platforms": [
+        "Windows"
+      ],
+      "x_mitre_is_subtechnique": true
+    },
+    {
+      "type": "indicator",
+      "spec_version": "2.1",
+      "id": "indicator--a6474e75-2aea-56e7-b098-95a0959555d6",
+      "created_by_ref": "identity--ae680a5e-6d35-5cfc-b288-78d29d770eed",
+      "created": "2026-09-17T11:13:16.927Z",
+      "modified": "2026-09-17T11:13:16.927Z",
+      "name": "Potential LSASS Memory Activity Via Process Access",
+      "description": "Draft Sigma rule for T1003.001 (LSASS Memory). Log source: process_access/windows (resolved from Sysmon EventCode 10). Rule quality: strong - two or more independent behavioural signals. Derived from ATT&CK detection strategy DET0363 / analytic AN1030. Machine-generated draft - validate against real telemetry before deployment.",
+      "indicator_types": [
+        "anomalous-activity"
+      ],
+      "pattern": "title: Potential LSASS Memory Activity Via Process Access\nid: a6474e75-2aea-56e7-b098-95a0959555d6\nstatus: experimental\ndescription: |\n    Draft detection for T1003.001 (LSASS Memory), derived from ATT&CK detection strategy DET0363 /\n    analytic AN1030.\n    Adversaries may attempt to access credential material stored in the process memory of the Local\n    Security Authority Subsystem Service (LSASS). After a user logs on, the system generates and\n    stores a variety of credential materials in LSASS process memory.\n    ATT&CK analytic: A non-privileged or abnormal process attempts to open a handle with full access\n    (0x1F0FFF) to lsass.exe and subsequently invokes memory dump, file creation, or registry\n    modification indicative of credential scraping. This behavior chain reflects staged credential\n    theft activity.\n    Generated draft - the selection values below were mined from ATT&CK and must be validated\n    against real telemetry before this rule is deployed.\nreferences:\n    - https://attack.mitre.org/techniques/T1003/001\n    - https://attack.mitre.org/detectionstrategies/DET0363\n    - https://attack.mitre.org/detectionstrategies/DET0363#AN1030\n    - https://medium.com/threatpunter/detecting-attempts-to-steal-passwords-from-memory-558f16dce4ea\n    - https://www.deepinstinct.com/blog/lsass-memory-dumps-are-stealthier-than-ever-before-part-2\n    - http://docplayer.net/20839173-Analysis-of-malicious-security-support-provider-dlls.html\nauthor: sigma-generator\ndate: 2026-09-17\ntags:\n    - attack.credential-access\n    - attack.t1003\n    - attack.t1003.001\nlogsource:\n    category: process_access\n    product: windows\ndetection:\n    selection_target:\n        TargetImage|endswith:\n            - '\\lsass.exe'\n    selection_indicator_source:\n        SourceImage|endswith:\n            - '\\mimikatz.exe'\n            - '\\procdump.exe'\n            - '\\rundll32.exe'\n            - '\\werfault.exe'\n    selection_indicator_access:\n        GrantedAccess:\n            - '0x1f0fff'\n    condition: selection_target and 1 of selection_indicator_*\nfields:\n    - SourceImage\n    - TargetImage\n    - GrantedAccess\n    - CallTrace\nfalsepositives:\n    - Legitimate administrative or software-deployment use of mimikatz.exe, procdump.exe, rundll32.exe\n    - 'Environment-specific tuning of AccessMask: Set to 0x1F0FFF to detect full memory access attempts; can be scoped down to reduce noise.'\n    - 'Environment-specific tuning of TimeWindow: Defines time between LSASS access and dump file creation or registry modification (e.g., 5 minutes).'\n    - 'Environment-specific tuning of ParentProcessName: Allowlist known legitimate tools (e.g., AV/EDR) accessing lsass.exe.'\n    - Unknown\nlevel: high\n",
+      "pattern_type": "sigma",
+      "pattern_version": "2.0",
+      "valid_from": "2026-09-17T11:13:16.927Z",
+      "labels": [
+        "sigma-rule",
+        "draft",
+        "attack.t1003.001",
+        "sigma-level.high",
+        "quality.strong",
+        "platform.windows"
+      ],
+      "confidence": 95,
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1003.001",
+          "url": "https://attack.mitre.org/techniques/T1003/001"
+        },
+        {
+          "source_name": "mitre-attack",
+          "url": "https://attack.mitre.org/detectionstrategies/DET0363"
+        },
+        {
+          "source_name": "mitre-attack",
+          "url": "https://attack.mitre.org/detectionstrategies/DET0363#AN1030"
+        },
+        {
+          "source_name": "reference",
+          "url": "https://medium.com/threatpunter/detecting-attempts-to-steal-passwords-from-memory-558f16dce4ea"
+        },
+        {
+          "source_name": "reference",
+          "url": "https://www.deepinstinct.com/blog/lsass-memory-dumps-are-stealthier-than-ever-before-part-2"
+        },
+        {
+          "source_name": "reference",
+          "url": "http://docplayer.net/20839173-Analysis-of-malicious-security-support-provider-dlls.html"
+        }
+      ],
+      "object_marking_refs": [
+        "marking-definition--613f2e26-407d-48c7-9eca-b8e91df99dc9"
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "credential-access"
+        }
+      ]
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--d83edad2-8edd-59c1-a9f6-7136ca614c34",
+      "created_by_ref": "identity--ae680a5e-6d35-5cfc-b288-78d29d770eed",
+      "created": "2026-09-17T11:13:16.927Z",
+      "modified": "2026-09-17T11:13:16.927Z",
+      "relationship_type": "indicates",
+      "source_ref": "indicator--a6474e75-2aea-56e7-b098-95a0959555d6",
+      "target_ref": "attack-pattern--65f2d882-3f41-4d48-8a06-29af77ec9f90",
+      "object_marking_refs": [
+        "marking-definition--613f2e26-407d-48c7-9eca-b8e91df99dc9"
+      ],
+      "description": "Draft Sigma rule detecting T1003.001 (LSASS Memory)."
+    },
+    {
+      "type": "indicator",
+      "spec_version": "2.1",
+      "id": "indicator--9821941c-37d2-5505-8575-7dae64c277c0",
+      "created_by_ref": "identity--ae680a5e-6d35-5cfc-b288-78d29d770eed",
+      "created": "2026-09-17T11:13:16.927Z",
+      "modified": "2026-09-17T11:13:16.927Z",
+      "name": "Potential LSASS Memory Attack Chain Via Process Access, Process Creation And Registry Modification",
+      "description": "Draft Sigma correlation rule for T1003.001 (LSASS Memory). Log sources: process_access/windows + process_creation/windows + registry_set/windows (resolved from Sysmon EventCode 10 + Sysmon EventCode 1 + Sysmon EventCode 13). Fires when 3 behaviours occur together within 5m; the pattern holds the correlation and its base rules. Rule quality: strong - two or more independent behavioural signals. Derived from ATT&CK detection strategy DET0363 / analytic AN1030. Machine-generated draft - validate against real telemetry before deployment.",
+      "indicator_types": [
+        "anomalous-activity"
+      ],
+      "pattern": "title: Potential LSASS Memory Attack Chain Via Process Access, Process Creation And Registry Modification\nid: 9821941c-37d2-5505-8575-7dae64c277c0\nstatus: experimental\ndescription: |\n    Draft correlation for T1003.001 (LSASS Memory). ATT&CK analytic AN1030 (strategy DET0363)\n    describes this technique as 3 observable behaviours; this rule fires when all of them occur on\n    the same host within 5m.\n    Steps: 1) Process Access; 2) Process Creation; 3) Registry Modification.\n    ATT&CK analytic: A non-privileged or abnormal process attempts to open a handle with full access\n    (0x1F0FFF) to lsass.exe and subsequently invokes memory dump, file creation, or registry\n    modification indicative of credential scraping. This behavior chain reflects staged credential\n    theft activity.\n    Generated draft - step selections were mined from ATT&CK and must be validated against real\n    telemetry before this rule is deployed.\nreferences:\n    - https://attack.mitre.org/techniques/T1003/001\n    - https://attack.mitre.org/detectionstrategies/DET0363\n    - https://attack.mitre.org/detectionstrategies/DET0363#AN1030\n    - https://medium.com/threatpunter/detecting-attempts-to-steal-passwords-from-memory-558f16dce4ea\n    - https://www.deepinstinct.com/blog/lsass-memory-dumps-are-stealthier-than-ever-before-part-2\n    - http://docplayer.net/20839173-Analysis-of-malicious-security-support-provider-dlls.html\nauthor: sigma-generator\ndate: 2026-09-17\ntags:\n    - attack.credential-access\n    - attack.t1003\n    - attack.t1003.001\ncorrelation:\n    type: temporal\n    rules:\n        - step1_process_access\n        - step2_process_creation\n        - step3_registry_set\n    group-by:\n        - Computer\n    timespan: 5m\nfalsepositives:\n    - Legitimate administrative or software-deployment use of mimikatz.exe, procdump.exe, rundll32.exe\n    - 'Environment-specific tuning of AccessMask: Set to 0x1F0FFF to detect full memory access attempts; can be scoped down to reduce noise.'\n    - 'Environment-specific tuning of TimeWindow: Defines time between LSASS access and dump file creation or registry modification (e.g., 5 minutes).'\n    - 'Environment-specific tuning of ParentProcessName: Allowlist known legitimate tools (e.g., AV/EDR) accessing lsass.exe.'\n    - Unknown\nlevel: critical\n---\ntitle: 'LSASS Memory - Step 1: Process Access'\nid: b54dfb5b-2e63-554a-b95e-75dc1e41a213\nname: step1_process_access\nlogsource:\n    category: process_access\n    product: windows\ndetection:\n    selection_target:\n        TargetImage|endswith:\n            - '\\lsass.exe'\n    selection_indicator_source:\n        SourceImage|endswith:\n            - '\\mimikatz.exe'\n            - '\\procdump.exe'\n            - '\\rundll32.exe'\n            - '\\werfault.exe'\n    selection_indicator_access:\n        GrantedAccess:\n            - '0x1f0fff'\n    condition: selection_target and 1 of selection_indicator_*\n---\ntitle: 'LSASS Memory - Step 2: Process Creation'\nid: 903978d7-841e-593f-9336-057c3cb185df\nname: step2_process_creation\nlogsource:\n    category: process_creation\n    product: windows\ndetection:\n    selection_indicator_content:\n        CommandLine|contains:\n            - comsvcs.dll\n            - Invoke-Mimikatz\n    condition: selection_indicator_content\n---\ntitle: 'LSASS Memory - Step 3: Registry Modification'\nid: 0e8970be-c7c1-5814-838e-7ca77ccbd370\nname: step3_registry_set\nlogsource:\n    category: registry_set\n    product: windows\ndetection:\n    selection_registry:\n        TargetObject|contains:\n            - '\\SYSTEM\\CurrentControlSet\\Control\\Lsa\\Security Packages'\n    condition: selection_registry\n",
+      "pattern_type": "sigma",
+      "pattern_version": "2.0",
+      "valid_from": "2026-09-17T11:13:16.927Z",
+      "labels": [
+        "sigma-correlation-rule",
+        "draft",
+        "attack.t1003.001",
+        "sigma-level.critical",
+        "quality.strong",
+        "platform.windows"
+      ],
+      "confidence": 95,
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1003.001",
+          "url": "https://attack.mitre.org/techniques/T1003/001"
+        },
+        {
+          "source_name": "mitre-attack",
+          "url": "https://attack.mitre.org/detectionstrategies/DET0363"
+        },
+        {
+          "source_name": "mitre-attack",
+          "url": "https://attack.mitre.org/detectionstrategies/DET0363#AN1030"
+        },
+        {
+          "source_name": "reference",
+          "url": "https://medium.com/threatpunter/detecting-attempts-to-steal-passwords-from-memory-558f16dce4ea"
+        },
+        {
+          "source_name": "reference",
+          "url": "https://www.deepinstinct.com/blog/lsass-memory-dumps-are-stealthier-than-ever-before-part-2"
+        },
+        {
+          "source_name": "reference",
+          "url": "http://docplayer.net/20839173-Analysis-of-malicious-security-support-provider-dlls.html"
+        }
+      ],
+      "object_marking_refs": [
+        "marking-definition--613f2e26-407d-48c7-9eca-b8e91df99dc9"
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "credential-access"
+        }
+      ]
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--22a125ae-1bb2-5f15-8512-ca8d3b71a7fd",
+      "created_by_ref": "identity--ae680a5e-6d35-5cfc-b288-78d29d770eed",
+      "created": "2026-09-17T11:13:16.927Z",
+      "modified": "2026-09-17T11:13:16.927Z",
+      "relationship_type": "indicates",
+      "source_ref": "indicator--9821941c-37d2-5505-8575-7dae64c277c0",
+      "target_ref": "attack-pattern--65f2d882-3f41-4d48-8a06-29af77ec9f90",
+      "object_marking_refs": [
+        "marking-definition--613f2e26-407d-48c7-9eca-b8e91df99dc9"
+      ],
+      "description": "Draft Sigma correlation rule detecting T1003.001 (LSASS Memory)."
+    }
+  ]
+}

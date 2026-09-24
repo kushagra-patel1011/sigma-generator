@@ -1,0 +1,153 @@
+{
+  "type": "bundle",
+  "id": "bundle--f3e96ed4-963c-56bf-a43d-c49d4e62b188",
+  "objects": [
+    {
+      "type": "marking-definition",
+      "spec_version": "2.1",
+      "id": "marking-definition--613f2e26-407d-48c7-9eca-b8e91df99dc9",
+      "created": "2017-01-20T00:00:00.000Z",
+      "definition_type": "tlp",
+      "name": "TLP:WHITE",
+      "definition": {
+        "tlp": "white"
+      }
+    },
+    {
+      "type": "identity",
+      "spec_version": "2.1",
+      "id": "identity--ae680a5e-6d35-5cfc-b288-78d29d770eed",
+      "created": "2026-09-17T11:13:16.838Z",
+      "modified": "2026-09-17T11:13:16.838Z",
+      "name": "sigma-generator",
+      "description": "Automated draft detection authoring (sigma-generator v1.1.0). Rules in this bundle are machine-generated from MITRE ATT&CK and require analyst review before deployment.",
+      "identity_class": "system"
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--970a3432-3237-47ad-bcca-7d8cbb217736",
+      "created": "2020-03-09T13:48:55.078Z",
+      "modified": "2026-05-12T15:12:00.706Z",
+      "name": "PowerShell",
+      "description": "Adversaries may abuse PowerShell commands and scripts for execution. PowerShell is a powerful interactive command-line interface and scripting environment included in the Windows operating system. Adversaries can use PowerShell to perform a number of actions, including discovery of information and execution of code. Examples include the Start-Process cmdlet which can be used to run an executable and the Invoke-Command cmdlet which runs a command locally or on a remote computer (though administrator permissions are required to use PowerShell to connect to remote systems).\n\nPowerShell may also be used to download and run executables from the Internet, which can be executed from disk or in memory without touching disk.\n\nA number of PowerShell-based offensive testing tools are available, including Empire, PowerSploit, PoshC2, and PSAttack.\n\nPowerShell commands/scripts can also be executed without directly invoking the powershell.exe binary through interfaces to PowerShell's underlying System.Management.Automation assembly DLL exposed through the .NET framework and Windows Common Language Interface (CLI).",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1059.001",
+          "url": "https://attack.mitre.org/techniques/T1059/001"
+        },
+        {
+          "source_name": "Microsoft PSfromCsharp APR 2014",
+          "url": "https://blogs.msdn.microsoft.com/kebab/2014/04/28/executing-powershell-scripts-from-c/"
+        },
+        {
+          "source_name": "SilentBreak Offensive PS Dec 2015",
+          "url": "https://web.archive.org/web/20190508170150/https://silentbreaksecurity.com/powershell-jobs-without-powershell-exe/"
+        },
+        {
+          "source_name": "FireEye PowerShell Logging 2016",
+          "url": "https://www.fireeye.com/blog/threat-research/2016/02/greater_visibilityt.html"
+        },
+        {
+          "source_name": "Github PSAttack",
+          "url": "https://github.com/Exploit-install/PSAttack-1"
+        },
+        {
+          "source_name": "inv_ps_attacks",
+          "url": "https://powershellmagazine.com/2014/07/16/investigating-powershell-attacks/"
+        }
+      ],
+      "object_marking_refs": [
+        "marking-definition--613f2e26-407d-48c7-9eca-b8e91df99dc9"
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "execution"
+        }
+      ],
+      "x_mitre_platforms": [
+        "Windows"
+      ],
+      "x_mitre_is_subtechnique": true
+    },
+    {
+      "type": "indicator",
+      "spec_version": "2.1",
+      "id": "indicator--88c4159b-e137-537a-b397-b22bdd211a52",
+      "created_by_ref": "identity--ae680a5e-6d35-5cfc-b288-78d29d770eed",
+      "created": "2026-09-17T11:13:16.838Z",
+      "modified": "2026-09-17T11:13:16.838Z",
+      "name": "Potential PowerShell Activity Via Process Creation",
+      "description": "Draft Sigma rule for T1059.001 (PowerShell). Log source: process_creation/windows (resolved from Sysmon EventCode 1). Rule quality: strong - two or more independent behavioural signals. Derived from ATT&CK detection strategy DET0455 / analytic AN1252. Machine-generated draft - validate against real telemetry before deployment.",
+      "indicator_types": [
+        "anomalous-activity"
+      ],
+      "pattern": "title: Potential PowerShell Activity Via Process Creation\nid: 88c4159b-e137-537a-b397-b22bdd211a52\nstatus: experimental\ndescription: |\n    Draft detection for T1059.001 (PowerShell), derived from ATT&CK detection strategy DET0455 /\n    analytic AN1252.\n    Adversaries may abuse PowerShell commands and scripts for execution. PowerShell is a powerful\n    interactive command-line interface and scripting environment included in the Windows operating\n    system.\n    ATT&CK analytic: Detects behavioral chains where PowerShell is launched with encoded commands,\n    unusual parent processes, or suspicious modules loaded, potentially followed by network\n    connections or child process spawning. Supports detection of both direct (powershell.exe) and\n    indirect (.NET automation) invocations.\n    Generated draft - the selection values below were mined from ATT&CK and must be validated\n    against real telemetry before this rule is deployed.\nreferences:\n    - https://attack.mitre.org/techniques/T1059/001\n    - https://attack.mitre.org/detectionstrategies/DET0455\n    - https://attack.mitre.org/detectionstrategies/DET0455#AN1252\n    - https://blogs.msdn.microsoft.com/kebab/2014/04/28/executing-powershell-scripts-from-c/\n    - https://web.archive.org/web/20190508170150/https://silentbreaksecurity.com/powershell-jobs-without-powershell-exe/\n    - https://www.fireeye.com/blog/threat-research/2016/02/greater_visibilityt.html\nauthor: sigma-generator\ndate: 2026-09-17\ntags:\n    - attack.execution\n    - attack.t1059\n    - attack.t1059.001\nlogsource:\n    category: process_creation\n    product: windows\ndetection:\n    selection_image:\n        Image|endswith:\n            - '\\mshta.exe'\n            - '\\powershell.exe'\n    selection_indicator_content:\n        CommandLine|contains:\n            - -enc\n            - -nop\n            - Invoke-Command\n            - Start-Process\n    condition: selection_image and selection_indicator_content\nfields:\n    - Image\n    - CommandLine\n    - ParentImage\n    - User\nfalsepositives:\n    - Legitimate administrative or software-deployment use of mshta.exe, powershell.exe\n    - 'Environment-specific tuning of CommandLinePattern: Regex pattern for encoded, obfuscated, or hidden PowerShell arguments (e.g., ''-enc'', ''-nop'').'\n    - 'Environment-specific tuning of ParentProcessName: Filter based on abnormal parents like Excel, WinWord, or mshta spawning PowerShell.'\n    - 'Environment-specific tuning of TimeWindow: Scope detection to off-hours, lateral movement timeframes, or non-maintenance windows.'\n    - Unknown\nlevel: medium\n",
+      "pattern_type": "sigma",
+      "pattern_version": "2.0",
+      "valid_from": "2026-09-17T11:13:16.838Z",
+      "labels": [
+        "sigma-rule",
+        "draft",
+        "attack.t1059.001",
+        "sigma-level.medium",
+        "quality.strong",
+        "platform.windows"
+      ],
+      "confidence": 95,
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1059.001",
+          "url": "https://attack.mitre.org/techniques/T1059/001"
+        },
+        {
+          "source_name": "mitre-attack",
+          "url": "https://attack.mitre.org/detectionstrategies/DET0455"
+        },
+        {
+          "source_name": "mitre-attack",
+          "url": "https://attack.mitre.org/detectionstrategies/DET0455#AN1252"
+        },
+        {
+          "source_name": "reference",
+          "url": "https://blogs.msdn.microsoft.com/kebab/2014/04/28/executing-powershell-scripts-from-c/"
+        },
+        {
+          "source_name": "reference",
+          "url": "https://web.archive.org/web/20190508170150/https://silentbreaksecurity.com/powershell-jobs-without-powershell-exe/"
+        },
+        {
+          "source_name": "reference",
+          "url": "https://www.fireeye.com/blog/threat-research/2016/02/greater_visibilityt.html"
+        }
+      ],
+      "object_marking_refs": [
+        "marking-definition--613f2e26-407d-48c7-9eca-b8e91df99dc9"
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "execution"
+        }
+      ]
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--b5a0832d-15a1-58b9-a5e9-f9861a690aa6",
+      "created_by_ref": "identity--ae680a5e-6d35-5cfc-b288-78d29d770eed",
+      "created": "2026-09-17T11:13:16.838Z",
+      "modified": "2026-09-17T11:13:16.838Z",
+      "relationship_type": "indicates",
+      "source_ref": "indicator--88c4159b-e137-537a-b397-b22bdd211a52",
+      "target_ref": "attack-pattern--970a3432-3237-47ad-bcca-7d8cbb217736",
+      "object_marking_refs": [
+        "marking-definition--613f2e26-407d-48c7-9eca-b8e91df99dc9"
+      ],
+      "description": "Draft Sigma rule detecting T1059.001 (PowerShell)."
+    }
+  ]
+}

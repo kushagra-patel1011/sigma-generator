@@ -1,0 +1,30 @@
+# ATT&CK cache (large, re-downloadable)
+data/*.json
+data/.attack-meta.json
+
+# Generated artefacts
+output/sigma/*.yml
+output/stix/*.json
+output/packs/
+
+# Local config
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Editors / OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db

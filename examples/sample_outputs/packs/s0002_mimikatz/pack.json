@@ -1,0 +1,3840 @@
+{
+  "profile": {
+    "id": "S0002",
+    "name": "Mimikatz",
+    "kind": "software",
+    "aliases": [],
+    "url": "https://attack.mitre.org/software/S0002",
+    "campaigns": [],
+    "description": "Mimikatz is a credential dumper capable of obtaining plaintext Windows account logins and passwords, along with many other features that make it useful for testing the security of networks."
+  },
+  "attack_version": "19.2",
+  "sigmahq_release": "r2026-07-01",
+  "generated_at": "2026-09-17T11:13:19.538Z",
+  "options": {
+    "with_campaigns": false,
+    "gaps_only": false,
+    "chains": true,
+    "include_skeletons": false
+  },
+  "summary": {
+    "techniques": 17,
+    "techniques_with_rules": 17,
+    "rules": 17,
+    "correlation_rules": 6,
+    "covered_by_sigmahq": 0,
+    "insufficient_evidence": 0,
+    "unmappable": 0,
+    "errors": 0,
+    "quality": {
+      "strong": 11,
+      "moderate": 3,
+      "weak": 9,
+      "placeholder": 0
+    }
+  },
+  "techniques": [
+    {
+      "id": "T1003.001",
+      "name": "LSASS Memory",
+      "tactics": [
+        "credential-access"
+      ],
+      "status": "generated",
+      "reason": "",
+      "procedures": [
+        "Mimikatz performs credential dumping to obtain account and password information useful in gaining access to additional systems and enterprise network resources. It contains functionality to acquire information about credentials in many ways, including from the LSASS Memory."
+      ],
+      "rules": [
+        {
+          "id": "23fdedb7-f2a0-58f8-8e77-134c8f16b05c",
+          "title": "Potential LSASS Memory Activity Via Process Access",
+          "file": "t1003_001_process_access_lsass_memory.yml",
+          "level": "high",
+          "logsource": "process_access/windows",
+          "quality": "strong",
+          "confidence": 0.95
+        }
+      ],
+      "chains": [
+        {
+          "id": "fe2fec7e-f102-5032-85c4-94fbc6a7a1b8",
+          "title": "Potential LSASS Memory Attack Chain Via Process Access, Process Creation And Registry Modification",
+          "file": "mr_t1003_001_an1030_lsass_memory.yml",
+          "level": "critical",
+          "kind": "chain",
+          "type": "temporal",
+          "quality": "strong",
+          "steps": 3,
+          "timespan": "5m"
+        }
+      ],
+      "sigmahq": {
+        "technique": {
+          "id": "T1003.001",
+          "name": "LSASS Memory"
+        },
+        "sigmahq_release": "r2026-07-01",
+        "status": "partial",
+        "coverage_ratio": 0.8,
+        "sigmahq_rules": [
+          {
+            "id": "e76c8240-d68f-4773-8880-5c6f63595aaf",
+            "title": "Time Travel Debugging Utility Usage - Image",
+            "logsource": "image_load/windows",
+            "status": "test",
+            "level": "high",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/image_load/image_load_dll_tttracer_module_load.yml"
+          },
+          {
+            "id": "857c8db3-c89b-42fb-882b-f681c7cf4da2",
+            "title": "Unsigned Image Loaded Into LSASS Process",
+            "logsource": "image_load/windows",
+            "status": "test",
+            "level": "medium",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/image_load/image_load_lsass_unsigned_image_load.yml"
+          },
+          {
+            "id": "bdc64095-d59a-42a2-8588-71fd9c9d9abc",
+            "title": "Suspicious Unsigned Dbghelp/Dbgcore DLL Loaded",
+            "logsource": "image_load/windows",
+            "status": "test",
+            "level": "high",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/image_load/image_load_dll_dbghelp_dbgcore_unsigned_load.yml"
+          },
+          {
+            "id": "8cde342c-ba48-4b74-b615-172c330f2e93",
+            "title": "Suspicious Renamed Comsvcs DLL Loaded By Rundll32",
+            "logsource": "image_load/windows",
+            "status": "test",
+            "level": "high",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/image_load/image_load_dll_comsvcs_load_renamed_version_by_rundll32.yml"
+          },
+          {
+            "id": "f239b326-2f41-4d6b-9dfa-c846a60ef505",
+            "title": "Password Dumper Remote Thread in LSASS",
+            "logsource": "create_remote_thread/windows",
+            "status": "stable",
+            "level": "high",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/create_remote_thread/create_remote_thread_win_susp_password_dumper_lsass.yml"
+          },
+          {
+            "id": "fb656378-f909-47c1-8747-278bf09f4f4f",
+            "title": "Potential Credential Dumping Attempt Via PowerShell Remote Thread",
+            "logsource": "create_remote_thread/windows",
+            "status": "test",
+            "level": "high",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/create_remote_thread/create_remote_thread_win_powershell_lsass.yml"
+          },
+          {
+            "id": "f8be3e82-46a3-4e4e-ada5-8e538ae8b9c9",
+            "title": "Credential Dumping Activity By Python Based Tool",
+            "logsource": "process_access/windows",
+            "status": "stable",
+            "level": "high",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/process_access/proc_access_win_lsass_python_based_tool.yml"
+          },
+          {
+            "id": "a18dd26b-6450-46de-8c91-9659150cf088",
+            "title": "Potentially Suspicious GrantedAccess Flags On LSASS",
+            "logsource": "process_access/windows",
+            "status": "test",
+            "level": "medium",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/process_access/proc_access_win_lsass_susp_access_flag.yml"
+          },
+          {
+            "id": "9f5c1d59-33be-4e60-bcab-85d2f566effd",
+            "title": "Suspicious Process Access to LSASS with Dbgcore/Dbghelp DLLs",
+            "logsource": "process_access/windows",
+            "status": "experimental",
+            "level": "high",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/process_access/proc_access_win_susp_dbgcore_dbghelp_load.yml"
+          },
+          {
+            "id": "4be8b654-0c01-4c9d-a10c-6b28467fc651",
+            "title": "LSASS Access From Potentially White-Listed Processes",
+            "logsource": "process_access/windows",
+            "status": "test",
+            "level": "high",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/process_access/proc_access_win_lsass_whitelisted_process_names.yml"
+          },
+          {
+            "id": "9bd012ee-0dff-44d7-84a0-aa698cfd87a3",
+            "title": "LSASS Memory Access by Tool With Dump Keyword In Name",
+            "logsource": "process_access/windows",
+            "status": "test",
+            "level": "high",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/process_access/proc_access_win_lsass_dump_keyword_image.yml"
+          },
+          {
+            "id": "b1bd3a59-c1fd-4860-9f40-4dd161a7d1f5",
+            "title": "HackTool - HandleKatz Duplicating LSASS Handle",
+            "logsource": "process_access/windows",
+            "status": "test",
+            "level": "high",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/process_access/proc_access_win_hktl_handlekatz_lsass_access.yml"
+          },
+          {
+            "id": "472159c5-31b9-4f56-b794-b766faa8b0a7",
+            "title": "Suspicious LSASS Access Via MalSecLogon",
+            "logsource": "process_access/windows",
+            "status": "test",
+            "level": "high",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/process_access/proc_access_win_lsass_seclogon_access.yml"
+          },
+          {
+            "id": "5ef9853e-4d0e-4a70-846f-a9ca37d876da",
+            "title": "Potential Credential Dumping Activity Via LSASS",
+            "logsource": "process_access/windows",
+            "status": "test",
+            "level": "medium",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/process_access/proc_access_win_lsass_memdump.yml"
+          },
+          {
+            "id": "e5b33f7d-eb93-48b6-9851-09e1e610b6d7",
+            "title": "Credential Dumping Attempt Via WerFault",
+            "logsource": "process_access/windows",
+            "status": "test",
+            "level": "high",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/process_access/proc_access_win_lsass_werfault.yml"
+          },
+          {
+            "id": "a49fa4d5-11db-418c-8473-1e014a8dd462",
+            "title": "Lsass Memory Dump via Comsvcs DLL",
+            "logsource": "process_access/windows",
+            "status": "test",
+            "level": "high",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/process_access/proc_access_win_lsass_dump_comsvcs_dll.yml"
+          },
+          {
+            "id": "d0d2f720-d14f-448d-8242-51ff396a334e",
+            "title": "HackTool - Generic Process Access",
+            "logsource": "process_access/windows",
+            "status": "test",
+            "level": "high",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/process_access/proc_access_win_hktl_generic_access.yml"
+          },
+          {
+            "id": "aa35a627-33fb-4d04-a165-d33b4afca3e8",
+            "title": "Remote LSASS Process Access Through Windows Remote Management",
+            "logsource": "process_access/windows",
+            "status": "stable",
+            "level": "high",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/process_access/proc_access_win_lsass_remote_access_trough_winrm.yml"
+          },
+          {
+            "id": "33efc23c-6ea2-4503-8cfe-bdf82ce8f719",
+            "title": "Lsass Full Dump Request Via DumpType Registry Settings",
+            "logsource": "registry_set/windows",
+            "status": "test",
+            "level": "high",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/registry/registry_set/registry_set_lsass_usermode_dumping.yml"
+          },
+          {
+            "id": "55e29995-75e7-451a-bef0-6225e2f13597",
+            "title": "Potential Credential Dumping Via LSASS SilentProcessExit Technique",
+            "logsource": "registry_event/windows",
+            "status": "test",
+            "level": "critical",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/registry/registry_event/registry_event_silentprocessexit_lsass.yml"
+          },
+          {
+            "id": "a6b33c02-8305-488f-8585-03cb2a7763f2",
+            "title": "Windows Credential Editor Registry",
+            "logsource": "registry_event/windows",
+            "status": "test",
+            "level": "critical",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/registry/registry_event/registry_event_hack_wce_reg.yml"
+          },
+          {
+            "id": "2704ab9e-afe2-4854-a3b1-0c0706d03578",
+            "title": "HackTool - Dumpert Process Dumper Execution",
+            "logsource": "process_creation/windows",
+            "status": "test",
+            "level": "critical",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/process_creation/proc_creation_win_hktl_dumpert.yml"
+          },
+          {
+            "id": "dee0a7a3-f200-4112-a99b-952196d81e42",
+            "title": "DumpMinitool Execution",
+            "logsource": "process_creation/windows",
+            "status": "test",
+            "level": "medium",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/process_creation/proc_creation_win_dumpminitool_execution.yml"
+          },
+          {
+            "id": "8a1b2c3d-4e5f-6789-abcd-ef1234567890",
+            "title": "PUA - Memory Dump Mount Via MemProcFS",
+            "logsource": "process_creation/windows",
+            "status": "experimental",
+            "level": "high",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/process_creation/proc_creation_win_pua_memprocfs.yml"
+          },
+          {
+            "id": "1a1ed54a-2ba4-4221-94d5-01dee560d71e",
+            "title": "Renamed CreateDump Utility Execution",
+            "logsource": "process_creation/windows",
+            "status": "test",
+            "level": "high",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/process_creation/proc_creation_win_renamed_createdump.yml"
+          },
+          {
+            "id": "1f0b4cac-9c81-41f4-95d0-8475ff46b3e2",
+            "title": "PPL Tampering Via WerFaultSecure",
+            "logsource": "process_creation/windows",
+            "status": "experimental",
+            "level": "high",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/process_creation/proc_creation_win_werfaultsecure_abuse.yml"
+          },
+          {
+            "id": "36d88494-1d43-4dc0-b3fa-35c8fea0ca9d",
+            "title": "HackTool - CreateMiniDump Execution",
+            "logsource": "process_creation/windows",
+            "status": "test",
+            "level": "high",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/process_creation/proc_creation_win_hktl_createminidump.yml"
+          },
+          {
+            "id": "2f869d59-7f6a-4931-992c-cce556ff2d53",
+            "title": "Potential Adplus.EXE Abuse",
+            "logsource": "process_creation/windows",
+            "status": "test",
+            "level": "high",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/process_creation/proc_creation_win_adplus_memory_dump.yml"
+          },
+          {
+            "id": "23ceaf5c-b6f1-4a32-8559-f2ff734be516",
+            "title": "Dumping Process via Sqldumper.exe",
+            "logsource": "process_creation/windows",
+            "status": "test",
+            "level": "medium",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/process_creation/proc_creation_win_lolbin_susp_sqldumper_activity.yml"
+          },
+          {
+            "id": "0b4ae027-2a2d-4b93-8c7e-962caaba5b2a",
+            "title": "Time Travel Debugging Utility Usage",
+            "logsource": "process_creation/windows",
+            "status": "test",
+            "level": "high",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/process_creation/proc_creation_win_lolbin_tttracer_mod_load.yml"
+          },
+          {
+            "id": "2e65275c-8288-4ab4-aeb7-6274f58b6b20",
+            "title": "Procdump Execution",
+            "logsource": "process_creation/windows",
+            "status": "test",
+            "level": "medium",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/process_creation/proc_creation_win_sysinternals_procdump.yml"
+          },
+          {
+            "id": "129966c9-de17-4334-a123-8b58172e664d",
+            "title": "Potential Windows Defender AV Bypass Via Dump64.EXE Rename",
+            "logsource": "process_creation/windows",
+            "status": "test",
+            "level": "high",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/process_creation/proc_creation_win_dump64_defender_av_bypass_rename.yml"
+          },
+          {
+            "id": "646ea171-dded-4578-8a4d-65e9822892e3",
+            "title": "Process Memory Dump Via Comsvcs.DLL",
+            "logsource": "process_creation/windows",
+            "status": "test",
+            "level": "high",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/process_creation/proc_creation_win_rundll32_process_dump_via_comsvcs.yml"
+          },
+          {
+            "id": "edadb1e5-5919-4e4c-8462-a9e643b02c4b",
+            "title": "Process Memory Dump via RdrLeakDiag.EXE",
+            "logsource": "process_creation/windows",
+            "status": "test",
+            "level": "high",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/process_creation/proc_creation_win_rdrleakdiag_process_dumping.yml"
+          },
+          {
+            "id": "9a4ccd1a-3526-4d99-b980-9f9c5d3a6ff3",
+            "title": "Potential Credential Dumping Via WER",
+            "logsource": "process_creation/windows",
+            "status": "test",
+            "level": "high",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/process_creation/proc_creation_win_werfault_lsass_shtinkering.yml"
+          },
+          {
+            "id": "ca621ba5-54ab-4035-9942-d378e6fcde3c",
+            "title": "HackTool - HandleKatz LSASS Dumper Execution",
+            "logsource": "process_creation/windows",
+            "status": "test",
+            "level": "high",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/process_creation/proc_creation_win_hktl_handlekatz.yml"
+          },
+          {
+            "id": "d474c8fe-bb69-4ea0-b7d9-f682b56d52d3",
+            "title": "HackTool - Doppelanger LSASS Dumper Execution",
+            "logsource": "process_creation/windows",
+            "status": "experimental",
+            "level": "high",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/process_creation/proc_creation_win_hktl_doppelganger.yml"
+          },
+          {
+            "id": "c8da0dfd-4ed0-4b68-962d-13c9c884384e",
+            "title": "Potential Credential Dumping Via LSASS Process Clone",
+            "logsource": "process_creation/windows",
+            "status": "test",
+            "level": "critical",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/process_creation/proc_creation_win_lsass_process_clone.yml"
+          },
+          {
+            "id": "515c8be5-e5df-4c5e-8f6d-a4a2f05e4b48",
+            "title": "CreateDump Process Dump",
+            "logsource": "process_creation/windows",
+            "status": "test",
+            "level": "high",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/process_creation/proc_creation_win_createdump_lolbin_execution.yml"
+          },
+          {
+            "id": "66e563f9-1cbd-4a22-a957-d8b7c0f44372",
+            "title": "HackTool - XORDump Execution",
+            "logsource": "process_creation/windows",
+            "status": "test",
+            "level": "high",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/process_creation/proc_creation_win_hktl_xordump.yml"
+          },
+          {
+            "id": "eb1c4225-1c23-4241-8dd4-051389fde4ce",
+            "title": "Suspicious DumpMinitool Execution",
+            "logsource": "process_creation/windows",
+            "status": "test",
+            "level": "high",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/process_creation/proc_creation_win_dumpminitool_susp_execution.yml"
+          },
+          {
+            "id": "589ac73f-8e12-409c-964e-31a2f5775ae2",
+            "title": "HackTool - WSASS Execution",
+            "logsource": "process_creation/windows",
+            "status": "experimental",
+            "level": "high",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/process_creation/proc_creation_win_hktl_wsass.yml"
+          },
+          {
+            "id": "7aa7009a-28b9-4344-8c1f-159489a390df",
+            "title": "HackTool - Windows Credential Editor (WCE) Execution",
+            "logsource": "process_creation/windows",
+            "status": "test",
+            "level": "critical",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/process_creation/proc_creation_win_hktl_wce.yml"
+          },
+          {
+            "id": "a642964e-bead-4bed-8910-1bb4d63e3b4d",
+            "title": "HackTool - Mimikatz Execution",
+            "logsource": "process_creation/windows",
+            "status": "test",
+            "level": "high",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/process_creation/proc_creation_win_hktl_mimikatz_command_line.yml"
+          },
+          {
+            "id": "b99a1518-1ad5-4f65-bc95-1ffff97a8fd0",
+            "title": "HackTool - Inveigh Execution",
+            "logsource": "process_creation/windows",
+            "status": "test",
+            "level": "critical",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/process_creation/proc_creation_win_hktl_inveigh.yml"
+          },
+          {
+            "id": "5afee48e-67dd-4e03-a783-f74259dcf998",
+            "title": "Potential LSASS Process Dump Via Procdump",
+            "logsource": "process_creation/windows",
+            "status": "stable",
+            "level": "high",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/process_creation/proc_creation_win_sysinternals_procdump_lsass.yml"
+          },
+          {
+            "id": "4c0aaedc-154c-4427-ada0-d80ef9c9deb6",
+            "title": "Process Access via TrolleyExpress Exclusion",
+            "logsource": "process_creation/windows",
+            "status": "test",
+            "level": "high",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/process_creation/proc_creation_win_citrix_trolleyexpress_procdump.yml"
+          },
+          {
+            "id": "79b06761-465f-4f88-9ef2-150e24d3d737",
+            "title": "Potential SysInternals ProcDump Evasion",
+            "logsource": "process_creation/windows",
+            "status": "test",
+            "level": "high",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/process_creation/proc_creation_win_sysinternals_procdump_evasion.yml"
+          },
+          {
+            "id": "f26307d8-14cd-47e3-a26b-4b4769f24af6",
+            "title": "HackTool - CrackMapExec Process Patterns",
+            "logsource": "process_creation/windows",
+            "status": "test",
+            "level": "high",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/process_creation/proc_creation_win_hktl_crackmapexec_patterns.yml"
+          },
+          {
+            "id": "ffa6861c-4461-4f59-8a41-578c39f3f23e",
+            "title": "LSASS Dump Keyword In CommandLine",
+            "logsource": "process_creation/windows",
+            "status": "test",
+            "level": "high",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/process_creation/proc_creation_win_susp_lsass_dmp_cli_keywords.yml"
+          },
+          {
+            "id": "b1876533-4ed5-4a83-90f3-b8645840a413",
+            "title": "HackTool - SafetyKatz Execution",
+            "logsource": "process_creation/windows",
+            "status": "test",
+            "level": "critical",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/process_creation/proc_creation_win_hktl_safetykatz.yml"
+          },
+          {
+            "id": "06d71506-7beb-4f22-8888-e2e5e2ca7fd8",
+            "title": "Mimikatz Use",
+            "logsource": "windows",
+            "status": "test",
+            "level": "high",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/builtin/win_alert_mimikatz_keywords.yml"
+          },
+          {
+            "id": "4976aa50-8f41-45c6-8b15-ab3fc10e79ed",
+            "title": "Credential Dumping Tools Service Execution - System",
+            "logsource": "windows/system",
+            "status": "test",
+            "level": "high",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/builtin/system/service_control_manager/win_system_mal_creddumper.yml"
+          },
+          {
+            "id": "910ab938-668b-401b-b08c-b596e80fdca5",
+            "title": "Transferring Files with Credential Data via Network Shares",
+            "logsource": "windows/security",
+            "status": "test",
+            "level": "medium",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/builtin/security/win_security_transf_files_with_cred_data_via_network_shares.yml"
+          },
+          {
+            "id": "4a1b6da0-d94f-4fc3-98fc-2d9cb9e5ee76",
+            "title": "Potentially Suspicious AccessMask Requested From LSASS",
+            "logsource": "windows/security",
+            "status": "test",
+            "level": "medium",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/builtin/security/win_security_susp_lsass_dump_generic.yml"
+          },
+          {
+            "id": "f0d1feba-4344-4ca9-8121-a6c97bd6df52",
+            "title": "Credential Dumping Tools Service Execution - Security",
+            "logsource": "windows/security",
+            "status": "test",
+            "level": "high",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/builtin/security/win_security_mal_creddumper.yml"
+          },
+          {
+            "id": "aa1697b7-d611-4f9a-9cb2-5125b4ccfd5c",
+            "title": "Password Dumper Activity on LSASS",
+            "logsource": "windows/security",
+            "status": "test",
+            "level": "high",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/builtin/security/win_security_susp_lsass_dump.yml"
+          },
+          {
+            "id": "962fe167-e48d-4fd6-9974-11e5b9a5d6d1",
+            "title": "LSASS Access From Non System Account",
+            "logsource": "windows/security",
+            "status": "test",
+            "level": "medium",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/builtin/security/win_security_lsass_access_non_system_account.yml"
+          },
+          {
+            "id": "a0a278fe-2c0e-4de2-ac3c-c68b08a9ba98",
+            "title": "LSASS Access Detected via Attack Surface Reduction",
+            "logsource": "windows/windefend",
+            "status": "test",
+            "level": "high",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/builtin/windefend/win_defender_asr_lsass_access.yml"
+          },
+          {
+            "id": "a18e0862-127b-43ca-be12-1a542c75c7c5",
+            "title": "LSASS Process Crashed - Application",
+            "logsource": "windows/application",
+            "status": "experimental",
+            "level": "high",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/builtin/application/application_error/win_application_error_lsass_crash.yml"
+          },
+          {
+            "id": "84c174ab-d3ef-481f-9c86-a50d0b8e3edb",
+            "title": "PowerShell Get-Process LSASS in ScriptBlock",
+            "logsource": "ps_script/windows",
+            "status": "test",
+            "level": "high",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/powershell/powershell_script/posh_ps_susp_getprocess_lsass.yml"
+          },
+          {
+            "id": "961d0ba2-3eea-4303-a930-2cf78bbfcc5e",
+            "title": "HackTool - Credential Dumping Tools Named Pipe Created",
+            "logsource": "pipe_created/windows",
+            "status": "test",
+            "level": "critical",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/pipe_created/pipe_created_hktl_generic_cred_dump_tools_pipes.yml"
+          },
+          {
+            "id": "c3e76af5-4ce0-4a14-9c9a-25ceb8fda182",
+            "title": "WerFault LSASS Process Memory Dump",
+            "logsource": "file_event/windows",
+            "status": "test",
+            "level": "high",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/file/file_event/file_event_win_lsass_werfault_dump.yml"
+          },
+          {
+            "id": "93d94efc-d7ad-4161-ad7d-1638c4f908d8",
+            "title": "HackTool - Dumpert Process Dumper Default File",
+            "logsource": "file_event/windows",
+            "status": "test",
+            "level": "critical",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/file/file_event/file_event_win_hktl_dumpert.yml"
+          },
+          {
+            "id": "736ffa74-5f6f-44ca-94ef-1c0df4f51d2a",
+            "title": "HackTool - CrackMapExec File Indicators",
+            "logsource": "file_event/windows",
+            "status": "test",
+            "level": "high",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/file/file_event/file_event_win_hktl_crackmapexec_indicators.yml"
+          },
+          {
+            "id": "e074832a-eada-4fd7-94a1-10642b130e16",
+            "title": "HackTool - SafetyKatz Dump Indicator",
+            "logsource": "file_event/windows",
+            "status": "test",
+            "level": "high",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/file/file_event/file_event_win_hktl_safetykatz.yml"
+          },
+          {
+            "id": "69ca12af-119d-44ed-b50f-a47af0ebc364",
+            "title": "LSASS Process Memory Dump Creation Via Taskmgr.EXE",
+            "logsource": "file_event/windows",
+            "status": "test",
+            "level": "high",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/file/file_event/file_event_win_taskmgr_lsass_dump.yml"
+          },
+          {
+            "id": "8fbf3271-1ef6-4e94-8210-03c2317947f6",
+            "title": "Cred Dump Tools Dropped Files",
+            "logsource": "file_event/windows",
+            "status": "test",
+            "level": "high",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/file/file_event/file_event_win_cred_dump_tools_dropped_files.yml"
+          },
+          {
+            "id": "6902955a-01b7-432c-b32a-6f5f81d8f625",
+            "title": "LSASS Process Dump Artefact In CrashDumps Folder",
+            "logsource": "file_event/windows",
+            "status": "test",
+            "level": "high",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/file/file_event/file_event_win_lsass_shtinkering.yml"
+          },
+          {
+            "id": "a5a2d357-1ab8-4675-a967-ef9990a59391",
+            "title": "LSASS Process Memory Dump Files",
+            "logsource": "file_event/windows",
+            "status": "test",
+            "level": "high",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/file/file_event/file_event_win_lsass_default_dump_file_names.yml"
+          },
+          {
+            "id": "03f4ca17-de95-428d-a75a-4ee78b047256",
+            "title": "HackTool - Impacket File Indicators",
+            "logsource": "file_event/windows",
+            "status": "experimental",
+            "level": "high",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/file/file_event/file_event_win_impacket_file_indicators.yml"
+          },
+          {
+            "id": "78cc2dd2-7d20-4d32-93ff-057084c38b93",
+            "title": "Antivirus - Password Dumper Signature",
+            "logsource": "antivirus",
+            "status": "stable",
+            "level": "critical",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/category/antivirus/av_password_dumper.yml"
+          },
+          {
+            "id": "2e69f167-47b5-4ae7-a390-47764529eff5",
+            "title": "Transferring Files with Credential Data via Network Shares - Zeek",
+            "logsource": "zeek/smb_files",
+            "status": "test",
+            "level": "medium",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/network/zeek/zeek_smb_converted_win_transferring_files_with_credential_data.yml"
+          },
+          {
+            "id": "79aeeb41-8156-4fac-a0cd-076495ab82a1",
+            "title": "NotPetya Ransomware Activity",
+            "logsource": "process_creation/windows",
+            "status": "test",
+            "level": "critical",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules-emerging-threats/2017/Malware/NotPetya/proc_creation_win_malware_notpetya.yml"
+          },
+          {
+            "id": "03e2746e-2b31-42f1-ab7a-eb39365b2422",
+            "title": "APT31 Judgement Panda Activity",
+            "logsource": "process_creation/windows",
+            "status": "test",
+            "level": "critical",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules-emerging-threats/2019/TA/APT31/proc_creation_win_apt_apt31_judgement_panda.yml"
+          }
+        ],
+        "related_rules": 30,
+        "sources": [
+          {
+            "analytic": "AN1030",
+            "platform": "Windows",
+            "attack_log_source": "WinEventLog:Sysmon (EventCode=10)",
+            "sigma_logsource": {
+              "category": "process_access",
+              "product": "windows"
+            },
+            "usable": true,
+            "covered_by": [
+              "f8be3e82-46a3-4e4e-ada5-8e538ae8b9c9",
+              "a18dd26b-6450-46de-8c91-9659150cf088",
+              "9f5c1d59-33be-4e60-bcab-85d2f566effd",
+              "4be8b654-0c01-4c9d-a10c-6b28467fc651",
+              "9bd012ee-0dff-44d7-84a0-aa698cfd87a3",
+              "b1bd3a59-c1fd-4860-9f40-4dd161a7d1f5",
+              "472159c5-31b9-4f56-b794-b766faa8b0a7",
+              "5ef9853e-4d0e-4a70-846f-a9ca37d876da",
+              "e5b33f7d-eb93-48b6-9851-09e1e610b6d7",
+              "a49fa4d5-11db-418c-8473-1e014a8dd462",
+              "d0d2f720-d14f-448d-8242-51ff396a334e",
+              "aa35a627-33fb-4d04-a165-d33b4afca3e8"
+            ]
+          },
+          {
+            "analytic": "AN1030",
+            "platform": "Windows",
+            "attack_log_source": "WinEventLog:Sysmon (EventCode=1)",
+            "sigma_logsource": {
+              "category": "process_creation",
+              "product": "windows"
+            },
+            "usable": true,
+            "covered_by": [
+              "2704ab9e-afe2-4854-a3b1-0c0706d03578",
+              "dee0a7a3-f200-4112-a99b-952196d81e42",
+              "8a1b2c3d-4e5f-6789-abcd-ef1234567890",
+              "1a1ed54a-2ba4-4221-94d5-01dee560d71e",
+              "1f0b4cac-9c81-41f4-95d0-8475ff46b3e2",
+              "36d88494-1d43-4dc0-b3fa-35c8fea0ca9d",
+              "2f869d59-7f6a-4931-992c-cce556ff2d53",
+              "23ceaf5c-b6f1-4a32-8559-f2ff734be516",
+              "0b4ae027-2a2d-4b93-8c7e-962caaba5b2a",
+              "2e65275c-8288-4ab4-aeb7-6274f58b6b20",
+              "129966c9-de17-4334-a123-8b58172e664d",
+              "646ea171-dded-4578-8a4d-65e9822892e3",
+              "edadb1e5-5919-4e4c-8462-a9e643b02c4b",
+              "9a4ccd1a-3526-4d99-b980-9f9c5d3a6ff3",
+              "ca621ba5-54ab-4035-9942-d378e6fcde3c",
+              "d474c8fe-bb69-4ea0-b7d9-f682b56d52d3",
+              "c8da0dfd-4ed0-4b68-962d-13c9c884384e",
+              "515c8be5-e5df-4c5e-8f6d-a4a2f05e4b48",
+              "66e563f9-1cbd-4a22-a957-d8b7c0f44372",
+              "eb1c4225-1c23-4241-8dd4-051389fde4ce",
+              "589ac73f-8e12-409c-964e-31a2f5775ae2",
+              "7aa7009a-28b9-4344-8c1f-159489a390df",
+              "a642964e-bead-4bed-8910-1bb4d63e3b4d",
+              "b99a1518-1ad5-4f65-bc95-1ffff97a8fd0",
+              "5afee48e-67dd-4e03-a783-f74259dcf998",
+              "4c0aaedc-154c-4427-ada0-d80ef9c9deb6",
+              "79b06761-465f-4f88-9ef2-150e24d3d737",
+              "f26307d8-14cd-47e3-a26b-4b4769f24af6",
+              "ffa6861c-4461-4f59-8a41-578c39f3f23e",
+              "b1876533-4ed5-4a83-90f3-b8645840a413",
+              "79aeeb41-8156-4fac-a0cd-076495ab82a1",
+              "03e2746e-2b31-42f1-ab7a-eb39365b2422"
+            ]
+          },
+          {
+            "analytic": "AN1030",
+            "platform": "Windows",
+            "attack_log_source": "WinEventLog:Sysmon (EventCode=11)",
+            "sigma_logsource": {
+              "category": "file_event",
+              "product": "windows"
+            },
+            "usable": true,
+            "covered_by": [
+              "c3e76af5-4ce0-4a14-9c9a-25ceb8fda182",
+              "93d94efc-d7ad-4161-ad7d-1638c4f908d8",
+              "736ffa74-5f6f-44ca-94ef-1c0df4f51d2a",
+              "e074832a-eada-4fd7-94a1-10642b130e16",
+              "69ca12af-119d-44ed-b50f-a47af0ebc364",
+              "8fbf3271-1ef6-4e94-8210-03c2317947f6",
+              "6902955a-01b7-432c-b32a-6f5f81d8f625",
+              "a5a2d357-1ab8-4675-a967-ef9990a59391",
+              "03f4ca17-de95-428d-a75a-4ee78b047256"
+            ]
+          },
+          {
+            "analytic": "AN1030",
+            "platform": "Windows",
+            "attack_log_source": "WinEventLog:Security (EventCode=4673)",
+            "sigma_logsource": {
+              "product": "windows",
+              "service": "security"
+            },
+            "usable": true,
+            "covered_by": []
+          },
+          {
+            "analytic": "AN1030",
+            "platform": "Windows",
+            "attack_log_source": "WinEventLog:Sysmon (EventCode=13, 14)",
+            "sigma_logsource": {
+              "category": "registry_set",
+              "product": "windows"
+            },
+            "usable": true,
+            "covered_by": [
+              "33efc23c-6ea2-4503-8cfe-bdf82ce8f719",
+              "55e29995-75e7-451a-bef0-6225e2f13597",
+              "a6b33c02-8305-488f-8585-03cb2a7763f2"
+            ]
+          }
+        ],
+        "gaps": [
+          {
+            "analytic": "AN1030",
+            "attack_log_source": "WinEventLog:Security (EventCode=4673)",
+            "sigma_logsource": {
+              "product": "windows",
+              "service": "security"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "T1003.002",
+      "name": "Security Account Manager",
+      "tactics": [
+        "credential-access"
+      ],
+      "status": "generated",
+      "reason": "",
+      "procedures": [
+        "Mimikatz performs credential dumping to obtain account and password information useful in gaining access to additional systems and enterprise network resources. It contains functionality to acquire information about credentials in many ways, including from the SAM table."
+      ],
+      "rules": [
+        {
+          "id": "d74e5808-ee3e-5ee1-baa8-c59add490b88",
+          "title": "Potential Security Account Manager Activity Via Process Creation",
+          "file": "t1003_002_process_creation_security_account_manager.yml",
+          "level": "high",
+          "logsource": "process_creation/windows",
+          "quality": "strong",
+          "confidence": 0.95
+        }
+      ],
+      "chains": [
+        {
+          "id": "17629af3-434b-5823-a0d9-58f8c4982a9e",
+          "title": "Potential Security Account Manager Attack Chain Via 4 Correlated Log Sources",
+          "file": "mr_t1003_002_an0235_security_account_manager.yml",
+          "level": "high",
+          "kind": "chain",
+          "type": "temporal",
+          "quality": "moderate",
+          "steps": 4,
+          "timespan": "3m"
+        }
+      ],
+      "sigmahq": {
+        "technique": {
+          "id": "T1003.002",
+          "name": "Security Account Manager"
+        },
+        "sigmahq_release": "r2026-07-01",
+        "status": "partial",
+        "coverage_ratio": 0.75,
+        "sigmahq_rules": [
+          {
+            "id": "5aad0995-46ab-41bd-a9ff-724f41114971",
+            "title": "Esentutl Volume Shadow Copy Service Keys",
+            "logsource": "registry_event/windows",
+            "status": "test",
+            "level": "high",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/registry/registry_event/registry_event_esentutl_volume_shadow_copy_service_keys.yml"
+          },
+          {
+            "id": "e7be6119-fc37-43f0-ad4f-1f3f99be2f9f",
+            "title": "Copying Sensitive Files with Credential Data",
+            "logsource": "process_creation/windows",
+            "status": "test",
+            "level": "high",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/process_creation/proc_creation_win_esentutl_sensitive_file_copy.yml"
+          },
+          {
+            "id": "8a1b2c3d-4e5f-6789-abcd-ef1234567890",
+            "title": "PUA - Memory Dump Mount Via MemProcFS",
+            "logsource": "process_creation/windows",
+            "status": "experimental",
+            "level": "high",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/process_creation/proc_creation_win_pua_memprocfs.yml"
+          },
+          {
+            "id": "40b19fa6-d835-400c-b301-41f3a2baacaf",
+            "title": "VolumeShadowCopy Symlink Creation Via Mklink",
+            "logsource": "process_creation/windows",
+            "status": "stable",
+            "level": "high",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/process_creation/proc_creation_win_cmd_mklink_shadow_copies_access_symlink.yml"
+          },
+          {
+            "id": "2fcda7e2-8c57-4904-86ac-37fc3157e09d",
+            "title": "Sensitive File Dump Via Print.EXE",
+            "logsource": "process_creation/windows",
+            "status": "test",
+            "level": "high",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/process_creation/proc_creation_win_print_dump_sensitive_files.yml"
+          },
+          {
+            "id": "a642964e-bead-4bed-8910-1bb4d63e3b4d",
+            "title": "HackTool - Mimikatz Execution",
+            "logsource": "process_creation/windows",
+            "status": "test",
+            "level": "high",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/process_creation/proc_creation_win_hktl_mimikatz_command_line.yml"
+          },
+          {
+            "id": "b17ea6f7-6e90-447e-a799-e6c0a493d6ce",
+            "title": "Shadow Copies Creation Using Operating Systems Utilities",
+            "logsource": "process_creation/windows",
+            "status": "test",
+            "level": "medium",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/process_creation/proc_creation_win_susp_shadow_copies_creation.yml"
+          },
+          {
+            "id": "a29808fd-ef50-49ff-9c7a-59a9b040b404",
+            "title": "HackTool - Pypykatz Credentials Dumping Activity",
+            "logsource": "process_creation/windows",
+            "status": "test",
+            "level": "high",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/process_creation/proc_creation_win_hktl_pypykatz.yml"
+          },
+          {
+            "id": "fd877b94-9bb5-4191-bb25-d79cbd93c167",
+            "title": "Dumping of Sensitive Hives Via Reg.EXE",
+            "logsource": "process_creation/windows",
+            "status": "test",
+            "level": "high",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/process_creation/proc_creation_win_reg_dumping_sensitive_hives.yml"
+          },
+          {
+            "id": "1af57a4b-460a-4738-9034-db68b880c665",
+            "title": "PowerShell SAM Copy",
+            "logsource": "process_creation/windows",
+            "status": "test",
+            "level": "high",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/process_creation/proc_creation_win_powershell_sam_access.yml"
+          },
+          {
+            "id": "0685b176-c816-4837-8e7b-1216f346636b",
+            "title": "HackTool - Quarks PwDump Execution",
+            "logsource": "process_creation/windows",
+            "status": "test",
+            "level": "high",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/process_creation/proc_creation_win_hktl_quarks_pwdump.yml"
+          },
+          {
+            "id": "06d71506-7beb-4f22-8888-e2e5e2ca7fd8",
+            "title": "Mimikatz Use",
+            "logsource": "windows",
+            "status": "test",
+            "level": "high",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/builtin/win_alert_mimikatz_keywords.yml"
+          },
+          {
+            "id": "39f919f3-980b-4e6f-a975-8af7e507ef2b",
+            "title": "Critical Hive In Suspicious Location Access Bits Cleared",
+            "logsource": "windows/system",
+            "status": "test",
+            "level": "high",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/builtin/system/microsoft_windows_kernel_general/win_system_susp_critical_hive_location_access_bits_cleared.yml"
+          },
+          {
+            "id": "4976aa50-8f41-45c6-8b15-ab3fc10e79ed",
+            "title": "Credential Dumping Tools Service Execution - System",
+            "logsource": "windows/system",
+            "status": "test",
+            "level": "high",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/builtin/system/service_control_manager/win_system_mal_creddumper.yml"
+          },
+          {
+            "id": "882fbe50-d8d7-4e29-ae80-0648a8556866",
+            "title": "Crash Dump Created By Operating System",
+            "logsource": "windows/system",
+            "status": "experimental",
+            "level": "medium",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/builtin/system/microsoft_windows_wer_systemerrorreporting/win_system_crash_dump_created.yml"
+          },
+          {
+            "id": "252902e3-5830-4cf6-bf21-c22083dfd5cf",
+            "title": "Possible Impacket SecretDump Remote Activity",
+            "logsource": "windows/security",
+            "status": "test",
+            "level": "high",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/builtin/security/win_security_impacket_secretdump.yml"
+          },
+          {
+            "id": "910ab938-668b-401b-b08c-b596e80fdca5",
+            "title": "Transferring Files with Credential Data via Network Shares",
+            "logsource": "windows/security",
+            "status": "test",
+            "level": "medium",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/builtin/security/win_security_transf_files_with_cred_data_via_network_shares.yml"
+          },
+          {
+            "id": "f0d1feba-4344-4ca9-8121-a6c97bd6df52",
+            "title": "Credential Dumping Tools Service Execution - Security",
+            "logsource": "windows/security",
+            "status": "test",
+            "level": "high",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/builtin/security/win_security_mal_creddumper.yml"
+          },
+          {
+            "id": "961d0ba2-3eea-4303-a930-2cf78bbfcc5e",
+            "title": "HackTool - Credential Dumping Tools Named Pipe Created",
+            "logsource": "pipe_created/windows",
+            "status": "test",
+            "level": "critical",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/pipe_created/pipe_created_hktl_generic_cred_dump_tools_pipes.yml"
+          },
+          {
+            "id": "847def9e-924d-4e90-b7c4-5f581395a2b4",
+            "title": "HackTool - QuarksPwDump Dump File",
+            "logsource": "file_event/windows",
+            "status": "test",
+            "level": "critical",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/file/file_event/file_event_win_hktl_quarkspw_filedump.yml"
+          },
+          {
+            "id": "8fbf3271-1ef6-4e94-8210-03c2317947f6",
+            "title": "Cred Dump Tools Dropped Files",
+            "logsource": "file_event/windows",
+            "status": "test",
+            "level": "high",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/file/file_event/file_event_win_cred_dump_tools_dropped_files.yml"
+          },
+          {
+            "id": "11b1ed55-154d-4e82-8ad7-83739298f720",
+            "title": "NTDS.DIT Creation By Uncommon Process",
+            "logsource": "file_event/windows",
+            "status": "test",
+            "level": "high",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/file/file_event/file_event_win_ntds_dit_uncommon_process.yml"
+          },
+          {
+            "id": "4e87b8e2-2ee9-4b2a-a715-4727d297ece0",
+            "title": "Potential SAM Database Dump",
+            "logsource": "file_event/windows",
+            "status": "test",
+            "level": "high",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/file/file_event/file_event_win_sam_dump.yml"
+          },
+          {
+            "id": "78cc2dd2-7d20-4d32-93ff-057084c38b93",
+            "title": "Antivirus - Password Dumper Signature",
+            "logsource": "antivirus",
+            "status": "stable",
+            "level": "critical",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/category/antivirus/av_password_dumper.yml"
+          },
+          {
+            "id": "2e69f167-47b5-4ae7-a390-47764529eff5",
+            "title": "Transferring Files with Credential Data via Network Shares - Zeek",
+            "logsource": "zeek/smb_files",
+            "status": "test",
+            "level": "medium",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/network/zeek/zeek_smb_converted_win_transferring_files_with_credential_data.yml"
+          },
+          {
+            "id": "92dae1ed-1c9d-4eff-a567-33acbd95b00e",
+            "title": "Possible Impacket SecretDump Remote Activity - Zeek",
+            "logsource": "zeek/smb_files",
+            "status": "test",
+            "level": "high",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/network/zeek/zeek_smb_converted_win_impacket_secretdump.yml"
+          }
+        ],
+        "related_rules": 30,
+        "sources": [
+          {
+            "analytic": "AN0235",
+            "platform": "Windows",
+            "attack_log_source": "WinEventLog:Security (EventCode=4688)",
+            "sigma_logsource": {
+              "category": "process_creation",
+              "product": "windows"
+            },
+            "usable": true,
+            "covered_by": [
+              "e7be6119-fc37-43f0-ad4f-1f3f99be2f9f",
+              "8a1b2c3d-4e5f-6789-abcd-ef1234567890",
+              "40b19fa6-d835-400c-b301-41f3a2baacaf",
+              "2fcda7e2-8c57-4904-86ac-37fc3157e09d",
+              "a642964e-bead-4bed-8910-1bb4d63e3b4d",
+              "b17ea6f7-6e90-447e-a799-e6c0a493d6ce",
+              "a29808fd-ef50-49ff-9c7a-59a9b040b404",
+              "fd877b94-9bb5-4191-bb25-d79cbd93c167",
+              "1af57a4b-460a-4738-9034-db68b880c665",
+              "0685b176-c816-4837-8e7b-1216f346636b"
+            ]
+          },
+          {
+            "analytic": "AN0235",
+            "platform": "Windows",
+            "attack_log_source": "WinEventLog:Sysmon (EventCode=13, 14)",
+            "sigma_logsource": {
+              "category": "registry_set",
+              "product": "windows"
+            },
+            "usable": true,
+            "covered_by": [
+              "5aad0995-46ab-41bd-a9ff-724f41114971"
+            ]
+          },
+          {
+            "analytic": "AN0235",
+            "platform": "Windows",
+            "attack_log_source": "WinEventLog:Sysmon (EventCode=11)",
+            "sigma_logsource": {
+              "category": "file_event",
+              "product": "windows"
+            },
+            "usable": true,
+            "covered_by": [
+              "847def9e-924d-4e90-b7c4-5f581395a2b4",
+              "8fbf3271-1ef6-4e94-8210-03c2317947f6",
+              "11b1ed55-154d-4e82-8ad7-83739298f720",
+              "4e87b8e2-2ee9-4b2a-a715-4727d297ece0"
+            ]
+          },
+          {
+            "analytic": "AN0235",
+            "platform": "Windows",
+            "attack_log_source": "WinEventLog:Sysmon (EventCode=2)",
+            "sigma_logsource": {
+              "category": "file_change",
+              "product": "windows"
+            },
+            "usable": true,
+            "covered_by": []
+          }
+        ],
+        "gaps": [
+          {
+            "analytic": "AN0235",
+            "attack_log_source": "WinEventLog:Sysmon (EventCode=2)",
+            "sigma_logsource": {
+              "category": "file_change",
+              "product": "windows"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "T1003.004",
+      "name": "LSA Secrets",
+      "tactics": [
+        "credential-access"
+      ],
+      "status": "generated",
+      "reason": "",
+      "procedures": [
+        "Mimikatz performs credential dumping to obtain account and password information useful in gaining access to additional systems and enterprise network resources. It contains functionality to acquire information about credentials in many ways, including from the LSA."
+      ],
+      "rules": [
+        {
+          "id": "7e1ca912-5b71-5ec5-a453-c6b203cf89ad",
+          "title": "Potential LSA Secrets Activity Via Process Creation",
+          "file": "t1003_004_process_creation_lsa_secrets.yml",
+          "level": "high",
+          "logsource": "process_creation/windows",
+          "quality": "strong",
+          "confidence": 0.95
+        }
+      ],
+      "chains": [
+        {
+          "id": "67a2b30f-e0d4-5a35-8356-5b6314f216fd",
+          "title": "Potential LSA Secrets Attack Chain Via Process Creation And Module Load",
+          "file": "mr_t1003_004_an1212_lsa_secrets.yml",
+          "level": "critical",
+          "kind": "chain",
+          "type": "temporal",
+          "quality": "strong",
+          "steps": 2,
+          "timespan": "10m"
+        }
+      ],
+      "sigmahq": {
+        "technique": {
+          "id": "T1003.004",
+          "name": "LSA Secrets"
+        },
+        "sigmahq_release": "r2026-07-01",
+        "status": "partial",
+        "coverage_ratio": 0.25,
+        "sigmahq_rules": [
+          {
+            "id": "8a1b2c3d-4e5f-6789-abcd-ef1234567890",
+            "title": "PUA - Memory Dump Mount Via MemProcFS",
+            "logsource": "process_creation/windows",
+            "status": "experimental",
+            "level": "high",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/process_creation/proc_creation_win_pua_memprocfs.yml"
+          },
+          {
+            "id": "a642964e-bead-4bed-8910-1bb4d63e3b4d",
+            "title": "HackTool - Mimikatz Execution",
+            "logsource": "process_creation/windows",
+            "status": "test",
+            "level": "high",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/process_creation/proc_creation_win_hktl_mimikatz_command_line.yml"
+          },
+          {
+            "id": "fd877b94-9bb5-4191-bb25-d79cbd93c167",
+            "title": "Dumping of Sensitive Hives Via Reg.EXE",
+            "logsource": "process_creation/windows",
+            "status": "test",
+            "level": "high",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/process_creation/proc_creation_win_reg_dumping_sensitive_hives.yml"
+          },
+          {
+            "id": "06d71506-7beb-4f22-8888-e2e5e2ca7fd8",
+            "title": "Mimikatz Use",
+            "logsource": "windows",
+            "status": "test",
+            "level": "high",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/builtin/win_alert_mimikatz_keywords.yml"
+          },
+          {
+            "id": "4976aa50-8f41-45c6-8b15-ab3fc10e79ed",
+            "title": "Credential Dumping Tools Service Execution - System",
+            "logsource": "windows/system",
+            "status": "test",
+            "level": "high",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/builtin/system/service_control_manager/win_system_mal_creddumper.yml"
+          },
+          {
+            "id": "252902e3-5830-4cf6-bf21-c22083dfd5cf",
+            "title": "Possible Impacket SecretDump Remote Activity",
+            "logsource": "windows/security",
+            "status": "test",
+            "level": "high",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/builtin/security/win_security_impacket_secretdump.yml"
+          },
+          {
+            "id": "f0d1feba-4344-4ca9-8121-a6c97bd6df52",
+            "title": "Credential Dumping Tools Service Execution - Security",
+            "logsource": "windows/security",
+            "status": "test",
+            "level": "high",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/builtin/security/win_security_mal_creddumper.yml"
+          },
+          {
+            "id": "4ac1f50b-3bd0-4968-902d-868b4647937e",
+            "title": "DPAPI Domain Backup Key Extraction",
+            "logsource": "windows/security",
+            "status": "test",
+            "level": "high",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/builtin/security/win_security_dpapi_domain_backupkey_extraction.yml"
+          },
+          {
+            "id": "39a94fd1-8c9a-4ff6-bf22-c058762f8014",
+            "title": "DPAPI Domain Master Key Backup Attempt",
+            "logsource": "windows/security",
+            "status": "test",
+            "level": "medium",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/builtin/security/win_security_dpapi_domain_masterkey_backup_attempt.yml"
+          },
+          {
+            "id": "961d0ba2-3eea-4303-a930-2cf78bbfcc5e",
+            "title": "HackTool - Credential Dumping Tools Named Pipe Created",
+            "logsource": "pipe_created/windows",
+            "status": "test",
+            "level": "critical",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/pipe_created/pipe_created_hktl_generic_cred_dump_tools_pipes.yml"
+          },
+          {
+            "id": "8fbf3271-1ef6-4e94-8210-03c2317947f6",
+            "title": "Cred Dump Tools Dropped Files",
+            "logsource": "file_event/windows",
+            "status": "test",
+            "level": "high",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/file/file_event/file_event_win_cred_dump_tools_dropped_files.yml"
+          },
+          {
+            "id": "92dae1ed-1c9d-4eff-a567-33acbd95b00e",
+            "title": "Possible Impacket SecretDump Remote Activity - Zeek",
+            "logsource": "zeek/smb_files",
+            "status": "test",
+            "level": "high",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/network/zeek/zeek_smb_converted_win_impacket_secretdump.yml"
+          }
+        ],
+        "related_rules": 32,
+        "sources": [
+          {
+            "analytic": "AN1212",
+            "platform": "Windows",
+            "attack_log_source": "WinEventLog:Security (EventCode=4663, 4670, 4656)",
+            "sigma_logsource": {
+              "product": "windows",
+              "service": "security"
+            },
+            "usable": true,
+            "covered_by": []
+          },
+          {
+            "analytic": "AN1212",
+            "platform": "Windows",
+            "attack_log_source": "WinEventLog:Sysmon (EventCode=1)",
+            "sigma_logsource": {
+              "category": "process_creation",
+              "product": "windows"
+            },
+            "usable": true,
+            "covered_by": [
+              "8a1b2c3d-4e5f-6789-abcd-ef1234567890",
+              "a642964e-bead-4bed-8910-1bb4d63e3b4d",
+              "fd877b94-9bb5-4191-bb25-d79cbd93c167"
+            ]
+          },
+          {
+            "analytic": "AN1212",
+            "platform": "Windows",
+            "attack_log_source": "WinEventLog:Sysmon (EventCode=10)",
+            "sigma_logsource": {
+              "category": "process_access",
+              "product": "windows"
+            },
+            "usable": true,
+            "covered_by": []
+          },
+          {
+            "analytic": "AN1212",
+            "platform": "Windows",
+            "attack_log_source": "WinEventLog:Sysmon (EventCode=7)",
+            "sigma_logsource": {
+              "category": "image_load",
+              "product": "windows"
+            },
+            "usable": true,
+            "covered_by": []
+          }
+        ],
+        "gaps": [
+          {
+            "analytic": "AN1212",
+            "attack_log_source": "WinEventLog:Security (EventCode=4663, 4670, 4656)",
+            "sigma_logsource": {
+              "product": "windows",
+              "service": "security"
+            }
+          },
+          {
+            "analytic": "AN1212",
+            "attack_log_source": "WinEventLog:Sysmon (EventCode=10)",
+            "sigma_logsource": {
+              "category": "process_access",
+              "product": "windows"
+            }
+          },
+          {
+            "analytic": "AN1212",
+            "attack_log_source": "WinEventLog:Sysmon (EventCode=7)",
+            "sigma_logsource": {
+              "category": "image_load",
+              "product": "windows"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "T1003.006",
+      "name": "DCSync",
+      "tactics": [
+        "credential-access"
+      ],
+      "status": "generated",
+      "reason": "",
+      "procedures": [
+        "Mimikatz performs credential dumping to obtain account and password information useful in gaining access to additional systems and enterprise network resources. It contains functionality to acquire information about credentials in many ways, including from DCSync/NetSync."
+      ],
+      "rules": [
+        {
+          "id": "458b9f46-016d-58d2-b7c3-22a365c40a29",
+          "title": "Potential DCSync Activity Via Windows Security",
+          "file": "t1003_006_security_dcsync.yml",
+          "level": "low",
+          "logsource": "windows/security",
+          "quality": "weak",
+          "confidence": 0.95
+        }
+      ],
+      "chains": [],
+      "sigmahq": {
+        "technique": {
+          "id": "T1003.006",
+          "name": "DCSync"
+        },
+        "sigmahq_release": "r2026-07-01",
+        "status": "partial",
+        "coverage_ratio": 0.333,
+        "sigmahq_rules": [
+          {
+            "id": "a642964e-bead-4bed-8910-1bb4d63e3b4d",
+            "title": "HackTool - Mimikatz Execution",
+            "logsource": "process_creation/windows",
+            "status": "test",
+            "level": "high",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/process_creation/proc_creation_win_hktl_mimikatz_command_line.yml"
+          },
+          {
+            "id": "06d71506-7beb-4f22-8888-e2e5e2ca7fd8",
+            "title": "Mimikatz Use",
+            "logsource": "windows",
+            "status": "test",
+            "level": "high",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/builtin/win_alert_mimikatz_keywords.yml"
+          },
+          {
+            "id": "4976aa50-8f41-45c6-8b15-ab3fc10e79ed",
+            "title": "Credential Dumping Tools Service Execution - System",
+            "logsource": "windows/system",
+            "status": "test",
+            "level": "high",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/builtin/system/service_control_manager/win_system_mal_creddumper.yml"
+          },
+          {
+            "id": "17d619c1-e020-4347-957e-1d1207455c93",
+            "title": "Active Directory Replication from Non Machine Account",
+            "logsource": "windows/security",
+            "status": "test",
+            "level": "critical",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/builtin/security/win_security_ad_replication_non_machine_account.yml"
+          },
+          {
+            "id": "611eab06-a145-4dfa-a295-3ccc5c20f59a",
+            "title": "Mimikatz DC Sync",
+            "logsource": "windows/security",
+            "status": "test",
+            "level": "high",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/builtin/security/win_security_dcsync.yml"
+          },
+          {
+            "id": "f0d1feba-4344-4ca9-8121-a6c97bd6df52",
+            "title": "Credential Dumping Tools Service Execution - Security",
+            "logsource": "windows/security",
+            "status": "test",
+            "level": "high",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/builtin/security/win_security_mal_creddumper.yml"
+          },
+          {
+            "id": "060c3ef1-fd0a-4091-bf46-e7d625f60b73",
+            "title": "Suspicious Get-ADReplAccount",
+            "logsource": "ps_script/windows",
+            "status": "test",
+            "level": "medium",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/powershell/powershell_script/posh_ps_get_adreplaccount.yml"
+          }
+        ],
+        "related_rules": 33,
+        "sources": [
+          {
+            "analytic": "AN1632",
+            "platform": "Windows",
+            "attack_log_source": "WinEventLog:Security (EventCode=4662)",
+            "sigma_logsource": {
+              "product": "windows",
+              "service": "security"
+            },
+            "usable": true,
+            "covered_by": [
+              "17d619c1-e020-4347-957e-1d1207455c93",
+              "611eab06-a145-4dfa-a295-3ccc5c20f59a"
+            ]
+          },
+          {
+            "analytic": "AN1632",
+            "platform": "Windows",
+            "attack_log_source": "WinEventLog:Security (EventCode=4929)",
+            "sigma_logsource": {
+              "product": "windows",
+              "service": "security"
+            },
+            "usable": true,
+            "covered_by": []
+          },
+          {
+            "analytic": "AN1632",
+            "platform": "Windows",
+            "attack_log_source": "NSM:Content (Traffic on RPC DRSUAPI)",
+            "sigma_logsource": {
+              "product": "zeek",
+              "service": "conn"
+            },
+            "usable": true,
+            "covered_by": []
+          }
+        ],
+        "gaps": [
+          {
+            "analytic": "AN1632",
+            "attack_log_source": "WinEventLog:Security (EventCode=4929)",
+            "sigma_logsource": {
+              "product": "windows",
+              "service": "security"
+            }
+          },
+          {
+            "analytic": "AN1632",
+            "attack_log_source": "NSM:Content (Traffic on RPC DRSUAPI)",
+            "sigma_logsource": {
+              "product": "zeek",
+              "service": "conn"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "T1098",
+      "name": "Account Manipulation",
+      "tactics": [
+        "persistence",
+        "privilege-escalation"
+      ],
+      "status": "generated",
+      "reason": "",
+      "procedures": [
+        "The Mimikatz credential dumper has been extended to include Skeleton Key domain controller authentication bypass functionality. The LSADUMP::ChangeNTLM and LSADUMP::SetNTLM modules can also manipulate the password hash of an account without knowing the clear text value."
+      ],
+      "rules": [
+        {
+          "id": "205ead14-dea4-53ee-9d9e-90f1f5e29246",
+          "title": "Potential Account Manipulation Activity Via Windows Security",
+          "file": "t1098_security_account_manipulation.yml",
+          "level": "low",
+          "logsource": "windows/security",
+          "quality": "weak",
+          "confidence": 0.95
+        }
+      ],
+      "chains": [],
+      "sigmahq": {
+        "technique": {
+          "id": "T1098",
+          "name": "Account Manipulation"
+        },
+        "sigmahq_release": "r2026-07-01",
+        "status": "partial",
+        "coverage_ratio": 0.25,
+        "sigmahq_rules": [
+          {
+            "id": "32438676-1dba-4ac7-bf69-b86cba995e05",
+            "title": "GCP Access Policy Deleted",
+            "logsource": "gcp/gcp.audit",
+            "status": "test",
+            "level": "medium",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/cloud/gcp/audit/gcp_access_policy_deleted.yml"
+          },
+          {
+            "id": "04e2a23a-9b29-4a5c-be3a-3542e3f982ba",
+            "title": "Google Workspace Granted Domain API Access",
+            "logsource": "gcp/google_workspace.admin",
+            "status": "test",
+            "level": "medium",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/cloud/gcp/gworkspace/admin/gcp_gworkspace_granted_domain_api_access.yml"
+          },
+          {
+            "id": "2d1b83e4-17c6-4896-a37b-29140b40a788",
+            "title": "Google Workspace User Granted Admin Privileges",
+            "logsource": "gcp/google_workspace.admin",
+            "status": "test",
+            "level": "medium",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/cloud/gcp/gworkspace/admin/gcp_gworkspace_user_granted_admin_privileges.yml"
+          },
+          {
+            "id": "258b6593-215d-4a26-a141-c8e31c1299a6",
+            "title": "Anomalous User Activity",
+            "logsource": "azure/riskdetection",
+            "status": "test",
+            "level": "high",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/cloud/azure/identity_protection/azure_identity_protection_anomalous_user.yml"
+          },
+          {
+            "id": "4d78a000-ab52-4564-88a5-7ab5242b20c7",
+            "title": "Change to Authentication Method",
+            "logsource": "azure/auditlogs",
+            "status": "test",
+            "level": "medium",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/cloud/azure/audit_logs/azure_change_to_authentication_method.yml"
+          },
+          {
+            "id": "102e11e3-2db5-4c9e-bc26-357d42585d21",
+            "title": "Bulk Deletion Changes To Privileged Account Permissions",
+            "logsource": "azure/auditlogs",
+            "status": "test",
+            "level": "high",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/cloud/azure/audit_logs/azure_priviledged_role_assignment_bulk_change.yml"
+          },
+          {
+            "id": "d2d901db-7a75-45a1-bc39-0cbf00812192",
+            "title": "Number Of Resource Creation Or Deployment Activities",
+            "logsource": "azure/activitylogs",
+            "status": "test",
+            "level": "medium",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/cloud/azure/activity_logs/azure_creating_number_of_resources_detection.yml"
+          },
+          {
+            "id": "0a5177f4-6ca9-44c2-aacf-d3f3d8b6e4d2",
+            "title": "AWS IAM Backdoor Users Keys",
+            "logsource": "aws/cloudtrail",
+            "status": "test",
+            "level": "medium",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/cloud/aws/cloudtrail/aws_iam_backdoor_users_keys.yml"
+          },
+          {
+            "id": "055fb148-60f8-462d-ad16-26926ce050f1",
+            "title": "AWS User Login Profile Was Modified",
+            "logsource": "aws/cloudtrail",
+            "status": "test",
+            "level": "high",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/cloud/aws/cloudtrail/aws_update_login_profile.yml"
+          },
+          {
+            "id": "9691f58d-92c1-4416-8bf3-2edd753ec9cf",
+            "title": "ESXi Admin Permission Assigned To Account Via ESXCLI",
+            "logsource": "process_creation/linux",
+            "status": "test",
+            "level": "high",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/linux/process_creation/proc_creation_lnx_esxcli_permission_change_admin.yml"
+          },
+          {
+            "id": "0ac15ec3-d24f-4246-aa2a-3077bb1cf90e",
+            "title": "Privileged User Has Been Created",
+            "logsource": "linux",
+            "status": "test",
+            "level": "high",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/linux/builtin/lnx_privileged_user_creation.yml"
+          },
+          {
+            "id": "10fb649c-3600-4d37-b1e6-56ea90bb7e09",
+            "title": "User Added To Highly Privileged Group",
+            "logsource": "process_creation/windows",
+            "status": "test",
+            "level": "high",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/process_creation/proc_creation_win_susp_add_user_privileged_group.yml"
+          },
+          {
+            "id": "7864a175-3654-4824-9f0d-f0da18ab27c0",
+            "title": "Password Set to Never Expire via WMI",
+            "logsource": "process_creation/windows",
+            "status": "experimental",
+            "level": "medium",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/process_creation/proc_creation_win_wmi_password_never_expire.yml"
+          },
+          {
+            "id": "ad720b90-25ad-43ff-9b5e-5c841facc8e5",
+            "title": "User Added to Local Administrators Group",
+            "logsource": "process_creation/windows",
+            "status": "test",
+            "level": "medium",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/process_creation/proc_creation_win_susp_add_user_local_admin_group.yml"
+          },
+          {
+            "id": "0ea8db81-2ff6-4525-9448-33bbe7effc13",
+            "title": "New DMSA Service Account Created in Specific OUs",
+            "logsource": "process_creation/windows",
+            "status": "experimental",
+            "level": "medium",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/process_creation/proc_creation_win_create_new_dmsasvc_account.yml"
+          },
+          {
+            "id": "c265cf08-3f99-46c1-8d59-328247057d57",
+            "title": "User Added to Local Administrator Group",
+            "logsource": "windows/security",
+            "status": "stable",
+            "level": "medium",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/builtin/security/win_security_user_added_to_local_administrators.yml"
+          },
+          {
+            "id": "311b6ce2-7890-4383-a8c2-663a9f6b43cd",
+            "title": "Enabled User Right in AD to Control User Objects",
+            "logsource": "windows/security",
+            "status": "test",
+            "level": "high",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/builtin/security/win_security_alert_active_directory_user_control.yml"
+          },
+          {
+            "id": "53ad8e36-f573-46bf-97e4-15ba5bf4bb51",
+            "title": "Password Change on Directory Service Restore Mode (DSRM) Account",
+            "logsource": "windows/security",
+            "status": "stable",
+            "level": "high",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/builtin/security/win_security_susp_dsrm_password_change.yml"
+          },
+          {
+            "id": "0255a820-e564-4e40-af2b-6ac61160335c",
+            "title": "A New Trust Was Created To A Domain",
+            "logsource": "windows/security",
+            "status": "stable",
+            "level": "medium",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/builtin/security/win_security_susp_add_domain_trust.yml"
+          },
+          {
+            "id": "300bac00-e041-4ee2-9c36-e262656a6ecc",
+            "title": "Active Directory User Backdoors",
+            "logsource": "windows/security",
+            "status": "test",
+            "level": "high",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/builtin/security/win_security_alert_ad_user_backdoors.yml"
+          },
+          {
+            "id": "2c99737c-585d-4431-b61a-c911d86ff32f",
+            "title": "Powerview Add-DomainObjectAcl DCSync AD Extend Right",
+            "logsource": "windows/security",
+            "status": "test",
+            "level": "high",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/builtin/security/win_security_account_backdoor_dcsync_rights.yml"
+          },
+          {
+            "id": "4fdc44df-bfe9-4fcc-b041-68f5a2d3031c",
+            "title": "Powershell LocalAccount Manipulation",
+            "logsource": "ps_script/windows",
+            "status": "test",
+            "level": "medium",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/powershell/powershell_script/posh_ps_localuser.yml"
+          },
+          {
+            "id": "02122374-b74e-495c-b285-9e4da973f3d6",
+            "title": "DMSA Service Account Created in Specific OUs - PowerShell",
+            "logsource": "ps_script/windows",
+            "status": "experimental",
+            "level": "medium",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/powershell/powershell_script/posh_ps_create_new_dmsasvc_account.yml"
+          },
+          {
+            "id": "6d844f0f-1c18-41af-8f19-33e7654edfc3",
+            "title": "Cisco Local Accounts",
+            "logsource": "cisco/aaa",
+            "status": "test",
+            "level": "high",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/network/cisco/aaa/cisco_cli_local_accounts.yml"
+          },
+          {
+            "id": "aac6c4f4-87c7-4961-96ac-c3fd3a42c310",
+            "title": "Bitbucket Global Permission Changed",
+            "logsource": "bitbucket/audit",
+            "status": "test",
+            "level": "medium",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/application/bitbucket/audit/bitbucket_audit_global_permissions_change_detected.yml"
+          },
+          {
+            "id": "45eb2ae2-9aa2-4c3a-99a5-6e5077655466",
+            "title": "Suspicious Computer Account Name Change CVE-2021-42287",
+            "logsource": "windows/security",
+            "status": "test",
+            "level": "high",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules-emerging-threats/2021/Exploits/CVE-2021-42287/win_security_samaccountname_spoofing_cve_2021_42287.yml"
+          }
+        ],
+        "related_rules": 10,
+        "sources": [
+          {
+            "analytic": "AN0265",
+            "platform": "Windows",
+            "attack_log_source": "WinEventLog:Security (EventCode=4738, 4728, 4670)",
+            "sigma_logsource": {
+              "product": "windows",
+              "service": "security"
+            },
+            "usable": true,
+            "covered_by": [
+              "300bac00-e041-4ee2-9c36-e262656a6ecc"
+            ]
+          },
+          {
+            "analytic": "AN0265",
+            "platform": "Windows",
+            "attack_log_source": "WinEventLog:Sysmon (EventCode=1)",
+            "sigma_logsource": {
+              "category": "process_creation",
+              "product": "windows"
+            },
+            "usable": true,
+            "covered_by": [
+              "10fb649c-3600-4d37-b1e6-56ea90bb7e09",
+              "7864a175-3654-4824-9f0d-f0da18ab27c0",
+              "ad720b90-25ad-43ff-9b5e-5c841facc8e5",
+              "0ea8db81-2ff6-4525-9448-33bbe7effc13"
+            ]
+          },
+          {
+            "analytic": "AN0266",
+            "platform": "Linux",
+            "attack_log_source": "auditd:SYSCALL (usermod, groupmod, passwd)",
+            "sigma_logsource": {
+              "product": "linux",
+              "service": "auditd"
+            },
+            "usable": true,
+            "covered_by": []
+          },
+          {
+            "analytic": "AN0266",
+            "platform": "Linux",
+            "attack_log_source": "auditd:PATH (/etc/passwd or /etc/group file write)",
+            "sigma_logsource": {
+              "product": "linux",
+              "service": "auditd"
+            },
+            "usable": true,
+            "covered_by": []
+          },
+          {
+            "analytic": "AN0267",
+            "platform": "macOS",
+            "attack_log_source": "macos:unifiedlog (com.apple.accountsd, com.apple.opendirectoryd)",
+            "sigma_logsource": {
+              "product": "macos",
+              "service": "unifiedlog"
+            },
+            "usable": true,
+            "covered_by": []
+          },
+          {
+            "analytic": "AN0268",
+            "platform": "Identity Provider",
+            "attack_log_source": "saas:okta (User Attribute Modified / Role Assignment Changed)",
+            "sigma_logsource": {
+              "product": "okta",
+              "service": "okta"
+            },
+            "usable": true,
+            "covered_by": []
+          },
+          {
+            "analytic": "AN0269",
+            "platform": "ESXi",
+            "attack_log_source": "esxi:vpxa (vim.SessionManager.login / vim.AccountManager.createUser)",
+            "sigma_logsource": {
+              "product": "esxi",
+              "service": "syslog"
+            },
+            "usable": true,
+            "covered_by": []
+          },
+          {
+            "analytic": "AN0270",
+            "platform": "SaaS",
+            "attack_log_source": "m365:unified (Admin Activity > Role Change or Sharing Change)",
+            "sigma_logsource": {
+              "product": "m365",
+              "service": "audit"
+            },
+            "usable": true,
+            "covered_by": []
+          }
+        ],
+        "gaps": [
+          {
+            "analytic": "AN0266",
+            "attack_log_source": "auditd:SYSCALL (usermod, groupmod, passwd)",
+            "sigma_logsource": {
+              "product": "linux",
+              "service": "auditd"
+            }
+          },
+          {
+            "analytic": "AN0266",
+            "attack_log_source": "auditd:PATH (/etc/passwd or /etc/group file write)",
+            "sigma_logsource": {
+              "product": "linux",
+              "service": "auditd"
+            }
+          },
+          {
+            "analytic": "AN0267",
+            "attack_log_source": "macos:unifiedlog (com.apple.accountsd, com.apple.opendirectoryd)",
+            "sigma_logsource": {
+              "product": "macos",
+              "service": "unifiedlog"
+            }
+          },
+          {
+            "analytic": "AN0268",
+            "attack_log_source": "saas:okta (User Attribute Modified / Role Assignment Changed)",
+            "sigma_logsource": {
+              "product": "okta",
+              "service": "okta"
+            }
+          },
+          {
+            "analytic": "AN0269",
+            "attack_log_source": "esxi:vpxa (vim.SessionManager.login / vim.AccountManager.createUser)",
+            "sigma_logsource": {
+              "product": "esxi",
+              "service": "syslog"
+            }
+          },
+          {
+            "analytic": "AN0270",
+            "attack_log_source": "m365:unified (Admin Activity > Role Change or Sharing Change)",
+            "sigma_logsource": {
+              "product": "m365",
+              "service": "audit"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "T1134.005",
+      "name": "SID-History Injection",
+      "tactics": [
+        "stealth",
+        "privilege-escalation"
+      ],
+      "status": "generated",
+      "reason": "",
+      "procedures": [
+        "Mimikatz's MISC::AddSid module can append any SID or user/group account to a user's SID-History. Mimikatz also utilizes SID-History Injection to expand the scope of other components such as generated Kerberos Golden Tickets and DCSync beyond a single domain."
+      ],
+      "rules": [
+        {
+          "id": "ee682f8f-a4e7-52a6-986f-fecfa7f2ab57",
+          "title": "Potential SID-History Injection Activity Via Windows Security",
+          "file": "t1134_005_security_sid_history_injection.yml",
+          "level": "low",
+          "logsource": "windows/security",
+          "quality": "weak",
+          "confidence": 0.95
+        }
+      ],
+      "chains": [],
+      "sigmahq": {
+        "technique": {
+          "id": "T1134.005",
+          "name": "SID-History Injection"
+        },
+        "sigmahq_release": "r2026-07-01",
+        "status": "partial",
+        "coverage_ratio": 0.333,
+        "sigmahq_rules": [
+          {
+            "id": "2632954e-db1c-49cb-9936-67d1ef1d17d2",
+            "title": "Addition of SID History to Active Directory Object",
+            "logsource": "windows/security",
+            "status": "stable",
+            "level": "medium",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/builtin/security/win_security_susp_add_sid_history.yml"
+          }
+        ],
+        "related_rules": 2,
+        "sources": [
+          {
+            "analytic": "AN0383",
+            "platform": "Windows",
+            "attack_log_source": "WinEventLog:Security (EventCode=5136)",
+            "sigma_logsource": {
+              "product": "windows",
+              "service": "security"
+            },
+            "usable": true,
+            "covered_by": []
+          },
+          {
+            "analytic": "AN0383",
+            "platform": "Windows",
+            "attack_log_source": "WinEventLog:Security (EventCode=4720, 4738)",
+            "sigma_logsource": {
+              "product": "windows",
+              "service": "security"
+            },
+            "usable": true,
+            "covered_by": [
+              "2632954e-db1c-49cb-9936-67d1ef1d17d2"
+            ]
+          },
+          {
+            "analytic": "AN0383",
+            "platform": "Windows",
+            "attack_log_source": "etw:Microsoft-Windows-Directory-Services-SAM (api_call: Calls to DsAddSidHistory or related RPC operations)",
+            "sigma_logsource": {
+              "category": "process_creation",
+              "product": "windows"
+            },
+            "usable": true,
+            "covered_by": []
+          }
+        ],
+        "gaps": [
+          {
+            "analytic": "AN0383",
+            "attack_log_source": "WinEventLog:Security (EventCode=5136)",
+            "sigma_logsource": {
+              "product": "windows",
+              "service": "security"
+            }
+          },
+          {
+            "analytic": "AN0383",
+            "attack_log_source": "etw:Microsoft-Windows-Directory-Services-SAM (api_call: Calls to DsAddSidHistory or related RPC operations)",
+            "sigma_logsource": {
+              "category": "process_creation",
+              "product": "windows"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "T1207",
+      "name": "Rogue Domain Controller",
+      "tactics": [
+        "defense-impairment"
+      ],
+      "status": "generated",
+      "reason": "",
+      "procedures": [
+        "Mimikatz’s LSADUMP::DCShadow module can be used to make AD updates by temporarily setting a computer to be a DC."
+      ],
+      "rules": [
+        {
+          "id": "ec9a182c-be23-5ff4-b057-cfebbdd17859",
+          "title": "Potential Rogue Domain Controller Activity Via Windows Security",
+          "file": "t1207_security_rogue_domain_controller.yml",
+          "level": "low",
+          "logsource": "windows/security",
+          "quality": "weak",
+          "confidence": 0.95
+        }
+      ],
+      "chains": [],
+      "sigmahq": {
+        "technique": {
+          "id": "T1207",
+          "name": "Rogue Domain Controller"
+        },
+        "sigmahq_release": "r2026-07-01",
+        "status": "partial",
+        "coverage_ratio": 0.2,
+        "sigmahq_rules": [
+          {
+            "id": "32e19d25-4aed-4860-a55a-be99cb0bf7ed",
+            "title": "Possible DC Shadow Attack",
+            "logsource": "windows/security",
+            "status": "test",
+            "level": "medium",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/builtin/security/win_security_possible_dc_shadow.yml"
+          }
+        ],
+        "related_rules": 0,
+        "sources": [
+          {
+            "analytic": "AN0770",
+            "platform": "Windows",
+            "attack_log_source": "WinEventLog:Security (EventCode=4928)",
+            "sigma_logsource": {
+              "product": "windows",
+              "service": "security"
+            },
+            "usable": true,
+            "covered_by": []
+          },
+          {
+            "analytic": "AN0770",
+            "platform": "Windows",
+            "attack_log_source": "WinEventLog:Security (EventCode=4929)",
+            "sigma_logsource": {
+              "product": "windows",
+              "service": "security"
+            },
+            "usable": true,
+            "covered_by": []
+          },
+          {
+            "analytic": "AN0770",
+            "platform": "Windows",
+            "attack_log_source": "WinEventLog:Security (EventCode=4662)",
+            "sigma_logsource": {
+              "product": "windows",
+              "service": "security"
+            },
+            "usable": true,
+            "covered_by": []
+          },
+          {
+            "analytic": "AN0770",
+            "platform": "Windows",
+            "attack_log_source": "m365:dirsync (Replication cookie changes involving Configuration partition with new server/nTDSDSA objects.)",
+            "sigma_logsource": {
+              "product": "windows",
+              "service": "security"
+            },
+            "usable": true,
+            "covered_by": [
+              "32e19d25-4aed-4860-a55a-be99cb0bf7ed"
+            ]
+          },
+          {
+            "analytic": "AN0770",
+            "platform": "Windows",
+            "attack_log_source": "NSM:Flow (DrsAddEntry, DrsReplicaAdd, GetNCChanges calls between non-DC and DCs.)",
+            "sigma_logsource": {
+              "product": "zeek",
+              "service": "conn"
+            },
+            "usable": true,
+            "covered_by": []
+          }
+        ],
+        "gaps": [
+          {
+            "analytic": "AN0770",
+            "attack_log_source": "WinEventLog:Security (EventCode=4928)",
+            "sigma_logsource": {
+              "product": "windows",
+              "service": "security"
+            }
+          },
+          {
+            "analytic": "AN0770",
+            "attack_log_source": "WinEventLog:Security (EventCode=4929)",
+            "sigma_logsource": {
+              "product": "windows",
+              "service": "security"
+            }
+          },
+          {
+            "analytic": "AN0770",
+            "attack_log_source": "WinEventLog:Security (EventCode=4662)",
+            "sigma_logsource": {
+              "product": "windows",
+              "service": "security"
+            }
+          },
+          {
+            "analytic": "AN0770",
+            "attack_log_source": "NSM:Flow (DrsAddEntry, DrsReplicaAdd, GetNCChanges calls between non-DC and DCs.)",
+            "sigma_logsource": {
+              "product": "zeek",
+              "service": "conn"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "T1547.005",
+      "name": "Security Support Provider",
+      "tactics": [
+        "persistence",
+        "privilege-escalation"
+      ],
+      "status": "generated",
+      "reason": "",
+      "procedures": [
+        "The Mimikatz credential dumper contains an implementation of an SSP."
+      ],
+      "rules": [
+        {
+          "id": "318b0c12-39a6-5a65-a809-d45df5bbccf1",
+          "title": "Potential Security Support Provider Activity Via Windows Security",
+          "file": "t1547_005_security_security_support_provider.yml",
+          "level": "high",
+          "logsource": "windows/security",
+          "quality": "strong",
+          "confidence": 0.95
+        }
+      ],
+      "chains": [
+        {
+          "id": "75be8636-dee3-566b-9008-ad71fcd3cbfb",
+          "title": "Potential Security Support Provider Attack Chain Via Windows Security And Process Creation",
+          "file": "mr_t1547_005_an1495_security_support_provider.yml",
+          "level": "high",
+          "kind": "chain",
+          "type": "temporal",
+          "quality": "moderate",
+          "steps": 2,
+          "timespan": "10m"
+        }
+      ],
+      "sigmahq": {
+        "technique": {
+          "id": "T1547.005",
+          "name": "Security Support Provider"
+        },
+        "sigmahq_release": "r2026-07-01",
+        "status": "gap",
+        "coverage_ratio": 0.0,
+        "sigmahq_rules": [
+          {
+            "id": "eeb30123-9fbd-4ee8-aaa0-2e545bbed6dc",
+            "title": "Security Support Provider (SSP) Added to LSA Configuration",
+            "logsource": "registry_event/windows",
+            "status": "test",
+            "level": "high",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/registry/registry_event/registry_event_ssp_added_lsa_config.yml"
+          }
+        ],
+        "related_rules": 7,
+        "sources": [
+          {
+            "analytic": "AN1495",
+            "platform": "Windows",
+            "attack_log_source": "WinEventLog:Security (EventCode=4657)",
+            "sigma_logsource": {
+              "product": "windows",
+              "service": "security"
+            },
+            "usable": true,
+            "covered_by": []
+          },
+          {
+            "analytic": "AN1495",
+            "platform": "Windows",
+            "attack_log_source": "WinEventLog:Sysmon (EventCode=7)",
+            "sigma_logsource": {
+              "category": "image_load",
+              "product": "windows"
+            },
+            "usable": true,
+            "covered_by": []
+          },
+          {
+            "analytic": "AN1495",
+            "platform": "Windows",
+            "attack_log_source": "WinEventLog:Sysmon (EventCode=1)",
+            "sigma_logsource": {
+              "category": "process_creation",
+              "product": "windows"
+            },
+            "usable": true,
+            "covered_by": []
+          }
+        ],
+        "gaps": [
+          {
+            "analytic": "AN1495",
+            "attack_log_source": "WinEventLog:Security (EventCode=4657)",
+            "sigma_logsource": {
+              "product": "windows",
+              "service": "security"
+            }
+          },
+          {
+            "analytic": "AN1495",
+            "attack_log_source": "WinEventLog:Sysmon (EventCode=7)",
+            "sigma_logsource": {
+              "category": "image_load",
+              "product": "windows"
+            }
+          },
+          {
+            "analytic": "AN1495",
+            "attack_log_source": "WinEventLog:Sysmon (EventCode=1)",
+            "sigma_logsource": {
+              "category": "process_creation",
+              "product": "windows"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "T1550.002",
+      "name": "Pass the Hash",
+      "tactics": [
+        "lateral-movement"
+      ],
+      "status": "generated",
+      "reason": "",
+      "procedures": [
+        "Mimikatz's SEKURLSA::Pth module can impersonate a user, with only a password hash, to execute arbitrary commands."
+      ],
+      "rules": [
+        {
+          "id": "315546ef-1e86-5b4b-a492-11d0e9b64ca0",
+          "title": "Potential Pass the Hash Activity Via Windows Security",
+          "file": "t1550_002_security_pass_the_hash.yml",
+          "level": "low",
+          "logsource": "windows/security",
+          "quality": "weak",
+          "confidence": 0.95
+        }
+      ],
+      "chains": [],
+      "sigmahq": {
+        "technique": {
+          "id": "T1550.002",
+          "name": "Pass the Hash"
+        },
+        "sigmahq_release": "r2026-07-01",
+        "status": "partial",
+        "coverage_ratio": 0.25,
+        "sigmahq_rules": [
+          {
+            "id": "e9d4ab66-a532-4ef7-a502-66a9e4a34f5d",
+            "title": "NTLMv1 Logon Between Client and Server",
+            "logsource": "windows/system",
+            "status": "test",
+            "level": "medium",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/builtin/system/lsasrv/win_system_lsasrv_ntlmv1.yml"
+          },
+          {
+            "id": "24549159-ac1b-479c-8175-d42aea947cae",
+            "title": "Hacktool Ruler",
+            "logsource": "windows/security",
+            "status": "test",
+            "level": "high",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/builtin/security/win_security_alert_ruler.yml"
+          },
+          {
+            "id": "192a0330-c20b-4356-90b6-7b7049ae0b87",
+            "title": "Successful Overpass the Hash Attempt",
+            "logsource": "windows/security",
+            "status": "test",
+            "level": "high",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/builtin/security/account_management/win_security_overpass_the_hash.yml"
+          },
+          {
+            "id": "8eef149c-bd26-49f2-9e5a-9b00e3af499b",
+            "title": "Pass the Hash Activity 2",
+            "logsource": "windows/security",
+            "status": "stable",
+            "level": "medium",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/builtin/security/account_management/win_security_pass_the_hash_2.yml"
+          }
+        ],
+        "related_rules": 1,
+        "sources": [
+          {
+            "analytic": "AN1144",
+            "platform": "Windows",
+            "attack_log_source": "WinEventLog:Security (EventCode=4624, 4648)",
+            "sigma_logsource": {
+              "product": "windows",
+              "service": "security"
+            },
+            "usable": true,
+            "covered_by": [
+              "24549159-ac1b-479c-8175-d42aea947cae",
+              "192a0330-c20b-4356-90b6-7b7049ae0b87",
+              "8eef149c-bd26-49f2-9e5a-9b00e3af499b"
+            ]
+          },
+          {
+            "analytic": "AN1144",
+            "platform": "Windows",
+            "attack_log_source": "WinEventLog:Security (EventCode=4768)",
+            "sigma_logsource": {
+              "product": "windows",
+              "service": "security"
+            },
+            "usable": true,
+            "covered_by": []
+          },
+          {
+            "analytic": "AN1144",
+            "platform": "Windows",
+            "attack_log_source": "WinEventLog:Sysmon (EventCode=3, 22)",
+            "sigma_logsource": {
+              "category": "network_connection",
+              "product": "windows"
+            },
+            "usable": true,
+            "covered_by": []
+          },
+          {
+            "analytic": "AN1144",
+            "platform": "Windows",
+            "attack_log_source": "WinEventLog:Sysmon (EventCode=1)",
+            "sigma_logsource": {
+              "category": "process_creation",
+              "product": "windows"
+            },
+            "usable": true,
+            "covered_by": []
+          }
+        ],
+        "gaps": [
+          {
+            "analytic": "AN1144",
+            "attack_log_source": "WinEventLog:Security (EventCode=4768)",
+            "sigma_logsource": {
+              "product": "windows",
+              "service": "security"
+            }
+          },
+          {
+            "analytic": "AN1144",
+            "attack_log_source": "WinEventLog:Sysmon (EventCode=3, 22)",
+            "sigma_logsource": {
+              "category": "network_connection",
+              "product": "windows"
+            }
+          },
+          {
+            "analytic": "AN1144",
+            "attack_log_source": "WinEventLog:Sysmon (EventCode=1)",
+            "sigma_logsource": {
+              "category": "process_creation",
+              "product": "windows"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "T1550.003",
+      "name": "Pass the Ticket",
+      "tactics": [
+        "lateral-movement"
+      ],
+      "status": "generated",
+      "reason": "",
+      "procedures": [
+        "Mimikatz’s LSADUMP::DCSync and KERBEROS::PTT modules implement the three steps required to extract the krbtgt account hash and create/use Kerberos tickets."
+      ],
+      "rules": [
+        {
+          "id": "573c6af4-d351-5a79-bf0f-56d4fdb501b4",
+          "title": "Potential Pass the Ticket Activity Via Windows Security",
+          "file": "t1550_003_security_pass_the_ticket.yml",
+          "level": "low",
+          "logsource": "windows/security",
+          "quality": "weak",
+          "confidence": 0.95
+        }
+      ],
+      "chains": [],
+      "sigmahq": {
+        "technique": {
+          "id": "T1550.003",
+          "name": "Pass the Ticket"
+        },
+        "sigmahq_release": "r2026-07-01",
+        "status": "gap",
+        "coverage_ratio": 0.0,
+        "sigmahq_rules": [
+          {
+            "id": "12827a56-61a4-476a-a9cb-f3068f191073",
+            "title": "HackTool - KrbRelayUp Execution",
+            "logsource": "process_creation/windows",
+            "status": "test",
+            "level": "high",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/process_creation/proc_creation_win_hktl_krbrelayup.yml"
+          },
+          {
+            "id": "7ec2c172-dceb-4c10-92c9-87c1881b7e18",
+            "title": "HackTool - Rubeus Execution",
+            "logsource": "process_creation/windows",
+            "status": "stable",
+            "level": "critical",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/process_creation/proc_creation_win_hktl_rubeus.yml"
+          },
+          {
+            "id": "e54979bd-c5f9-4d6c-967b-a04b19ac4c74",
+            "title": "Uncommon Outbound Kerberos Connection",
+            "logsource": "network_connection/windows",
+            "status": "test",
+            "level": "medium",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/network_connection/net_connection_win_susp_outbound_kerberos_connection.yml"
+          },
+          {
+            "id": "3245cd30-e015-40ff-a31d-5cadd5f377ec",
+            "title": "HackTool - Rubeus Execution - ScriptBlock",
+            "logsource": "ps_script/windows",
+            "status": "test",
+            "level": "high",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/powershell/powershell_script/posh_ps_hktl_rubeus.yml"
+          }
+        ],
+        "related_rules": 1,
+        "sources": [
+          {
+            "analytic": "AN1000",
+            "platform": "Windows",
+            "attack_log_source": "WinEventLog:Security (EventCode=4769)",
+            "sigma_logsource": {
+              "product": "windows",
+              "service": "security"
+            },
+            "usable": true,
+            "covered_by": []
+          },
+          {
+            "analytic": "AN1000",
+            "platform": "Windows",
+            "attack_log_source": "WinEventLog:Security (EventCode=4768)",
+            "sigma_logsource": {
+              "product": "windows",
+              "service": "security"
+            },
+            "usable": true,
+            "covered_by": []
+          },
+          {
+            "analytic": "AN1000",
+            "platform": "Windows",
+            "attack_log_source": "WinEventLog:Security (EventCode=4624, 4648)",
+            "sigma_logsource": {
+              "product": "windows",
+              "service": "security"
+            },
+            "usable": true,
+            "covered_by": []
+          },
+          {
+            "analytic": "AN1000",
+            "platform": "Windows",
+            "attack_log_source": "WinEventLog:Sysmon (EventCode=10)",
+            "sigma_logsource": {
+              "category": "process_access",
+              "product": "windows"
+            },
+            "usable": true,
+            "covered_by": []
+          },
+          {
+            "analytic": "AN1000",
+            "platform": "Windows",
+            "attack_log_source": "WinEventLog:Sysmon (EventCode=7)",
+            "sigma_logsource": {
+              "category": "image_load",
+              "product": "windows"
+            },
+            "usable": true,
+            "covered_by": []
+          }
+        ],
+        "gaps": [
+          {
+            "analytic": "AN1000",
+            "attack_log_source": "WinEventLog:Security (EventCode=4769)",
+            "sigma_logsource": {
+              "product": "windows",
+              "service": "security"
+            }
+          },
+          {
+            "analytic": "AN1000",
+            "attack_log_source": "WinEventLog:Security (EventCode=4768)",
+            "sigma_logsource": {
+              "product": "windows",
+              "service": "security"
+            }
+          },
+          {
+            "analytic": "AN1000",
+            "attack_log_source": "WinEventLog:Security (EventCode=4624, 4648)",
+            "sigma_logsource": {
+              "product": "windows",
+              "service": "security"
+            }
+          },
+          {
+            "analytic": "AN1000",
+            "attack_log_source": "WinEventLog:Sysmon (EventCode=10)",
+            "sigma_logsource": {
+              "category": "process_access",
+              "product": "windows"
+            }
+          },
+          {
+            "analytic": "AN1000",
+            "attack_log_source": "WinEventLog:Sysmon (EventCode=7)",
+            "sigma_logsource": {
+              "category": "image_load",
+              "product": "windows"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "T1552.004",
+      "name": "Private Keys",
+      "tactics": [
+        "credential-access"
+      ],
+      "status": "generated",
+      "reason": "",
+      "procedures": [
+        "Mimikatz's CRYPTO::Extract module can extract keys by interacting with Windows cryptographic application programming interface (API) functions."
+      ],
+      "rules": [
+        {
+          "id": "c91aef80-8acf-5b00-8faf-a0069ae5228c",
+          "title": "Potential Private Keys Activity Via File Creation",
+          "file": "t1552_004_file_event_private_keys.yml",
+          "level": "medium",
+          "logsource": "file_event/windows",
+          "quality": "moderate",
+          "confidence": 0.95
+        }
+      ],
+      "chains": [
+        {
+          "id": "7f12e33b-05aa-58cc-8855-b7e34bc8f2ab",
+          "title": "Potential Private Keys Attack Chain Via File Creation And Process Creation",
+          "file": "mr_t1552_004_an1516_private_keys.yml",
+          "level": "critical",
+          "kind": "chain",
+          "type": "temporal",
+          "quality": "strong",
+          "steps": 2,
+          "timespan": "10m"
+        }
+      ],
+      "sigmahq": {
+        "technique": {
+          "id": "T1552.004",
+          "name": "Private Keys"
+        },
+        "sigmahq_release": "r2026-07-01",
+        "status": "partial",
+        "coverage_ratio": 0.25,
+        "sigmahq_rules": [
+          {
+            "id": "213d6a77-3d55-4ce8-ba74-fcfef741974e",
+            "title": "Private Keys Reconnaissance Via CommandLine Tools",
+            "logsource": "process_creation/windows",
+            "status": "test",
+            "level": "medium",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/process_creation/proc_creation_win_susp_private_keys_recon.yml"
+          },
+          {
+            "id": "9e716b33-63b2-46da-86a4-bd3c3b9b5dfb",
+            "title": "Certificate Exported Via PowerShell",
+            "logsource": "process_creation/windows",
+            "status": "test",
+            "level": "medium",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/process_creation/proc_creation_win_powershell_export_certificate.yml"
+          },
+          {
+            "id": "b2815d0d-7481-4bf0-9b6c-a4c48a94b349",
+            "title": "PowerShell Get-Process LSASS",
+            "logsource": "process_creation/windows",
+            "status": "test",
+            "level": "high",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/process_creation/proc_creation_win_powershell_getprocess_lsass.yml"
+          },
+          {
+            "id": "aa7a3fce-bef5-4311-9cc1-5f04bb8c308c",
+            "title": "Certificate Exported Via PowerShell - ScriptBlock",
+            "logsource": "ps_script/windows",
+            "status": "test",
+            "level": "medium",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/powershell/powershell_script/posh_ps_export_certificate.yml"
+          },
+          {
+            "id": "7892ec59-c5bb-496d-8968-e5d210ca3ac4",
+            "title": "DPAPI Backup Keys And Certificate Export Activity IOC",
+            "logsource": "file_event/windows",
+            "status": "test",
+            "level": "high",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/file/file_event/file_event_win_susp_dpapi_backup_and_cert_export_ioc.yml"
+          },
+          {
+            "id": "1f978c6a-4415-47fb-aca5-736a44d7ca3d",
+            "title": "Cisco Crypto Commands",
+            "logsource": "cisco/aaa",
+            "status": "test",
+            "level": "high",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/network/cisco/aaa/cisco_cli_crypto_actions.yml"
+          }
+        ],
+        "related_rules": 12,
+        "sources": [
+          {
+            "analytic": "AN1516",
+            "platform": "Windows",
+            "attack_log_source": "WinEventLog:Sysmon (EventCode=11)",
+            "sigma_logsource": {
+              "category": "file_event",
+              "product": "windows"
+            },
+            "usable": true,
+            "covered_by": [
+              "7892ec59-c5bb-496d-8968-e5d210ca3ac4"
+            ]
+          },
+          {
+            "analytic": "AN1516",
+            "platform": "Windows",
+            "attack_log_source": "WinEventLog:Security (EventCode=5145)",
+            "sigma_logsource": {
+              "product": "windows",
+              "service": "security"
+            },
+            "usable": true,
+            "covered_by": []
+          },
+          {
+            "analytic": "AN1516",
+            "platform": "Windows",
+            "attack_log_source": "WinEventLog:Sysmon (EventCode=1)",
+            "sigma_logsource": {
+              "category": "process_creation",
+              "product": "windows"
+            },
+            "usable": true,
+            "covered_by": [
+              "213d6a77-3d55-4ce8-ba74-fcfef741974e",
+              "9e716b33-63b2-46da-86a4-bd3c3b9b5dfb",
+              "b2815d0d-7481-4bf0-9b6c-a4c48a94b349"
+            ]
+          },
+          {
+            "analytic": "AN1517",
+            "platform": "Linux",
+            "attack_log_source": "auditd:SYSCALL (openat)",
+            "sigma_logsource": {
+              "product": "linux",
+              "service": "auditd"
+            },
+            "usable": true,
+            "covered_by": []
+          },
+          {
+            "analytic": "AN1517",
+            "platform": "Linux",
+            "attack_log_source": "auditd:EXECVE (execve)",
+            "sigma_logsource": {
+              "category": "process_creation",
+              "product": "linux"
+            },
+            "usable": true,
+            "covered_by": []
+          },
+          {
+            "analytic": "AN1518",
+            "platform": "macOS",
+            "attack_log_source": "macos:unifiedlog (open/read access to private key files (id_rsa, *.pem, *.p12))",
+            "sigma_logsource": {
+              "category": "file_event",
+              "product": "macos"
+            },
+            "usable": true,
+            "covered_by": []
+          },
+          {
+            "analytic": "AN1518",
+            "platform": "macOS",
+            "attack_log_source": "macos:unifiedlog (launch of bash/zsh/python/osascript targeting key file locations)",
+            "sigma_logsource": {
+              "category": "process_creation",
+              "product": "macos"
+            },
+            "usable": true,
+            "covered_by": []
+          },
+          {
+            "analytic": "AN1519",
+            "platform": "Network Devices",
+            "attack_log_source": "networkdevice:syslog (Detected CLI command to export key material)",
+            "sigma_logsource": {
+              "product": "cisco",
+              "service": "syslog"
+            },
+            "usable": true,
+            "covered_by": []
+          }
+        ],
+        "gaps": [
+          {
+            "analytic": "AN1516",
+            "attack_log_source": "WinEventLog:Security (EventCode=5145)",
+            "sigma_logsource": {
+              "product": "windows",
+              "service": "security"
+            }
+          },
+          {
+            "analytic": "AN1517",
+            "attack_log_source": "auditd:SYSCALL (openat)",
+            "sigma_logsource": {
+              "product": "linux",
+              "service": "auditd"
+            }
+          },
+          {
+            "analytic": "AN1517",
+            "attack_log_source": "auditd:EXECVE (execve)",
+            "sigma_logsource": {
+              "category": "process_creation",
+              "product": "linux"
+            }
+          },
+          {
+            "analytic": "AN1518",
+            "attack_log_source": "macos:unifiedlog (open/read access to private key files (id_rsa, *.pem, *.p12))",
+            "sigma_logsource": {
+              "category": "file_event",
+              "product": "macos"
+            }
+          },
+          {
+            "analytic": "AN1518",
+            "attack_log_source": "macos:unifiedlog (launch of bash/zsh/python/osascript targeting key file locations)",
+            "sigma_logsource": {
+              "category": "process_creation",
+              "product": "macos"
+            }
+          },
+          {
+            "analytic": "AN1519",
+            "attack_log_source": "networkdevice:syslog (Detected CLI command to export key material)",
+            "sigma_logsource": {
+              "product": "cisco",
+              "service": "syslog"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "T1555",
+      "name": "Credentials from Password Stores",
+      "tactics": [
+        "credential-access"
+      ],
+      "status": "generated",
+      "reason": "",
+      "procedures": [
+        "Mimikatz performs credential dumping to obtain account and password information useful in gaining access to additional systems and enterprise network resources. It contains functionality to acquire information about credentials in many ways, including from the credential vault and DPAPI."
+      ],
+      "rules": [
+        {
+          "id": "8fd7f806-6200-5ba7-8b4c-185dbe19c3cb",
+          "title": "Potential Credentials from Password Stores Activity Via Process Access",
+          "file": "t1555_process_access_credentials_from_password_stores.yml",
+          "level": "high",
+          "logsource": "process_access/windows",
+          "quality": "strong",
+          "confidence": 0.95
+        }
+      ],
+      "chains": [],
+      "sigmahq": {
+        "technique": {
+          "id": "T1555",
+          "name": "Credentials from Password Stores"
+        },
+        "sigmahq_release": "r2026-07-01",
+        "status": "partial",
+        "coverage_ratio": 0.333,
+        "sigmahq_rules": [
+          {
+            "id": "a840e606-7c8c-4684-9bc1-eb6b6155127f",
+            "title": "PUA - AWS TruffleHog Execution",
+            "logsource": "aws/cloudtrail",
+            "status": "experimental",
+            "level": "medium",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/cloud/aws/cloudtrail/aws_cloudtrail_pua_trufflehog.yml"
+          },
+          {
+            "id": "7679d464-4f74-45e2-9e01-ac66c5eb041a",
+            "title": "HackTool - SecurityXploded Execution",
+            "logsource": "process_creation/windows",
+            "status": "stable",
+            "level": "critical",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/process_creation/proc_creation_win_hktl_secutyxploded.yml"
+          },
+          {
+            "id": "58f4ea09-0fc2-4520-ba18-b85c540b0eaf",
+            "title": "Suspicious Serv-U Process Pattern",
+            "logsource": "process_creation/windows",
+            "status": "test",
+            "level": "high",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/process_creation/proc_creation_win_servu_susp_child_process.yml"
+          },
+          {
+            "id": "d557dc06-62e8-4468-a8e8-7984124908ce",
+            "title": "HackTool - WinPwn Execution",
+            "logsource": "process_creation/windows",
+            "status": "test",
+            "level": "high",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/process_creation/proc_creation_win_hktl_winpwn.yml"
+          },
+          {
+            "id": "99c49d9c-34ea-45f7-84a7-4751ae6b2cbc",
+            "title": "Dump Credentials from Windows Credential Manager With PowerShell",
+            "logsource": "ps_script/windows",
+            "status": "test",
+            "level": "medium",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/powershell/powershell_script/posh_ps_dump_password_windows_credential_manager.yml"
+          },
+          {
+            "id": "851fd622-b675-4d26-b803-14bc7baa517a",
+            "title": "HackTool - WinPwn Execution - ScriptBlock",
+            "logsource": "ps_script/windows",
+            "status": "test",
+            "level": "high",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/powershell/powershell_script/posh_ps_hktl_winpwn.yml"
+          },
+          {
+            "id": "603c6630-5225-49c1-8047-26c964553e0e",
+            "title": "Enumerate Credentials from Windows Credential Manager With PowerShell",
+            "logsource": "ps_script/windows",
+            "status": "test",
+            "level": "medium",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/powershell/powershell_script/posh_ps_enumerate_password_windows_credential_manager.yml"
+          },
+          {
+            "id": "7892ec59-c5bb-496d-8968-e5d210ca3ac4",
+            "title": "DPAPI Backup Keys And Certificate Export Activity IOC",
+            "logsource": "file_event/windows",
+            "status": "test",
+            "level": "high",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/file/file_event/file_event_win_susp_dpapi_backup_and_cert_export_ioc.yml"
+          }
+        ],
+        "related_rules": 10,
+        "sources": [
+          {
+            "analytic": "AN1198",
+            "platform": "Windows",
+            "attack_log_source": "WinEventLog:Sysmon (EventCode=10)",
+            "sigma_logsource": {
+              "category": "process_access",
+              "product": "windows"
+            },
+            "usable": true,
+            "covered_by": []
+          },
+          {
+            "analytic": "AN1198",
+            "platform": "Windows",
+            "attack_log_source": "WinEventLog:Security (EventCode=4663, 4670, 4656)",
+            "sigma_logsource": {
+              "product": "windows",
+              "service": "security"
+            },
+            "usable": true,
+            "covered_by": []
+          },
+          {
+            "analytic": "AN1198",
+            "platform": "Windows",
+            "attack_log_source": "WinEventLog:Sysmon (EventCode=1)",
+            "sigma_logsource": {
+              "category": "process_creation",
+              "product": "windows"
+            },
+            "usable": true,
+            "covered_by": [
+              "7679d464-4f74-45e2-9e01-ac66c5eb041a",
+              "58f4ea09-0fc2-4520-ba18-b85c540b0eaf",
+              "d557dc06-62e8-4468-a8e8-7984124908ce"
+            ]
+          },
+          {
+            "analytic": "AN1199",
+            "platform": "Linux",
+            "attack_log_source": "auditd:SYSCALL (open/read)",
+            "sigma_logsource": {
+              "product": "linux",
+              "service": "auditd"
+            },
+            "usable": true,
+            "covered_by": []
+          },
+          {
+            "analytic": "AN1199",
+            "platform": "Linux",
+            "attack_log_source": "auditd:EXECVE (execve)",
+            "sigma_logsource": {
+              "category": "process_creation",
+              "product": "linux"
+            },
+            "usable": true,
+            "covered_by": []
+          },
+          {
+            "analytic": "AN1200",
+            "platform": "macOS",
+            "attack_log_source": "macos:unifiedlog (access to keychain database)",
+            "sigma_logsource": {
+              "product": "macos",
+              "service": "unifiedlog"
+            },
+            "usable": true,
+            "covered_by": []
+          },
+          {
+            "analytic": "AN1200",
+            "platform": "macOS",
+            "attack_log_source": "macos:unifiedlog (execution of security or osascript)",
+            "sigma_logsource": {
+              "category": "process_creation",
+              "product": "macos"
+            },
+            "usable": true,
+            "covered_by": []
+          },
+          {
+            "analytic": "AN1201",
+            "platform": "IaaS",
+            "attack_log_source": "AWS:CloudTrail (GetSecretValue)",
+            "sigma_logsource": {
+              "product": "aws",
+              "service": "cloudtrail"
+            },
+            "usable": true,
+            "covered_by": [
+              "a840e606-7c8c-4684-9bc1-eb6b6155127f"
+            ]
+          },
+          {
+            "analytic": "AN1201",
+            "platform": "IaaS",
+            "attack_log_source": "AWS:CloudTrail (Decrypt)",
+            "sigma_logsource": {
+              "product": "aws",
+              "service": "cloudtrail"
+            },
+            "usable": true,
+            "covered_by": [
+              "a840e606-7c8c-4684-9bc1-eb6b6155127f"
+            ]
+          }
+        ],
+        "gaps": [
+          {
+            "analytic": "AN1198",
+            "attack_log_source": "WinEventLog:Sysmon (EventCode=10)",
+            "sigma_logsource": {
+              "category": "process_access",
+              "product": "windows"
+            }
+          },
+          {
+            "analytic": "AN1198",
+            "attack_log_source": "WinEventLog:Security (EventCode=4663, 4670, 4656)",
+            "sigma_logsource": {
+              "product": "windows",
+              "service": "security"
+            }
+          },
+          {
+            "analytic": "AN1199",
+            "attack_log_source": "auditd:SYSCALL (open/read)",
+            "sigma_logsource": {
+              "product": "linux",
+              "service": "auditd"
+            }
+          },
+          {
+            "analytic": "AN1199",
+            "attack_log_source": "auditd:EXECVE (execve)",
+            "sigma_logsource": {
+              "category": "process_creation",
+              "product": "linux"
+            }
+          },
+          {
+            "analytic": "AN1200",
+            "attack_log_source": "macos:unifiedlog (access to keychain database)",
+            "sigma_logsource": {
+              "product": "macos",
+              "service": "unifiedlog"
+            }
+          },
+          {
+            "analytic": "AN1200",
+            "attack_log_source": "macos:unifiedlog (execution of security or osascript)",
+            "sigma_logsource": {
+              "category": "process_creation",
+              "product": "macos"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "T1555.003",
+      "name": "Credentials from Web Browsers",
+      "tactics": [
+        "credential-access"
+      ],
+      "status": "generated",
+      "reason": "",
+      "procedures": [
+        "Mimikatz performs credential dumping to obtain account and password information useful in gaining access to additional systems and enterprise network resources. It contains functionality to acquire information about credentials in many ways, including from DPAPI."
+      ],
+      "rules": [
+        {
+          "id": "c575fa8d-8e34-56fe-9a8e-b8b45292b8a1",
+          "title": "Potential Credentials from Web Browsers Activity Via Windows Security",
+          "file": "t1555_003_security_credentials_from_web_browsers.yml",
+          "level": "low",
+          "logsource": "windows/security",
+          "quality": "weak",
+          "confidence": 0.95
+        }
+      ],
+      "chains": [],
+      "sigmahq": {
+        "technique": {
+          "id": "T1555.003",
+          "name": "Credentials from Web Browsers"
+        },
+        "sigmahq_release": "r2026-07-01",
+        "status": "partial",
+        "coverage_ratio": 0.143,
+        "sigmahq_rules": [
+          {
+            "id": "24c77512-782b-448a-8950-eddb0785fc71",
+            "title": "SQLite Chromium Profile Data DB Access",
+            "logsource": "process_creation/windows",
+            "status": "test",
+            "level": "high",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/process_creation/proc_creation_win_sqlite_chromium_profile_data.yml"
+          },
+          {
+            "id": "47147b5b-9e17-4d76-b8d2-7bac24c5ce1b",
+            "title": "Potential Browser Data Stealing",
+            "logsource": "process_creation/windows",
+            "status": "test",
+            "level": "medium",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/process_creation/proc_creation_win_susp_copy_browser_data.yml"
+          },
+          {
+            "id": "d0dae994-26c6-4d2d-83b5-b3c8b79ae513",
+            "title": "PUA - WebBrowserPassView Execution",
+            "logsource": "process_creation/windows",
+            "status": "test",
+            "level": "medium",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/process_creation/proc_creation_win_pua_webbrowserpassview.yml"
+          },
+          {
+            "id": "d557dc06-62e8-4468-a8e8-7984124908ce",
+            "title": "HackTool - WinPwn Execution",
+            "logsource": "process_creation/windows",
+            "status": "test",
+            "level": "high",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/process_creation/proc_creation_win_hktl_winpwn.yml"
+          },
+          {
+            "id": "851fd622-b675-4d26-b803-14bc7baa517a",
+            "title": "HackTool - WinPwn Execution - ScriptBlock",
+            "logsource": "ps_script/windows",
+            "status": "test",
+            "level": "high",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/powershell/powershell_script/posh_ps_hktl_winpwn.yml"
+          },
+          {
+            "id": "fc028194-969d-4122-8abe-0470d5b8f12f",
+            "title": "Access to Browser Login Data",
+            "logsource": "ps_script/windows",
+            "status": "test",
+            "level": "medium",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/powershell/powershell_script/posh_ps_access_to_browser_login_data.yml"
+          }
+        ],
+        "related_rules": 6,
+        "sources": [
+          {
+            "analytic": "AN0105",
+            "platform": "Windows",
+            "attack_log_source": "WinEventLog:Security (EventCode=4663, 4670, 4656)",
+            "sigma_logsource": {
+              "product": "windows",
+              "service": "security"
+            },
+            "usable": true,
+            "covered_by": []
+          },
+          {
+            "analytic": "AN0105",
+            "platform": "Windows",
+            "attack_log_source": "WinEventLog:Sysmon (EventCode=10)",
+            "sigma_logsource": {
+              "category": "process_access",
+              "product": "windows"
+            },
+            "usable": true,
+            "covered_by": []
+          },
+          {
+            "analytic": "AN0105",
+            "platform": "Windows",
+            "attack_log_source": "WinEventLog:Sysmon (EventCode=1)",
+            "sigma_logsource": {
+              "category": "process_creation",
+              "product": "windows"
+            },
+            "usable": true,
+            "covered_by": [
+              "24c77512-782b-448a-8950-eddb0785fc71",
+              "47147b5b-9e17-4d76-b8d2-7bac24c5ce1b",
+              "d0dae994-26c6-4d2d-83b5-b3c8b79ae513",
+              "d557dc06-62e8-4468-a8e8-7984124908ce"
+            ]
+          },
+          {
+            "analytic": "AN0106",
+            "platform": "Linux",
+            "attack_log_source": "auditd:FILE (/home/*/.mozilla/firefox/*/logins.json OR /home/*/.config/google-chrome/*/Login Data)",
+            "sigma_logsource": {
+              "product": "linux",
+              "service": "auditd"
+            },
+            "usable": true,
+            "covered_by": []
+          },
+          {
+            "analytic": "AN0106",
+            "platform": "Linux",
+            "attack_log_source": "auditd:SYSCALL (ptrace attach)",
+            "sigma_logsource": {
+              "product": "linux",
+              "service": "auditd"
+            },
+            "usable": true,
+            "covered_by": []
+          },
+          {
+            "analytic": "AN0107",
+            "platform": "macOS",
+            "attack_log_source": "macos:unifiedlog (execution of security, sqlite3, or unauthorized binaries)",
+            "sigma_logsource": {
+              "category": "process_creation",
+              "product": "macos"
+            },
+            "usable": true,
+            "covered_by": []
+          },
+          {
+            "analytic": "AN0107",
+            "platform": "macOS",
+            "attack_log_source": "macos:unifiedlog (~/Library/Application Support/Google/Chrome/*/Login Data OR ~/Library/Application Support/Firefox/*/logins.json)",
+            "sigma_logsource": {
+              "product": "macos",
+              "service": "unifiedlog"
+            },
+            "usable": true,
+            "covered_by": []
+          }
+        ],
+        "gaps": [
+          {
+            "analytic": "AN0105",
+            "attack_log_source": "WinEventLog:Security (EventCode=4663, 4670, 4656)",
+            "sigma_logsource": {
+              "product": "windows",
+              "service": "security"
+            }
+          },
+          {
+            "analytic": "AN0105",
+            "attack_log_source": "WinEventLog:Sysmon (EventCode=10)",
+            "sigma_logsource": {
+              "category": "process_access",
+              "product": "windows"
+            }
+          },
+          {
+            "analytic": "AN0106",
+            "attack_log_source": "auditd:FILE (/home/*/.mozilla/firefox/*/logins.json OR /home/*/.config/google-chrome/*/Login Data)",
+            "sigma_logsource": {
+              "product": "linux",
+              "service": "auditd"
+            }
+          },
+          {
+            "analytic": "AN0106",
+            "attack_log_source": "auditd:SYSCALL (ptrace attach)",
+            "sigma_logsource": {
+              "product": "linux",
+              "service": "auditd"
+            }
+          },
+          {
+            "analytic": "AN0107",
+            "attack_log_source": "macos:unifiedlog (execution of security, sqlite3, or unauthorized binaries)",
+            "sigma_logsource": {
+              "category": "process_creation",
+              "product": "macos"
+            }
+          },
+          {
+            "analytic": "AN0107",
+            "attack_log_source": "macos:unifiedlog (~/Library/Application Support/Google/Chrome/*/Login Data OR ~/Library/Application Support/Firefox/*/logins.json)",
+            "sigma_logsource": {
+              "product": "macos",
+              "service": "unifiedlog"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "T1555.004",
+      "name": "Windows Credential Manager",
+      "tactics": [
+        "credential-access"
+      ],
+      "status": "generated",
+      "reason": "",
+      "procedures": [
+        "Mimikatz contains functionality to acquire credentials from the Windows Credential Manager."
+      ],
+      "rules": [
+        {
+          "id": "6e5d191f-afc0-53c0-a448-31075a81c987",
+          "title": "Potential Windows Credential Manager Activity Via Process Creation",
+          "file": "t1555_004_process_creation_windows_credential_manager.yml",
+          "level": "high",
+          "logsource": "process_creation/windows",
+          "quality": "strong",
+          "confidence": 0.95
+        }
+      ],
+      "chains": [
+        {
+          "id": "ba7aeb9c-5809-51fe-92f9-e0781741489a",
+          "title": "Potential Windows Credential Manager Attack Chain Via 2 Correlated Log Sources",
+          "file": "mr_t1555_004_an0378_windows_credential_manager.yml",
+          "level": "critical",
+          "kind": "chain",
+          "type": "temporal",
+          "quality": "strong",
+          "steps": 2,
+          "timespan": "10m"
+        }
+      ],
+      "sigmahq": {
+        "technique": {
+          "id": "T1555.004",
+          "name": "Windows Credential Manager"
+        },
+        "sigmahq_release": "r2026-07-01",
+        "status": "partial",
+        "coverage_ratio": 0.333,
+        "sigmahq_rules": [
+          {
+            "id": "58f50261-c53b-4c88-bd12-1d71f12eda4c",
+            "title": "Windows Credential Manager Access via VaultCmd",
+            "logsource": "process_creation/windows",
+            "status": "test",
+            "level": "medium",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/process_creation/proc_creation_win_vaultcmd_list_creds.yml"
+          },
+          {
+            "id": "a4694263-59a8-4608-a3a0-6f8d3a51664c",
+            "title": "Suspicious Key Manager Access",
+            "logsource": "process_creation/windows",
+            "status": "test",
+            "level": "high",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/process_creation/proc_creation_win_rundll32_keymgr.yml"
+          },
+          {
+            "id": "7a2a22ea-a203-4cd3-9abf-20eb1c5c6cd2",
+            "title": "Access To Windows Credential History File By Uncommon Applications",
+            "logsource": "file_access/windows",
+            "status": "test",
+            "level": "medium",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/file/file_access/file_access_win_susp_credhist.yml"
+          },
+          {
+            "id": "46612ae6-86be-4802-bc07-39b59feb1309",
+            "title": "Access To Windows DPAPI Master Keys By Uncommon Applications",
+            "logsource": "file_access/windows",
+            "status": "test",
+            "level": "medium",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/file/file_access/file_access_win_susp_dpapi_master_key_access.yml"
+          }
+        ],
+        "related_rules": 8,
+        "sources": [
+          {
+            "analytic": "AN0378",
+            "platform": "Windows",
+            "attack_log_source": "WinEventLog:Security (EventCode=4688)",
+            "sigma_logsource": {
+              "category": "process_creation",
+              "product": "windows"
+            },
+            "usable": true,
+            "covered_by": [
+              "58f50261-c53b-4c88-bd12-1d71f12eda4c",
+              "a4694263-59a8-4608-a3a0-6f8d3a51664c"
+            ]
+          },
+          {
+            "analytic": "AN0378",
+            "platform": "Windows",
+            "attack_log_source": "WinEventLog:Sysmon (EventCode=10)",
+            "sigma_logsource": {
+              "category": "process_access",
+              "product": "windows"
+            },
+            "usable": true,
+            "covered_by": []
+          },
+          {
+            "analytic": "AN0378",
+            "platform": "Windows",
+            "attack_log_source": "WinEventLog:Sysmon (EventCode=15)",
+            "sigma_logsource": {
+              "category": "create_stream_hash",
+              "product": "windows"
+            },
+            "usable": true,
+            "covered_by": []
+          }
+        ],
+        "gaps": [
+          {
+            "analytic": "AN0378",
+            "attack_log_source": "WinEventLog:Sysmon (EventCode=10)",
+            "sigma_logsource": {
+              "category": "process_access",
+              "product": "windows"
+            }
+          },
+          {
+            "analytic": "AN0378",
+            "attack_log_source": "WinEventLog:Sysmon (EventCode=15)",
+            "sigma_logsource": {
+              "category": "create_stream_hash",
+              "product": "windows"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "T1558.001",
+      "name": "Golden Ticket",
+      "tactics": [
+        "credential-access"
+      ],
+      "status": "generated",
+      "reason": "",
+      "procedures": [
+        "Mimikatz's kerberos module can create golden tickets."
+      ],
+      "rules": [
+        {
+          "id": "efb4fbeb-8a96-52a5-a188-3a8820a54600",
+          "title": "Potential Golden Ticket Activity Via Process Access",
+          "file": "t1558_001_process_access_golden_ticket.yml",
+          "level": "high",
+          "logsource": "process_access/windows",
+          "quality": "strong",
+          "confidence": 0.95
+        }
+      ],
+      "chains": [],
+      "sigmahq": {
+        "technique": {
+          "id": "T1558.001",
+          "name": "Golden Ticket"
+        },
+        "sigmahq_release": "r2026-07-01",
+        "status": "no-rules",
+        "coverage_ratio": 0.0,
+        "sigmahq_rules": [],
+        "related_rules": 5,
+        "sources": [
+          {
+            "analytic": "AN0405",
+            "platform": "Windows",
+            "attack_log_source": "WinEventLog:Security (EventCode=4672, 4634)",
+            "sigma_logsource": {
+              "product": "windows",
+              "service": "security"
+            },
+            "usable": true,
+            "covered_by": []
+          },
+          {
+            "analytic": "AN0405",
+            "platform": "Windows",
+            "attack_log_source": "WinEventLog:Security (EventCode=4769)",
+            "sigma_logsource": {
+              "product": "windows",
+              "service": "security"
+            },
+            "usable": true,
+            "covered_by": []
+          },
+          {
+            "analytic": "AN0405",
+            "platform": "Windows",
+            "attack_log_source": "WinEventLog:Sysmon (EventCode=10)",
+            "sigma_logsource": {
+              "category": "process_access",
+              "product": "windows"
+            },
+            "usable": true,
+            "covered_by": []
+          }
+        ],
+        "gaps": [
+          {
+            "analytic": "AN0405",
+            "attack_log_source": "WinEventLog:Security (EventCode=4672, 4634)",
+            "sigma_logsource": {
+              "product": "windows",
+              "service": "security"
+            }
+          },
+          {
+            "analytic": "AN0405",
+            "attack_log_source": "WinEventLog:Security (EventCode=4769)",
+            "sigma_logsource": {
+              "product": "windows",
+              "service": "security"
+            }
+          },
+          {
+            "analytic": "AN0405",
+            "attack_log_source": "WinEventLog:Sysmon (EventCode=10)",
+            "sigma_logsource": {
+              "category": "process_access",
+              "product": "windows"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "T1558.002",
+      "name": "Silver Ticket",
+      "tactics": [
+        "credential-access"
+      ],
+      "status": "generated",
+      "reason": "",
+      "procedures": [
+        "Mimikatz's kerberos module can create silver tickets."
+      ],
+      "rules": [
+        {
+          "id": "e8500546-8013-5be1-9715-2bc6586f6fcd",
+          "title": "Potential Silver Ticket Activity Via Windows Security",
+          "file": "t1558_002_security_silver_ticket.yml",
+          "level": "low",
+          "logsource": "windows/security",
+          "quality": "weak",
+          "confidence": 0.95
+        }
+      ],
+      "chains": [],
+      "sigmahq": {
+        "technique": {
+          "id": "T1558.002",
+          "name": "Silver Ticket"
+        },
+        "sigmahq_release": "r2026-07-01",
+        "status": "no-rules",
+        "coverage_ratio": 0.0,
+        "sigmahq_rules": [],
+        "related_rules": 5,
+        "sources": [
+          {
+            "analytic": "AN0675",
+            "platform": "Windows",
+            "attack_log_source": "WinEventLog:Security (EventCode=4672, 4634)",
+            "sigma_logsource": {
+              "product": "windows",
+              "service": "security"
+            },
+            "usable": true,
+            "covered_by": []
+          },
+          {
+            "analytic": "AN0675",
+            "platform": "Windows",
+            "attack_log_source": "WinEventLog:Kerberos (Kerberos TGS-REQ anomalies without KDC validation (Silver Ticket behavior))",
+            "sigma_logsource": {
+              "product": "windows",
+              "service": "security"
+            },
+            "usable": true,
+            "covered_by": []
+          },
+          {
+            "analytic": "AN0675",
+            "platform": "Windows",
+            "attack_log_source": "WinEventLog:Sysmon (EventCode=10)",
+            "sigma_logsource": {
+              "category": "process_access",
+              "product": "windows"
+            },
+            "usable": true,
+            "covered_by": []
+          }
+        ],
+        "gaps": [
+          {
+            "analytic": "AN0675",
+            "attack_log_source": "WinEventLog:Security (EventCode=4672, 4634)",
+            "sigma_logsource": {
+              "product": "windows",
+              "service": "security"
+            }
+          },
+          {
+            "analytic": "AN0675",
+            "attack_log_source": "WinEventLog:Kerberos (Kerberos TGS-REQ anomalies without KDC validation (Silver Ticket behavior))",
+            "sigma_logsource": {
+              "product": "windows",
+              "service": "security"
+            }
+          },
+          {
+            "analytic": "AN0675",
+            "attack_log_source": "WinEventLog:Sysmon (EventCode=10)",
+            "sigma_logsource": {
+              "category": "process_access",
+              "product": "windows"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "T1649",
+      "name": "Steal or Forge Authentication Certificates",
+      "tactics": [
+        "credential-access"
+      ],
+      "status": "generated",
+      "reason": "",
+      "procedures": [
+        "Mimikatz's `CRYPTO` module can create and export various types of authentication certificates."
+      ],
+      "rules": [
+        {
+          "id": "3b297d62-5185-57a9-805f-deaaa4357f53",
+          "title": "Potential Steal or Forge Authentication Certificates Activity Via Windows Security",
+          "file": "t1649_security_steal_or_forge_authentication_certificat.yml",
+          "level": "low",
+          "logsource": "windows/security",
+          "quality": "weak",
+          "confidence": 0.95
+        }
+      ],
+      "chains": [],
+      "sigmahq": {
+        "technique": {
+          "id": "T1649",
+          "name": "Steal or Forge Authentication Certificates"
+        },
+        "sigmahq_release": "r2026-07-01",
+        "status": "gap",
+        "coverage_ratio": 0.0,
+        "sigmahq_rules": [
+          {
+            "id": "6938366d-8954-4ddc-baff-c830b3ba8fcd",
+            "title": "HackTool - Certipy Execution",
+            "logsource": "process_creation/windows",
+            "status": "test",
+            "level": "high",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/process_creation/proc_creation_win_hktl_certipy.yml"
+          },
+          {
+            "id": "762f2482-ff21-4970-8939-0aa317a886bb",
+            "title": "HackTool - Certify Execution",
+            "logsource": "process_creation/windows",
+            "status": "test",
+            "level": "high",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/process_creation/proc_creation_win_hktl_certify.yml"
+          },
+          {
+            "id": "e2b5163d-7deb-4566-9af3-40afea6858c3",
+            "title": "Certificate Private Key Acquired",
+            "logsource": "windows/capi2",
+            "status": "test",
+            "level": "medium",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/builtin/capi2/win_capi2_acquire_certificate_private_key.yml"
+          },
+          {
+            "id": "58c0bff0-40a0-46e8-b5e8-b734b84d2017",
+            "title": "Certificate Exported From Local Certificate Store",
+            "logsource": "windows/certificateservicesclient-lifecycle-system",
+            "status": "test",
+            "level": "medium",
+            "url": "https://github.com/SigmaHQ/sigma/blob/master/rules/windows/builtin/certificate_services_client_lifecycle_system/win_certificateservicesclient_lifecycle_system_cert_exported.yml"
+          }
+        ],
+        "related_rules": 0,
+        "sources": [
+          {
+            "analytic": "AN0671",
+            "platform": "Windows",
+            "attack_log_source": "WinEventLog:Security (EventCode=4768)",
+            "sigma_logsource": {
+              "product": "windows",
+              "service": "security"
+            },
+            "usable": true,
+            "covered_by": []
+          },
+          {
+            "analytic": "AN0671",
+            "platform": "Windows",
+            "attack_log_source": "WinEventLog:Security (EventCode=4657)",
+            "sigma_logsource": {
+              "product": "windows",
+              "service": "security"
+            },
+            "usable": true,
+            "covered_by": []
+          },
+          {
+            "analytic": "AN0672",
+            "platform": "Linux",
+            "attack_log_source": "auditd:SYSCALL (open, read: /etc/ssl/, /etc/pki/, ~/.pki/nssdb/)",
+            "sigma_logsource": {
+              "product": "linux",
+              "service": "auditd"
+            },
+            "usable": true,
+            "covered_by": []
+          },
+          {
+            "analytic": "AN0672",
+            "platform": "Linux",
+            "attack_log_source": "auditd:SYSCALL (execve: openssl pkcs12, certutil, keytool)",
+            "sigma_logsource": {
+              "category": "process_creation",
+              "product": "linux"
+            },
+            "usable": true,
+            "covered_by": []
+          },
+          {
+            "analytic": "AN0673",
+            "platform": "macOS",
+            "attack_log_source": "macos:unifiedlog (process calling security find-certificate, export, or import)",
+            "sigma_logsource": {
+              "category": "process_creation",
+              "product": "macos"
+            },
+            "usable": true,
+            "covered_by": []
+          },
+          {
+            "analytic": "AN0673",
+            "platform": "macOS",
+            "attack_log_source": "macos:keychain (~/Library/Keychains, /Library/Keychains)",
+            "sigma_logsource": {
+              "category": "file_access",
+              "product": "macos"
+            },
+            "usable": true,
+            "covered_by": []
+          },
+          {
+            "analytic": "AN0674",
+            "platform": "Identity Provider",
+            "attack_log_source": "azure:signinlogs (Add certificate credential, Update certificate credential)",
+            "sigma_logsource": {
+              "product": "azure",
+              "service": "signinlogs"
+            },
+            "usable": true,
+            "covered_by": []
+          },
+          {
+            "analytic": "AN0674",
+            "platform": "Identity Provider",
+            "attack_log_source": "m365:unified (certificate added or modified in application credentials)",
+            "sigma_logsource": {
+              "product": "m365",
+              "service": "audit"
+            },
+            "usable": true,
+            "covered_by": []
+          }
+        ],
+        "gaps": [
+          {
+            "analytic": "AN0671",
+            "attack_log_source": "WinEventLog:Security (EventCode=4768)",
+            "sigma_logsource": {
+              "product": "windows",
+              "service": "security"
+            }
+          },
+          {
+            "analytic": "AN0671",
+            "attack_log_source": "WinEventLog:Security (EventCode=4657)",
+            "sigma_logsource": {
+              "product": "windows",
+              "service": "security"
+            }
+          },
+          {
+            "analytic": "AN0672",
+            "attack_log_source": "auditd:SYSCALL (open, read: /etc/ssl/, /etc/pki/, ~/.pki/nssdb/)",
+            "sigma_logsource": {
+              "product": "linux",
+              "service": "auditd"
+            }
+          },
+          {
+            "analytic": "AN0672",
+            "attack_log_source": "auditd:SYSCALL (execve: openssl pkcs12, certutil, keytool)",
+            "sigma_logsource": {
+              "category": "process_creation",
+              "product": "linux"
+            }
+          },
+          {
+            "analytic": "AN0673",
+            "attack_log_source": "macos:unifiedlog (process calling security find-certificate, export, or import)",
+            "sigma_logsource": {
+              "category": "process_creation",
+              "product": "macos"
+            }
+          },
+          {
+            "analytic": "AN0673",
+            "attack_log_source": "macos:keychain (~/Library/Keychains, /Library/Keychains)",
+            "sigma_logsource": {
+              "category": "file_access",
+              "product": "macos"
+            }
+          },
+          {
+            "analytic": "AN0674",
+            "attack_log_source": "azure:signinlogs (Add certificate credential, Update certificate credential)",
+            "sigma_logsource": {
+              "product": "azure",
+              "service": "signinlogs"
+            }
+          },
+          {
+            "analytic": "AN0674",
+            "attack_log_source": "m365:unified (certificate added or modified in application credentials)",
+            "sigma_logsource": {
+              "product": "m365",
+              "service": "audit"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

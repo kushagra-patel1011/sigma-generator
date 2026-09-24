@@ -1,0 +1,265 @@
+{
+  "type": "bundle",
+  "id": "bundle--86e7348e-11cf-599a-8166-ef73e9484110",
+  "objects": [
+    {
+      "type": "marking-definition",
+      "spec_version": "2.1",
+      "id": "marking-definition--613f2e26-407d-48c7-9eca-b8e91df99dc9",
+      "created": "2017-01-20T00:00:00.000Z",
+      "definition_type": "tlp",
+      "name": "TLP:WHITE",
+      "definition": {
+        "tlp": "white"
+      }
+    },
+    {
+      "type": "identity",
+      "spec_version": "2.1",
+      "id": "identity--ae680a5e-6d35-5cfc-b288-78d29d770eed",
+      "created": "2026-09-17T11:13:17.017Z",
+      "modified": "2026-09-17T11:13:17.017Z",
+      "name": "sigma-generator",
+      "description": "Automated draft detection authoring (sigma-generator v1.1.0). Rules in this bundle are machine-generated from MITRE ATT&CK and require analyst review before deployment.",
+      "identity_class": "system"
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--f232fa7a-025c-4d43-abc7-318e81a73d65",
+      "created": "2020-03-13T20:36:57.378Z",
+      "modified": "2026-05-12T15:12:00.723Z",
+      "name": "Cloud Accounts",
+      "description": "Valid accounts in cloud environments may allow adversaries to perform actions to achieve Initial Access, Persistence, Privilege Escalation, or Defense Evasion. Cloud accounts are those created and configured by an organization for use by users, remote support, services, or for administration of resources within a cloud service provider or SaaS application. Cloud Accounts can exist solely in the cloud; alternatively, they may be hybrid-joined between on-premises systems and the cloud through syncing or federation with other identity sources such as Windows Active Directory.\n\nService or user accounts may be targeted by adversaries through Brute Force, Phishing, or various other means to gain access to the environment. Federated or synced accounts may be a pathway for the adversary to affect both on-premises systems and cloud environments - for example, by leveraging shared credentials to log onto Remote Services. High privileged cloud accounts, whether federated, synced, or cloud-only, may also allow pivoting to on-premises environments by leveraging SaaS-based Software Deployment Tools to run commands on hybrid-joined devices.\n\nAn adversary may create long lasting Additional Cloud Credentials on a compromised cloud account to maintain persistence in the environment. Such credentials may also be used to bypass security controls such as multi-factor authentication. \n\nCloud accounts may also be able to assume Temporary Elevated Cloud Access or other privileges through various means within the environment. Misconfigurations in role assignments or role assumption policies may allow an adversary to use these mechanisms to leverage permissions outside the intended scope of the account. Such over privileged accounts may be used to harvest sensitive data from online storage accounts and databases through Cloud API or other methods. For example, in Azure environments, adversaries may target Azure Managed Identities, which allow associated Azure resources to request access tokens. By compromising a resource with an attached Managed Identity, such as an Azure VM, adversaries may be able to Steal Application Access Tokens to move laterally across the cloud environment.",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1078.004",
+          "url": "https://attack.mitre.org/techniques/T1078/004"
+        },
+        {
+          "source_name": "AWS Identity Federation",
+          "url": "https://aws.amazon.com/identity/federation/"
+        },
+        {
+          "source_name": "SpecterOps Managed Identity 2022",
+          "url": "https://posts.specterops.io/managed-identity-attack-paths-part-1-automation-accounts-82667d17187a?gi=6a9daedade1c"
+        },
+        {
+          "source_name": "Google Federating GC",
+          "url": "https://cloud.google.com/solutions/federating-gcp-with-active-directory-introduction"
+        },
+        {
+          "source_name": "Microsoft Deploying AD Federation",
+          "url": "https://docs.microsoft.com/en-us/windows-server/identity/ad-fs/deployment/how-to-connect-fed-azure-adfs"
+        }
+      ],
+      "object_marking_refs": [
+        "marking-definition--613f2e26-407d-48c7-9eca-b8e91df99dc9"
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "stealth"
+        },
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "persistence"
+        },
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "privilege-escalation"
+        },
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "initial-access"
+        }
+      ],
+      "x_mitre_platforms": [
+        "IaaS",
+        "Identity Provider",
+        "Office Suite",
+        "SaaS"
+      ],
+      "x_mitre_is_subtechnique": true
+    },
+    {
+      "type": "indicator",
+      "spec_version": "2.1",
+      "id": "indicator--9029addc-c54d-5d11-9ac9-2d6d4b8ab6c0",
+      "created_by_ref": "identity--ae680a5e-6d35-5cfc-b288-78d29d770eed",
+      "created": "2026-09-17T11:13:17.017Z",
+      "modified": "2026-09-17T11:13:17.017Z",
+      "name": "Potential Cloud Accounts Activity Via AWS CloudTrail",
+      "description": "Draft Sigma rule for T1078.004 (Cloud Accounts). Log source: aws/cloudtrail (resolved from AWS:CloudTrail (ConsoleLogin, AssumeRole, ListAccessKeys, CreateUser)). Rule quality: weak - matches broad activity - suitable for threat hunting, not alerting. Derived from ATT&CK detection strategy DET0546 / analytic AN1504. Machine-generated draft - validate against real telemetry before deployment.",
+      "indicator_types": [
+        "anomalous-activity"
+      ],
+      "pattern": "title: Potential Cloud Accounts Activity Via AWS CloudTrail\nid: 9029addc-c54d-5d11-9ac9-2d6d4b8ab6c0\nstatus: experimental\ndescription: |\n    Draft detection for T1078.004 (Cloud Accounts), derived from ATT&CK detection strategy DET0546 /\n    analytic AN1504.\n    Valid accounts in cloud environments may allow adversaries to perform actions to achieve Initial\n    Access, Persistence, Privilege Escalation, or Defense Evasion. Cloud accounts are those created\n    and configured by an organization for use by users, remote support, services, or for\n    administration of resources within a cloud service provider or SaaS application.\n    ATT&CK analytic: Detects cloud account use for API calls that exceed normal scope, such as IAM\n    changes or access to services never used before.\n    Generated draft - the selection values below were mined from ATT&CK and must be validated\n    against real telemetry before this rule is deployed.\nreferences:\n    - https://attack.mitre.org/techniques/T1078/004\n    - https://attack.mitre.org/detectionstrategies/DET0546\n    - https://attack.mitre.org/detectionstrategies/DET0546#AN1504\n    - https://aws.amazon.com/identity/federation/\n    - https://posts.specterops.io/managed-identity-attack-paths-part-1-automation-accounts-82667d17187a?gi=6a9daedade1c\n    - https://cloud.google.com/solutions/federating-gcp-with-active-directory-introduction\nauthor: sigma-generator\ndate: 2026-09-17\ntags:\n    - attack.stealth\n    - attack.persistence\n    - attack.privilege-escalation\n    - attack.initial-access\n    - attack.t1078\n    - attack.t1078.004\n    - detection.threat-hunting\nlogsource:\n    product: aws\n    service: cloudtrail\ndetection:\n    selection_source:\n        eventName:\n            - ConsoleLogin\n            - AssumeRole\n            - ListAccessKeys\n            - CreateUser\n    condition: selection_source\nfields:\n    - eventSource\n    - eventName\n    - userIdentity.arn\n    - sourceIPAddress\n    - awsRegion\nfalsepositives:\n    - 'Environment-specific tuning of ServiceInteractionBaseline: Custom list of expected service interactions per user or role.'\n    - 'Environment-specific tuning of RoleSwitchRateThreshold: Frequency of assume-role operations that triggers an alert.'\n    - Unknown\nlevel: low\n",
+      "pattern_type": "sigma",
+      "pattern_version": "2.0",
+      "valid_from": "2026-09-17T11:13:17.017Z",
+      "labels": [
+        "sigma-rule",
+        "draft",
+        "attack.t1078.004",
+        "sigma-level.low",
+        "quality.weak",
+        "platform.iaas"
+      ],
+      "confidence": 95,
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1078.004",
+          "url": "https://attack.mitre.org/techniques/T1078/004"
+        },
+        {
+          "source_name": "mitre-attack",
+          "url": "https://attack.mitre.org/detectionstrategies/DET0546"
+        },
+        {
+          "source_name": "mitre-attack",
+          "url": "https://attack.mitre.org/detectionstrategies/DET0546#AN1504"
+        },
+        {
+          "source_name": "reference",
+          "url": "https://aws.amazon.com/identity/federation/"
+        },
+        {
+          "source_name": "reference",
+          "url": "https://posts.specterops.io/managed-identity-attack-paths-part-1-automation-accounts-82667d17187a?gi=6a9daedade1c"
+        },
+        {
+          "source_name": "reference",
+          "url": "https://cloud.google.com/solutions/federating-gcp-with-active-directory-introduction"
+        }
+      ],
+      "object_marking_refs": [
+        "marking-definition--613f2e26-407d-48c7-9eca-b8e91df99dc9"
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "stealth"
+        },
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "persistence"
+        },
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "privilege-escalation"
+        },
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "initial-access"
+        }
+      ]
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--cb27e003-6c55-5b12-b315-2d240aac14ce",
+      "created_by_ref": "identity--ae680a5e-6d35-5cfc-b288-78d29d770eed",
+      "created": "2026-09-17T11:13:17.017Z",
+      "modified": "2026-09-17T11:13:17.017Z",
+      "relationship_type": "indicates",
+      "source_ref": "indicator--9029addc-c54d-5d11-9ac9-2d6d4b8ab6c0",
+      "target_ref": "attack-pattern--f232fa7a-025c-4d43-abc7-318e81a73d65",
+      "object_marking_refs": [
+        "marking-definition--613f2e26-407d-48c7-9eca-b8e91df99dc9"
+      ],
+      "description": "Draft Sigma rule detecting T1078.004 (Cloud Accounts)."
+    },
+    {
+      "type": "indicator",
+      "spec_version": "2.1",
+      "id": "indicator--917725d3-27fc-519d-9296-72b5d2b93086",
+      "created_by_ref": "identity--ae680a5e-6d35-5cfc-b288-78d29d770eed",
+      "created": "2026-09-17T11:13:17.017Z",
+      "modified": "2026-09-17T11:13:17.017Z",
+      "name": "Potential Cloud Accounts Burst Via AWS CloudTrail",
+      "description": "Draft Sigma correlation rule for T1078.004 (Cloud Accounts). Log sources: aws/cloudtrail (resolved from AWS:CloudTrail (ConsoleLogin, AssumeRole, ListAccessKeys, CreateUser)). Fires when 10 or more matching events occur per userIdentity.arn within 10m; the pattern holds the correlation and its base rule. Rule quality: moderate - one behavioural signal - review for noise. Derived from ATT&CK detection strategy DET0546 / analytic AN1504. Machine-generated draft - validate against real telemetry before deployment.",
+      "indicator_types": [
+        "anomalous-activity"
+      ],
+      "pattern": "title: Potential Cloud Accounts Burst Via AWS CloudTrail\nid: 917725d3-27fc-519d-9296-72b5d2b93086\nstatus: experimental\ndescription: |\n    Draft threshold correlation for T1078.004 (Cloud Accounts). ATT&CK analytic AN1504 (strategy\n    DET0546) describes volume (\"RoleSwitchRateThreshold\"); this rule fires when 10 or more matching\n    events occur for the same userIdentity.arn within 10m.\n    ATT&CK analytic: Detects cloud account use for API calls that exceed normal scope, such as IAM\n    changes or access to services never used before.\n    Generated draft - the threshold and base selection must be tuned against real telemetry before\n    this rule is deployed.\nreferences:\n    - https://attack.mitre.org/techniques/T1078/004\n    - https://attack.mitre.org/detectionstrategies/DET0546\n    - https://attack.mitre.org/detectionstrategies/DET0546#AN1504\n    - https://aws.amazon.com/identity/federation/\n    - https://posts.specterops.io/managed-identity-attack-paths-part-1-automation-accounts-82667d17187a?gi=6a9daedade1c\n    - https://cloud.google.com/solutions/federating-gcp-with-active-directory-introduction\nauthor: sigma-generator\ndate: 2026-09-17\ntags:\n    - attack.stealth\n    - attack.persistence\n    - attack.privilege-escalation\n    - attack.initial-access\n    - attack.t1078\n    - attack.t1078.004\ncorrelation:\n    type: event_count\n    rules:\n        - base_cloudtrail\n    group-by:\n        - userIdentity.arn\n    timespan: 10m\n    condition:\n        gte: 10\nfalsepositives:\n    - 'Environment-specific tuning of ServiceInteractionBaseline: Custom list of expected service interactions per user or role.'\n    - 'Environment-specific tuning of RoleSwitchRateThreshold: Frequency of assume-role operations that triggers an alert.'\n    - Unknown\nlevel: medium\n---\ntitle: 'Cloud Accounts - Counted Event: AWS CloudTrail'\nid: 18525190-e106-5bcb-ba39-769fe8a5d184\nname: base_cloudtrail\nlogsource:\n    product: aws\n    service: cloudtrail\ndetection:\n    selection_source:\n        eventName:\n            - ConsoleLogin\n            - AssumeRole\n            - ListAccessKeys\n            - CreateUser\n    condition: selection_source\n",
+      "pattern_type": "sigma",
+      "pattern_version": "2.0",
+      "valid_from": "2026-09-17T11:13:17.017Z",
+      "labels": [
+        "sigma-correlation-rule",
+        "draft",
+        "attack.t1078.004",
+        "sigma-level.medium",
+        "quality.moderate",
+        "platform.iaas"
+      ],
+      "confidence": 95,
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1078.004",
+          "url": "https://attack.mitre.org/techniques/T1078/004"
+        },
+        {
+          "source_name": "mitre-attack",
+          "url": "https://attack.mitre.org/detectionstrategies/DET0546"
+        },
+        {
+          "source_name": "mitre-attack",
+          "url": "https://attack.mitre.org/detectionstrategies/DET0546#AN1504"
+        },
+        {
+          "source_name": "reference",
+          "url": "https://aws.amazon.com/identity/federation/"
+        },
+        {
+          "source_name": "reference",
+          "url": "https://posts.specterops.io/managed-identity-attack-paths-part-1-automation-accounts-82667d17187a?gi=6a9daedade1c"
+        },
+        {
+          "source_name": "reference",
+          "url": "https://cloud.google.com/solutions/federating-gcp-with-active-directory-introduction"
+        }
+      ],
+      "object_marking_refs": [
+        "marking-definition--613f2e26-407d-48c7-9eca-b8e91df99dc9"
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "stealth"
+        },
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "persistence"
+        },
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "privilege-escalation"
+        },
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "initial-access"
+        }
+      ]
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--6db60937-1300-5f94-826e-e684a1fd7690",
+      "created_by_ref": "identity--ae680a5e-6d35-5cfc-b288-78d29d770eed",
+      "created": "2026-09-17T11:13:17.017Z",
+      "modified": "2026-09-17T11:13:17.017Z",
+      "relationship_type": "indicates",
+      "source_ref": "indicator--917725d3-27fc-519d-9296-72b5d2b93086",
+      "target_ref": "attack-pattern--f232fa7a-025c-4d43-abc7-318e81a73d65",
+      "object_marking_refs": [
+        "marking-definition--613f2e26-407d-48c7-9eca-b8e91df99dc9"
+      ],
+      "description": "Draft Sigma correlation rule detecting T1078.004 (Cloud Accounts)."
+    }
+  ]
+}

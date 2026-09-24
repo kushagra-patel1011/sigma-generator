@@ -1,0 +1,308 @@
+{
+  "type": "bundle",
+  "id": "bundle--b2cffa24-ad16-510b-b94e-d245972a9020",
+  "objects": [
+    {
+      "type": "marking-definition",
+      "spec_version": "2.1",
+      "id": "marking-definition--613f2e26-407d-48c7-9eca-b8e91df99dc9",
+      "created": "2017-01-20T00:00:00.000Z",
+      "definition_type": "tlp",
+      "name": "TLP:WHITE",
+      "definition": {
+        "tlp": "white"
+      }
+    },
+    {
+      "type": "identity",
+      "spec_version": "2.1",
+      "id": "identity--ae680a5e-6d35-5cfc-b288-78d29d770eed",
+      "created": "2026-09-17T11:13:18.214Z",
+      "modified": "2026-09-17T11:13:18.214Z",
+      "name": "sigma-generator",
+      "description": "Automated draft detection authoring (sigma-generator v1.1.0). Rules in this bundle are machine-generated from MITRE ATT&CK and require analyst review before deployment.",
+      "identity_class": "system"
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--0a3ead4e-6d47-4ccb-854c-a6a4f9d96b22",
+      "created": "2017-05-31T21:30:19.735Z",
+      "modified": "2025-10-24T17:48:22.201Z",
+      "name": "OS Credential Dumping",
+      "description": "Adversaries may attempt to dump credentials to obtain account login and credential material, normally in the form of a hash or a clear text password. Credentials can be obtained from OS caches, memory, or structures. Credentials can then be used to perform Lateral Movement and access restricted information.\n\nSeveral of the tools mentioned in associated sub-techniques may be used by both adversaries and professional security testers. Additional custom tools likely exist as well.",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1003",
+          "url": "https://attack.mitre.org/techniques/T1003"
+        },
+        {
+          "source_name": "Medium Detecting Attempts to Steal Passwords from Memory",
+          "url": "https://medium.com/threatpunter/detecting-attempts-to-steal-passwords-from-memory-558f16dce4ea"
+        },
+        {
+          "source_name": "AdSecurity DCSync Sept 2015",
+          "url": "https://adsecurity.org/?p=1729"
+        },
+        {
+          "source_name": "Microsoft DRSR Dec 2017",
+          "url": "https://msdn.microsoft.com/library/cc228086.aspx"
+        },
+        {
+          "source_name": "Microsoft NRPC Dec 2017",
+          "url": "https://msdn.microsoft.com/library/cc237008.aspx"
+        },
+        {
+          "source_name": "Microsoft GetNCCChanges",
+          "url": "https://msdn.microsoft.com/library/dd207691.aspx"
+        }
+      ],
+      "object_marking_refs": [
+        "marking-definition--613f2e26-407d-48c7-9eca-b8e91df99dc9"
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "credential-access"
+        }
+      ],
+      "x_mitre_platforms": [
+        "Linux",
+        "macOS",
+        "Windows"
+      ]
+    },
+    {
+      "type": "indicator",
+      "spec_version": "2.1",
+      "id": "indicator--a9baf8c8-0353-5bba-b1f4-5ad316cc6740",
+      "created_by_ref": "identity--ae680a5e-6d35-5cfc-b288-78d29d770eed",
+      "created": "2026-09-17T11:13:18.214Z",
+      "modified": "2026-09-17T11:13:18.214Z",
+      "name": "Potential OS Credential Dumping Activity Via Linux Auditd",
+      "description": "Draft Sigma rule for T1003 (OS Credential Dumping). Log source: linux/auditd (resolved from auditd syscall open; auditd syscall ptrace). Rule quality: moderate - one behavioural signal - review for noise. Derived from ATT&CK detection strategy DET0234 / analytic AN0649. Machine-generated draft - validate against real telemetry before deployment.",
+      "indicator_types": [
+        "anomalous-activity"
+      ],
+      "pattern": "title: Potential OS Credential Dumping Activity Via Linux Auditd\nid: a9baf8c8-0353-5bba-b1f4-5ad316cc6740\nstatus: experimental\ndescription: |\n    Draft detection for T1003 (OS Credential Dumping), derived from ATT&CK detection strategy\n    DET0234 / analytic AN0649.\n    Adversaries may attempt to dump credentials to obtain account login and credential material,\n    normally in the form of a hash or a clear text password. Credentials can be obtained from OS\n    caches, memory, or structures.\n    ATT&CK analytic: Processes opening /proc/*/mem or /proc/*/maps targeting credential-storing\n    services like sshd or login. Behavior often includes high privilege escalation and memory\n    inspection tools such as gcore or gdb.\n    Generated draft - the selection values below were mined from ATT&CK and must be validated\n    against real telemetry before this rule is deployed.\nreferences:\n    - https://attack.mitre.org/techniques/T1003\n    - https://attack.mitre.org/detectionstrategies/DET0234\n    - https://attack.mitre.org/detectionstrategies/DET0234#AN0649\n    - https://medium.com/threatpunter/detecting-attempts-to-steal-passwords-from-memory-558f16dce4ea\n    - https://adsecurity.org/?p=1729\n    - https://msdn.microsoft.com/library/cc228086.aspx\nauthor: sigma-generator\ndate: 2026-09-17\ntags:\n    - attack.credential-access\n    - attack.t1003\nlogsource:\n    product: linux\n    service: auditd\ndetection:\n    selection_source:\n        type: SYSCALL\n        syscall:\n            - open\n            - ptrace\n    selection_indicator_path:\n        name|contains:\n            - /proc/*/maps\n            - /proc/*/mem\n    condition: selection_source and selection_indicator_path\nfields:\n    - type\n    - syscall\n    - exe\n    - comm\n    - key\n    - auid\nfalsepositives:\n    - 'Environment-specific tuning of TargetProcessName: Define sensitive targets (e.g., sshd, login) being memory-read.'\n    - 'Environment-specific tuning of ToolProcessName: Flag use of memory dump tools like gcore, gdb, pmap.'\n    - Unknown\nlevel: medium\n",
+      "pattern_type": "sigma",
+      "pattern_version": "2.0",
+      "valid_from": "2026-09-17T11:13:18.214Z",
+      "labels": [
+        "sigma-rule",
+        "draft",
+        "attack.t1003",
+        "sigma-level.medium",
+        "quality.moderate",
+        "platform.linux"
+      ],
+      "confidence": 75,
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1003",
+          "url": "https://attack.mitre.org/techniques/T1003"
+        },
+        {
+          "source_name": "mitre-attack",
+          "url": "https://attack.mitre.org/detectionstrategies/DET0234"
+        },
+        {
+          "source_name": "mitre-attack",
+          "url": "https://attack.mitre.org/detectionstrategies/DET0234#AN0649"
+        },
+        {
+          "source_name": "reference",
+          "url": "https://medium.com/threatpunter/detecting-attempts-to-steal-passwords-from-memory-558f16dce4ea"
+        },
+        {
+          "source_name": "reference",
+          "url": "https://adsecurity.org/?p=1729"
+        },
+        {
+          "source_name": "reference",
+          "url": "https://msdn.microsoft.com/library/cc228086.aspx"
+        }
+      ],
+      "object_marking_refs": [
+        "marking-definition--613f2e26-407d-48c7-9eca-b8e91df99dc9"
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "credential-access"
+        }
+      ]
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--bc944ddc-c83e-581b-b9b4-5d4f7bba8682",
+      "created_by_ref": "identity--ae680a5e-6d35-5cfc-b288-78d29d770eed",
+      "created": "2026-09-17T11:13:18.214Z",
+      "modified": "2026-09-17T11:13:18.214Z",
+      "relationship_type": "indicates",
+      "source_ref": "indicator--a9baf8c8-0353-5bba-b1f4-5ad316cc6740",
+      "target_ref": "attack-pattern--0a3ead4e-6d47-4ccb-854c-a6a4f9d96b22",
+      "object_marking_refs": [
+        "marking-definition--613f2e26-407d-48c7-9eca-b8e91df99dc9"
+      ],
+      "description": "Draft Sigma rule detecting T1003 (OS Credential Dumping)."
+    },
+    {
+      "type": "indicator",
+      "spec_version": "2.1",
+      "id": "indicator--655246be-8eb8-5e55-999a-ca7a5457c50d",
+      "created_by_ref": "identity--ae680a5e-6d35-5cfc-b288-78d29d770eed",
+      "created": "2026-09-17T11:13:18.214Z",
+      "modified": "2026-09-17T11:13:18.214Z",
+      "name": "Potential OS Credential Dumping Activity Via Process Creation",
+      "description": "Draft Sigma rule for T1003 (OS Credential Dumping). Log source: process_creation/macos (resolved from macOS unified log (process events)). Rule quality: strong - two or more independent behavioural signals. Derived from ATT&CK detection strategy DET0234 / analytic AN0650. Machine-generated draft - validate against real telemetry before deployment.",
+      "indicator_types": [
+        "anomalous-activity"
+      ],
+      "pattern": "title: Potential OS Credential Dumping Activity Via Process Creation\nid: 655246be-8eb8-5e55-999a-ca7a5457c50d\nstatus: experimental\ndescription: |\n    Draft detection for T1003 (OS Credential Dumping), derived from ATT&CK detection strategy\n    DET0234 / analytic AN0650.\n    Adversaries may attempt to dump credentials to obtain account login and credential material,\n    normally in the form of a hash or a clear text password. Credentials can be obtained from OS\n    caches, memory, or structures.\n    ATT&CK analytic: Unsigned processes accessing system memory or launching known credential\n    scraping tools (e.g., osascript, dylib injections) to access the Keychain or sensitive memory\n    regions.\n    Generated draft - the selection values below were mined from ATT&CK and must be validated\n    against real telemetry before this rule is deployed.\nreferences:\n    - https://attack.mitre.org/techniques/T1003\n    - https://attack.mitre.org/detectionstrategies/DET0234\n    - https://attack.mitre.org/detectionstrategies/DET0234#AN0650\n    - https://medium.com/threatpunter/detecting-attempts-to-steal-passwords-from-memory-558f16dce4ea\n    - https://adsecurity.org/?p=1729\n    - https://msdn.microsoft.com/library/cc228086.aspx\nauthor: sigma-generator\ndate: 2026-09-17\ntags:\n    - attack.credential-access\n    - attack.t1003\nlogsource:\n    category: process_creation\n    product: macos\ndetection:\n    selection_image:\n        Image|endswith:\n            - /osascript\n    selection_indicator_content:\n        CommandLine|contains:\n            - /Library/Keychains/\n    condition: selection_image and selection_indicator_content\nfields:\n    - Image\n    - CommandLine\n    - ParentImage\n    - User\nfalsepositives:\n    - Legitimate administrative or software-deployment use of osascript\n    - 'Environment-specific tuning of KeychainAccessPath: Path to watch for abnormal access, e.g., /Library/Keychains/'\n    - 'Environment-specific tuning of SignedBinaryStatus: Filter out signed/trusted binaries.'\n    - Unknown\nlevel: high\n",
+      "pattern_type": "sigma",
+      "pattern_version": "2.0",
+      "valid_from": "2026-09-17T11:13:18.214Z",
+      "labels": [
+        "sigma-rule",
+        "draft",
+        "attack.t1003",
+        "sigma-level.high",
+        "quality.strong",
+        "platform.macos"
+      ],
+      "confidence": 75,
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1003",
+          "url": "https://attack.mitre.org/techniques/T1003"
+        },
+        {
+          "source_name": "mitre-attack",
+          "url": "https://attack.mitre.org/detectionstrategies/DET0234"
+        },
+        {
+          "source_name": "mitre-attack",
+          "url": "https://attack.mitre.org/detectionstrategies/DET0234#AN0650"
+        },
+        {
+          "source_name": "reference",
+          "url": "https://medium.com/threatpunter/detecting-attempts-to-steal-passwords-from-memory-558f16dce4ea"
+        },
+        {
+          "source_name": "reference",
+          "url": "https://adsecurity.org/?p=1729"
+        },
+        {
+          "source_name": "reference",
+          "url": "https://msdn.microsoft.com/library/cc228086.aspx"
+        }
+      ],
+      "object_marking_refs": [
+        "marking-definition--613f2e26-407d-48c7-9eca-b8e91df99dc9"
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "credential-access"
+        }
+      ]
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--6ebca02b-4ca4-544e-ba34-5f0f4f4402b1",
+      "created_by_ref": "identity--ae680a5e-6d35-5cfc-b288-78d29d770eed",
+      "created": "2026-09-17T11:13:18.214Z",
+      "modified": "2026-09-17T11:13:18.214Z",
+      "relationship_type": "indicates",
+      "source_ref": "indicator--655246be-8eb8-5e55-999a-ca7a5457c50d",
+      "target_ref": "attack-pattern--0a3ead4e-6d47-4ccb-854c-a6a4f9d96b22",
+      "object_marking_refs": [
+        "marking-definition--613f2e26-407d-48c7-9eca-b8e91df99dc9"
+      ],
+      "description": "Draft Sigma rule detecting T1003 (OS Credential Dumping)."
+    },
+    {
+      "type": "indicator",
+      "spec_version": "2.1",
+      "id": "indicator--1744a215-6592-5beb-a33b-31accb137189",
+      "created_by_ref": "identity--ae680a5e-6d35-5cfc-b288-78d29d770eed",
+      "created": "2026-09-17T11:13:18.214Z",
+      "modified": "2026-09-17T11:13:18.214Z",
+      "name": "Potential OS Credential Dumping Activity Via Process Access",
+      "description": "Draft Sigma rule for T1003 (OS Credential Dumping). Log source: process_access/windows (resolved from Sysmon EventCode 10). Rule quality: weak - matches broad activity - suitable for threat hunting, not alerting. Derived from ATT&CK detection strategy DET0234 / analytic AN0648. Machine-generated draft - validate against real telemetry before deployment.",
+      "indicator_types": [
+        "anomalous-activity"
+      ],
+      "pattern": "title: Potential OS Credential Dumping Activity Via Process Access\nid: 1744a215-6592-5beb-a33b-31accb137189\nstatus: experimental\ndescription: |\n    Draft detection for T1003 (OS Credential Dumping), derived from ATT&CK detection strategy\n    DET0234 / analytic AN0648.\n    Adversaries may attempt to dump credentials to obtain account login and credential material,\n    normally in the form of a hash or a clear text password. Credentials can be obtained from OS\n    caches, memory, or structures.\n    ATT&CK analytic: Processes accessing LSASS memory or SAM registry hives outside of trusted\n    security tools, often followed by file creation or lateral movement. Detects unauthorized access\n    to sensitive OS subsystems for credential extraction.\n    Generated draft - the selection values below were mined from ATT&CK and must be validated\n    against real telemetry before this rule is deployed.\nreferences:\n    - https://attack.mitre.org/techniques/T1003\n    - https://attack.mitre.org/detectionstrategies/DET0234\n    - https://attack.mitre.org/detectionstrategies/DET0234#AN0648\n    - https://medium.com/threatpunter/detecting-attempts-to-steal-passwords-from-memory-558f16dce4ea\n    - https://adsecurity.org/?p=1729\n    - https://msdn.microsoft.com/library/cc228086.aspx\nauthor: sigma-generator\ndate: 2026-09-17\ntags:\n    - attack.credential-access\n    - attack.t1003\n    - detection.threat-hunting\nlogsource:\n    category: process_access\n    product: windows\ndetection:\n    selection_indicator_access:\n        GrantedAccess:\n            - '0x1f0fff'\n    condition: selection_indicator_access\nfields:\n    - SourceImage\n    - TargetImage\n    - GrantedAccess\n    - CallTrace\nfalsepositives:\n    - 'Environment-specific tuning of AccessMask: Set to detect full access rights (0x1F0FFF) or modify based on tool behavior.'\n    - 'Environment-specific tuning of TimeWindow: Define how soon access to LSASS is followed by suspicious file or registry activity.'\n    - 'Environment-specific tuning of ParentProcessFilter: Allowlist known security tools or system processes accessing LSASS.'\n    - Unknown\nlevel: low\n",
+      "pattern_type": "sigma",
+      "pattern_version": "2.0",
+      "valid_from": "2026-09-17T11:13:18.214Z",
+      "labels": [
+        "sigma-rule",
+        "draft",
+        "attack.t1003",
+        "sigma-level.low",
+        "quality.weak",
+        "platform.windows"
+      ],
+      "confidence": 95,
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1003",
+          "url": "https://attack.mitre.org/techniques/T1003"
+        },
+        {
+          "source_name": "mitre-attack",
+          "url": "https://attack.mitre.org/detectionstrategies/DET0234"
+        },
+        {
+          "source_name": "mitre-attack",
+          "url": "https://attack.mitre.org/detectionstrategies/DET0234#AN0648"
+        },
+        {
+          "source_name": "reference",
+          "url": "https://medium.com/threatpunter/detecting-attempts-to-steal-passwords-from-memory-558f16dce4ea"
+        },
+        {
+          "source_name": "reference",
+          "url": "https://adsecurity.org/?p=1729"
+        },
+        {
+          "source_name": "reference",
+          "url": "https://msdn.microsoft.com/library/cc228086.aspx"
+        }
+      ],
+      "object_marking_refs": [
+        "marking-definition--613f2e26-407d-48c7-9eca-b8e91df99dc9"
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "credential-access"
+        }
+      ]
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--4d937888-7ba7-5100-b10f-55e2af78c062",
+      "created_by_ref": "identity--ae680a5e-6d35-5cfc-b288-78d29d770eed",
+      "created": "2026-09-17T11:13:18.214Z",
+      "modified": "2026-09-17T11:13:18.214Z",
+      "relationship_type": "indicates",
+      "source_ref": "indicator--1744a215-6592-5beb-a33b-31accb137189",
+      "target_ref": "attack-pattern--0a3ead4e-6d47-4ccb-854c-a6a4f9d96b22",
+      "object_marking_refs": [
+        "marking-definition--613f2e26-407d-48c7-9eca-b8e91df99dc9"
+      ],
+      "description": "Draft Sigma rule detecting T1003 (OS Credential Dumping)."
+    }
+  ]
+}

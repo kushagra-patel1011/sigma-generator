@@ -1,0 +1,9 @@
+-r requirements.txt
+
+# Test + lint tooling
+pytest>=8.0
+
+# Optional: enables deep Sigma validation via `--strict` (pySigma parses the rule
+# the same way the official converters do).  The tool degrades gracefully when
+# it is not installed.
+pysigma>=0.11

@@ -1,0 +1,41 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sigma-generator"
+version = "1.1.0"
+description = "Turn MITRE ATT&CK techniques and threat groups into draft Sigma rules, attack-chain correlation rules and STIX 2.1 bundles."
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+keywords = ["sigma", "mitre", "attack", "stix", "detection-engineering", "threat-intelligence"]
+classifiers = [
+    "Intended Audience :: Information Technology",
+    "License :: OSI Approved :: MIT License",
+    "Topic :: Security",
+    "Programming Language :: Python :: 3",
+]
+dependencies = [
+    "PyYAML>=6.0",
+    "requests>=2.31",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0"]
+strict = ["pysigma>=0.11"]
+
+[project.scripts]
+sigma-gen = "sigma_generator.main:main"
+
+[tool.setuptools]
+package-dir = { "sigma_generator" = "src", "sigma_generator.templates" = "src/templates", "sigma_generator.web" = "src/web" }
+packages = ["sigma_generator", "sigma_generator.templates", "sigma_generator.web"]
+
+[tool.setuptools.package-data]
+"sigma_generator" = ["data/*.yml"]
+"sigma_generator.templates" = ["*.yml"]
+"sigma_generator.web" = ["static/*.html", "static/*.js", "static/*.css"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

@@ -1,0 +1,2562 @@
+{
+ "format": 1,
+ "release": "r2026-07-01",
+ "built_at": "2026-09-16T10:40:55.327Z",
+ "total_rules": 168,
+ "rules": [
+  {
+   "id": "195c1119-ef07-4909-bb12-e66f5e07bf3c",
+   "title": "Download from Suspicious Dyndns Hosts",
+   "path": "rules/web/proxy_generic/proxy_download_susp_dyndns.yml",
+   "status": "test",
+   "level": "medium",
+   "category": "proxy",
+   "product": null,
+   "service": null,
+   "techniques": [
+    "T1105",
+    "T1568"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "6ad91e31-53df-4826-bd27-0166171c8040",
+   "title": "Google Cloud Kubernetes Admission Controller",
+   "path": "rules/cloud/gcp/audit/gcp_kubernetes_admission_controller.yml",
+   "status": "test",
+   "level": "medium",
+   "category": null,
+   "product": "gcp",
+   "service": "gcp.audit",
+   "techniques": [
+    "T1078",
+    "T1552",
+    "T1552.007"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "eafe6f2b-cfec-4612-aec2-49563c33a087",
+   "title": "Google Workspace Government Attack Warning",
+   "path": "rules/cloud/gcp/gworkspace/login/gcp_gworkspace_govattack.yml",
+   "status": "experimental",
+   "level": "medium",
+   "category": null,
+   "product": "gcp",
+   "service": "google_workspace.login",
+   "techniques": [
+    "T1078"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "38360161-76c4-4283-842e-efcf997dafc8",
+   "title": "Suspicious Login Activity Classified By Google",
+   "path": "rules/cloud/gcp/gworkspace/login/gcp_gworkspace_suspicious_login.yml",
+   "status": "experimental",
+   "level": "medium",
+   "category": null,
+   "product": "gcp",
+   "service": "google_workspace.login",
+   "techniques": [
+    "T1078.004"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "128faeef-79dd-44ca-b43c-a9e236a60f49",
+   "title": "Unfamiliar Sign-In Properties",
+   "path": "rules/cloud/azure/identity_protection/azure_identity_protection_unfamilar_sign_in.yml",
+   "status": "test",
+   "level": "high",
+   "category": null,
+   "product": "azure",
+   "service": "riskdetection",
+   "techniques": [
+    "T1078"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "a2cb56ff-4f46-437a-a0fa-ffa4d1303cba",
+   "title": "Azure AD Threat Intelligence",
+   "path": "rules/cloud/azure/identity_protection/azure_identity_protection_threat_intel.yml",
+   "status": "test",
+   "level": "high",
+   "category": null,
+   "product": "azure",
+   "service": "riskdetection",
+   "techniques": [
+    "T1078"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "adf9f4d2-559e-4f5c-95be-c28dff0b1476",
+   "title": "New Country",
+   "path": "rules/cloud/azure/identity_protection/azure_identity_protection_new_coutry_region.yml",
+   "status": "test",
+   "level": "high",
+   "category": null,
+   "product": "azure",
+   "service": "riskdetection",
+   "techniques": [
+    "T1078"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "b2572bf9-e20a-4594-b528-40bde666525a",
+   "title": "Impossible Travel",
+   "path": "rules/cloud/azure/identity_protection/azure_identity_protection_impossible_travel.yml",
+   "status": "test",
+   "level": "high",
+   "category": null,
+   "product": "azure",
+   "service": "riskdetection",
+   "techniques": [
+    "T1078"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "fa84aaf5-8142-43cd-9ec2-78cfebf878ce",
+   "title": "Temporary Access Pass Added To An Account",
+   "path": "rules/cloud/azure/audit_logs/azure_tap_added.yml",
+   "status": "test",
+   "level": "high",
+   "category": null,
+   "product": "azure",
+   "service": "auditlogs",
+   "techniques": [
+    "T1078.004"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "340ee172-4b67-4fb4-832f-f961bdc1f3aa",
+   "title": "Password Reset By User Account",
+   "path": "rules/cloud/azure/audit_logs/azure_user_password_change.yml",
+   "status": "test",
+   "level": "medium",
+   "category": null,
+   "product": "azure",
+   "service": "auditlogs",
+   "techniques": [
+    "T1078.004"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "db6c06c4-bf3b-421c-aa88-15672b88c743",
+   "title": "Changes To PIM Settings",
+   "path": "rules/cloud/azure/audit_logs/azure_pim_change_settings.yml",
+   "status": "test",
+   "level": "high",
+   "category": null,
+   "product": "azure",
+   "service": "auditlogs",
+   "techniques": [
+    "T1078.004"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "039a7469-0296-4450-84c0-f6966b16dc6d",
+   "title": "PIM Approvals And Deny Elevation",
+   "path": "rules/cloud/azure/audit_logs/azure_pim_activation_approve_deny.yml",
+   "status": "test",
+   "level": "high",
+   "category": null,
+   "product": "azure",
+   "service": "auditlogs",
+   "techniques": [
+    "T1078.004"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "1b45b0d1-773f-4f23-aedc-814b759563b1",
+   "title": "Application AppID Uri Configuration Changes",
+   "path": "rules/cloud/azure/audit_logs/azure_app_appid_uri_changes.yml",
+   "status": "test",
+   "level": "high",
+   "category": null,
+   "product": "azure",
+   "service": "auditlogs",
+   "techniques": [
+    "T1552",
+    "T1078.004"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "c1182e02-49a3-481c-b3de-0fadc4091488",
+   "title": "Rare Subscription-level Operations In Azure",
+   "path": "rules/cloud/azure/activity_logs/azure_rare_operations.yml",
+   "status": "test",
+   "level": "medium",
+   "category": null,
+   "product": "azure",
+   "service": "activitylogs",
+   "techniques": [
+    "T1003"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "1c71e254-6655-42c1-b2d6-5e4718d7fc0a",
+   "title": "Azure Kubernetes CronJob",
+   "path": "rules/cloud/azure/activity_logs/azure_kubernetes_cronjob.yml",
+   "status": "test",
+   "level": "medium",
+   "category": null,
+   "product": "azure",
+   "service": "activitylogs",
+   "techniques": [
+    "T1053.003"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "72af37e2-ec32-47dc-992b-bc288a2708cb",
+   "title": "Azure New CloudShell Created",
+   "path": "rules/cloud/azure/activity_logs/azure_new_cloudshell_created.yml",
+   "status": "test",
+   "level": "medium",
+   "category": null,
+   "product": "azure",
+   "service": "activitylogs",
+   "techniques": [
+    "T1059"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "e40f4962-b02b-4192-9bfe-245f7ece1f99",
+   "title": "Multifactor Authentication Denied",
+   "path": "rules/cloud/azure/signin_logs/azure_mfa_denies.yml",
+   "status": "test",
+   "level": "medium",
+   "category": null,
+   "product": "azure",
+   "service": "signinlogs",
+   "techniques": [
+    "T1078.004",
+    "T1110",
+    "T1621"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "5496ff55-42ec-4369-81cb-00f417029e25",
+   "title": "Multifactor Authentication Interrupted",
+   "path": "rules/cloud/azure/signin_logs/azure_mfa_interrupted.yml",
+   "status": "test",
+   "level": "medium",
+   "category": null,
+   "product": "azure",
+   "service": "signinlogs",
+   "techniques": [
+    "T1078.004",
+    "T1110",
+    "T1621"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "a840e606-7c8c-4684-9bc1-eb6b6155127f",
+   "title": "PUA - AWS TruffleHog Execution",
+   "path": "rules/cloud/aws/cloudtrail/aws_cloudtrail_pua_trufflehog.yml",
+   "status": "experimental",
+   "level": "medium",
+   "category": null,
+   "product": "aws",
+   "service": "cloudtrail",
+   "techniques": [
+    "T1555",
+    "T1003"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "db014773-7375-4f4e-b83b-133337c0ffee",
+   "title": "AWS IAM S3Browser Templated S3 Bucket Policy Creation",
+   "path": "rules/cloud/aws/cloudtrail/aws_iam_s3browser_templated_s3_bucket_policy_creation.yml",
+   "status": "test",
+   "level": "high",
+   "category": null,
+   "product": "aws",
+   "service": "cloudtrail",
+   "techniques": [
+    "T1059.009",
+    "T1078.004"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "db014773-d9d9-4792-91e5-133337c0ffee",
+   "title": "AWS IAM S3Browser User or AccessKey Creation",
+   "path": "rules/cloud/aws/cloudtrail/aws_iam_s3browser_user_or_accesskey_creation.yml",
+   "status": "test",
+   "level": "high",
+   "category": null,
+   "product": "aws",
+   "service": "cloudtrail",
+   "techniques": [
+    "T1059.009",
+    "T1078.004"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "352a918a-34d8-4882-8470-44830c507aa3",
+   "title": "Malicious Usage Of IMDS Credentials Outside Of AWS Infrastructure",
+   "path": "rules/cloud/aws/cloudtrail/aws_cloudtrail_imds_malicious_usage.yml",
+   "status": "test",
+   "level": "high",
+   "category": null,
+   "product": "aws",
+   "service": "cloudtrail",
+   "techniques": [
+    "T1078",
+    "T1078.002"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "db014773-b1d3-46bd-ba26-133337c0ffee",
+   "title": "AWS IAM S3Browser LoginProfile Creation",
+   "path": "rules/cloud/aws/cloudtrail/aws_iam_s3browser_loginprofile_creation.yml",
+   "status": "test",
+   "level": "high",
+   "category": null,
+   "product": "aws",
+   "service": "cloudtrail",
+   "techniques": [
+    "T1059.009",
+    "T1078.004"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "1ab3c5ed-5baf-417b-bb6b-78ca33f6c3df",
+   "title": "AWS EC2 Startup Shell Script Change",
+   "path": "rules/cloud/aws/cloudtrail/aws_ec2_startup_script_change.yml",
+   "status": "test",
+   "level": "high",
+   "category": null,
+   "product": "aws",
+   "service": "cloudtrail",
+   "techniques": [
+    "T1059.001",
+    "T1059.003",
+    "T1059.004"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "7f734ed0-4f47-46c0-837f-6ee62505abd9",
+   "title": "Potential Netcat Reverse Shell Execution",
+   "path": "rules/linux/process_creation/proc_creation_lnx_netcat_reverse_shell.yml",
+   "status": "test",
+   "level": "high",
+   "category": "process_creation",
+   "product": "linux",
+   "service": null,
+   "techniques": [
+    "T1059"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "d54c2f06-aca9-4e2b-81c9-5317858f4b79",
+   "title": "ESXi VSAN Information Discovery Via ESXCLI",
+   "path": "rules/linux/process_creation/proc_creation_lnx_esxcli_vsan_discovery.yml",
+   "status": "test",
+   "level": "medium",
+   "category": "process_creation",
+   "product": "linux",
+   "service": null,
+   "techniques": [
+    "T1033",
+    "T1007",
+    "T1059.012"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "f8341cb2-ee25-43fa-a975-d8a5a9714b39",
+   "title": "BPFtrace Unsafe Option Usage",
+   "path": "rules/linux/process_creation/proc_creation_lnx_bpftrace_unsafe_option_usage.yml",
+   "status": "test",
+   "level": "medium",
+   "category": "process_creation",
+   "product": "linux",
+   "service": null,
+   "techniques": [
+    "T1059.004"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "e80273e1-9faf-40bc-bd85-dbaff104c4e9",
+   "title": "ESXi System Information Discovery Via ESXCLI",
+   "path": "rules/linux/process_creation/proc_creation_lnx_esxcli_system_discovery.yml",
+   "status": "test",
+   "level": "medium",
+   "category": "process_creation",
+   "product": "linux",
+   "service": null,
+   "techniques": [
+    "T1033",
+    "T1007",
+    "T1059.012"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "9691f58d-92c1-4416-8bf3-2edd753ec9cf",
+   "title": "ESXi Admin Permission Assigned To Account Via ESXCLI",
+   "path": "rules/linux/process_creation/proc_creation_lnx_esxcli_permission_change_admin.yml",
+   "status": "test",
+   "level": "high",
+   "category": "process_creation",
+   "product": "linux",
+   "service": null,
+   "techniques": [
+    "T1059.012",
+    "T1098"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "2d2f44ff-4611-4778-a8fc-323a0e9850cc",
+   "title": "Inline Python Execution - Spawn Shell Via OS System Library",
+   "path": "rules/linux/process_creation/proc_creation_lnx_python_shell_os_system.yml",
+   "status": "test",
+   "level": "high",
+   "category": "process_creation",
+   "product": "linux",
+   "service": null,
+   "techniques": [
+    "T1059"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "33e814e0-1f00-4e43-9c34-31fb7ae2b174",
+   "title": "ESXi Network Configuration Discovery Via ESXCLI",
+   "path": "rules/linux/process_creation/proc_creation_lnx_esxcli_network_discovery.yml",
+   "status": "test",
+   "level": "medium",
+   "category": "process_creation",
+   "product": "linux",
+   "service": null,
+   "techniques": [
+    "T1033",
+    "T1007",
+    "T1059.012"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "f41dada5-3f56-4232-8503-3fb7f9cf2d60",
+   "title": "ESXi Storage Information Discovery Via ESXCLI",
+   "path": "rules/linux/process_creation/proc_creation_lnx_esxcli_storage_discovery.yml",
+   "status": "test",
+   "level": "medium",
+   "category": "process_creation",
+   "product": "linux",
+   "service": null,
+   "techniques": [
+    "T1033",
+    "T1007",
+    "T1059.012"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "8c1a5675-cb85-452f-a298-b01b22a51856",
+   "title": "Suspicious Invocation of Shell via AWK - Linux",
+   "path": "rules/linux/process_creation/proc_creation_lnx_awk_shell_spawn.yml",
+   "status": "test",
+   "level": "high",
+   "category": "process_creation",
+   "product": "linux",
+   "service": null,
+   "techniques": [
+    "T1059"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "2992ac4d-31e9-4325-99f2-b18a73221bb2",
+   "title": "ESXi VM Kill Via ESXCLI",
+   "path": "rules/linux/process_creation/proc_creation_lnx_esxcli_vm_kill.yml",
+   "status": "test",
+   "level": "medium",
+   "category": "process_creation",
+   "product": "linux",
+   "service": null,
+   "techniques": [
+    "T1059.012",
+    "T1529"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "e4ffe466-6ff8-48d4-94bd-e32d1a6061e2",
+   "title": "Nohup Execution",
+   "path": "rules/linux/process_creation/proc_creation_lnx_nohup.yml",
+   "status": "test",
+   "level": "medium",
+   "category": "process_creation",
+   "product": "linux",
+   "service": null,
+   "techniques": [
+    "T1059.004"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "db1ac3be-f606-4e3a-89e0-9607cbe6b98a",
+   "title": "Capsh Shell Invocation - Linux",
+   "path": "rules/linux/process_creation/proc_creation_lnx_capsh_shell_invocation.yml",
+   "status": "test",
+   "level": "high",
+   "category": "process_creation",
+   "product": "linux",
+   "service": null,
+   "techniques": [
+    "T1059"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "47b3bbd4-1bf7-48cc-84ab-995362aaa75a",
+   "title": "Shell Execution via Git - Linux",
+   "path": "rules/linux/process_creation/proc_creation_lnx_git_shell_execution.yml",
+   "status": "test",
+   "level": "high",
+   "category": "process_creation",
+   "product": "linux",
+   "service": null,
+   "techniques": [
+    "T1059"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "cf610c15-ed71-46e1-bdf8-2bd1a99de6c4",
+   "title": "Download File To Potentially Suspicious Directory Via Wget",
+   "path": "rules/linux/process_creation/proc_creation_lnx_wget_download_suspicious_directory.yml",
+   "status": "test",
+   "level": "medium",
+   "category": "process_creation",
+   "product": "linux",
+   "service": null,
+   "techniques": [
+    "T1105"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "55e862a8-dd9c-4651-807a-f21fcad56716",
+   "title": "Python One-Liners with Base64 Decoding - Linux",
+   "path": "rules/linux/process_creation/proc_creation_lnx_python_base64_encoded_execution.yml",
+   "status": "experimental",
+   "level": "high",
+   "category": "process_creation",
+   "product": "linux",
+   "service": null,
+   "techniques": [
+    "T1059.006",
+    "T1027.010"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "a2d9e2f3-0f43-4c7a-bcd9-9acfc0d723aa",
+   "title": "Suspicious Download and Execute Pattern via Curl/Wget",
+   "path": "rules/linux/process_creation/proc_creation_lnx_curl_wget_exec_tmp.yml",
+   "status": "experimental",
+   "level": "high",
+   "category": "process_creation",
+   "product": "linux",
+   "service": null,
+   "techniques": [
+    "T1059.004",
+    "T1203"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "6b14bac8-3e3a-4324-8109-42f0546a347f",
+   "title": "Scheduled Cron Task/Job - Linux",
+   "path": "rules/linux/process_creation/proc_creation_lnx_schedule_task_job_cron.yml",
+   "status": "test",
+   "level": "medium",
+   "category": "process_creation",
+   "product": "linux",
+   "service": null,
+   "techniques": [
+    "T1053.003"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "f0025a69-e1b7-4dda-a53c-db21fa2d4071",
+   "title": "Script Interpreter Spawning Credential Scanner - Linux",
+   "path": "rules/linux/process_creation/proc_creation_lnx_susp_script_interpretor_spawn_credential_scanner.yml",
+   "status": "experimental",
+   "level": "high",
+   "category": "process_creation",
+   "product": "linux",
+   "service": null,
+   "techniques": [
+    "T1552",
+    "T1005",
+    "T1059.004"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "bed978f8-7f3a-432b-82c5-9286a9b3031a",
+   "title": "Shell Invocation via Env Command - Linux",
+   "path": "rules/linux/process_creation/proc_creation_lnx_env_shell_invocation.yml",
+   "status": "test",
+   "level": "high",
+   "category": "process_creation",
+   "product": "linux",
+   "service": null,
+   "techniques": [
+    "T1059.004"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "00b90cc1-17ec-402c-96ad-3a8117d7a582",
+   "title": "Suspicious Curl File Upload - Linux",
+   "path": "rules/linux/process_creation/proc_creation_lnx_susp_curl_fileupload.yml",
+   "status": "test",
+   "level": "medium",
+   "category": "process_creation",
+   "product": "linux",
+   "service": null,
+   "techniques": [
+    "T1567",
+    "T1105"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "1a2ea919-d11d-4d1e-8535-06cda13be20f",
+   "title": "Triple Cross eBPF Rootkit Default Persistence",
+   "path": "rules/linux/file_event/file_event_lnx_triple_cross_rootkit_persistence.yml",
+   "status": "test",
+   "level": "high",
+   "category": "file_event",
+   "product": "linux",
+   "service": null,
+   "techniques": [
+    "T1053.003"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "35a05c60-9012-49b6-a11f-6bab741c9f74",
+   "title": "Wget Creating Files in Tmp Directory",
+   "path": "rules/linux/file_event/file_event_lnx_wget_download_file_in_tmp_dir.yml",
+   "status": "test",
+   "level": "medium",
+   "category": "file_event",
+   "product": "linux",
+   "service": null,
+   "techniques": [
+    "T1105"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "49aae26c-450e-448b-911d-b3c13d178dfc",
+   "title": "Linux Keylogging with Pam.d",
+   "path": "rules/linux/auditd/lnx_auditd_keylogging_with_pam_d.yml",
+   "status": "test",
+   "level": "high",
+   "category": null,
+   "product": "linux",
+   "service": "auditd",
+   "techniques": [
+    "T1003",
+    "T1056.001"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "106d7cbd-80ff-4985-b682-a7043e5acb72",
+   "title": "Loading of Kernel Module via Insmod",
+   "path": "rules/linux/auditd/syscall/lnx_auditd_load_module_insmod.yml",
+   "status": "test",
+   "level": "high",
+   "category": null,
+   "product": "linux",
+   "service": "auditd",
+   "techniques": [
+    "T1547.006"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "af202fd3-7bff-4212-a25a-fb34606cfcbe",
+   "title": "Modifying Crontab",
+   "path": "rules/linux/builtin/cron/lnx_cron_crontab_file_modification.yml",
+   "status": "test",
+   "level": "medium",
+   "category": null,
+   "product": "linux",
+   "service": "cron",
+   "techniques": [
+    "T1053.003"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "e76c8240-d68f-4773-8880-5c6f63595aaf",
+   "title": "Time Travel Debugging Utility Usage - Image",
+   "path": "rules/windows/image_load/image_load_dll_tttracer_module_load.yml",
+   "status": "test",
+   "level": "high",
+   "category": "image_load",
+   "product": "windows",
+   "service": null,
+   "techniques": [
+    "T1218",
+    "T1003.001"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "a9c73e8b-3b2d-4c45-8ef2-5f9a9c9998ad",
+   "title": "MMC Loading Script Engines DLLs",
+   "path": "rules/windows/image_load/image_load_win_mmc_loads_script_engine_dll.yml",
+   "status": "experimental",
+   "level": "medium",
+   "category": "image_load",
+   "product": "windows",
+   "service": null,
+   "techniques": [
+    "T1059.005",
+    "T1218.014"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "092bc4b9-3d1d-43b4-a6b4-8c8acd83522f",
+   "title": "PowerShell Core DLL Loaded By Non PowerShell Process",
+   "path": "rules/windows/image_load/image_load_dll_system_management_automation_susp_load.yml",
+   "status": "test",
+   "level": "medium",
+   "category": "image_load",
+   "product": "windows",
+   "service": null,
+   "techniques": [
+    "T1059.001"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "ad1f4bb9-8dfb-4765-adb6-2a7cfb6c0f94",
+   "title": "Suspicious WSMAN Provider Image Loads",
+   "path": "rules/windows/image_load/image_load_wsman_provider_image_load.yml",
+   "status": "test",
+   "level": "medium",
+   "category": "image_load",
+   "product": "windows",
+   "service": null,
+   "techniques": [
+    "T1059.001",
+    "T1021.003"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "416bc4a2-7217-4519-8dc7-c3271817f1d5",
+   "title": "Suspicious Loading of Dbgcore/Dbghelp DLLs from Uncommon Location",
+   "path": "rules/windows/image_load/image_load_win_susp_dbgcore_dbghelp_load.yml",
+   "status": "experimental",
+   "level": "high",
+   "category": "image_load",
+   "product": "windows",
+   "service": null,
+   "techniques": [
+    "T1003",
+    "T1685"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "857c8db3-c89b-42fb-882b-f681c7cf4da2",
+   "title": "Unsigned Image Loaded Into LSASS Process",
+   "path": "rules/windows/image_load/image_load_lsass_unsigned_image_load.yml",
+   "status": "test",
+   "level": "medium",
+   "category": "image_load",
+   "product": "windows",
+   "service": null,
+   "techniques": [
+    "T1003.001"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "bdc64095-d59a-42a2-8588-71fd9c9d9abc",
+   "title": "Suspicious Unsigned Dbghelp/Dbgcore DLL Loaded",
+   "path": "rules/windows/image_load/image_load_dll_dbghelp_dbgcore_unsigned_load.yml",
+   "status": "test",
+   "level": "high",
+   "category": "image_load",
+   "product": "windows",
+   "service": null,
+   "techniques": [
+    "T1003.001"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "8cde342c-ba48-4b74-b615-172c330f2e93",
+   "title": "Suspicious Renamed Comsvcs DLL Loaded By Rundll32",
+   "path": "rules/windows/image_load/image_load_dll_comsvcs_load_renamed_version_by_rundll32.yml",
+   "status": "test",
+   "level": "high",
+   "category": "image_load",
+   "product": "windows",
+   "service": null,
+   "techniques": [
+    "T1003.001"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "99b97608-3e21-4bfe-8217-2a127c396a0e",
+   "title": "Remote Thread Creation Via PowerShell In Uncommon Target",
+   "path": "rules/windows/create_remote_thread/create_remote_thread_win_powershell_susp_targets.yml",
+   "status": "test",
+   "level": "medium",
+   "category": "create_remote_thread",
+   "product": "windows",
+   "service": null,
+   "techniques": [
+    "T1218.011",
+    "T1059.001"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "2e4e488a-6164-4811-9ea1-f960c7359c40",
+   "title": "HackTool - CACTUSTORCH Remote Thread Creation",
+   "path": "rules/windows/create_remote_thread/create_remote_thread_win_hktl_cactustorch.yml",
+   "status": "test",
+   "level": "high",
+   "category": "create_remote_thread",
+   "product": "windows",
+   "service": null,
+   "techniques": [
+    "T1055.012",
+    "T1059.005",
+    "T1059.007",
+    "T1218.005"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "f239b326-2f41-4d6b-9dfa-c846a60ef505",
+   "title": "Password Dumper Remote Thread in LSASS",
+   "path": "rules/windows/create_remote_thread/create_remote_thread_win_susp_password_dumper_lsass.yml",
+   "status": "stable",
+   "level": "high",
+   "category": "create_remote_thread",
+   "product": "windows",
+   "service": null,
+   "techniques": [
+    "T1003.001"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "fb656378-f909-47c1-8747-278bf09f4f4f",
+   "title": "Potential Credential Dumping Attempt Via PowerShell Remote Thread",
+   "path": "rules/windows/create_remote_thread/create_remote_thread_win_powershell_lsass.yml",
+   "status": "test",
+   "level": "high",
+   "category": "create_remote_thread",
+   "product": "windows",
+   "service": null,
+   "techniques": [
+    "T1003.001"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "fe21810c-2a8c-478f-8dd3-5a287fb2a0e0",
+   "title": "Suspicious Scripting in a WMI Consumer",
+   "path": "rules/windows/wmi_event/sysmon_wmi_susp_scripting.yml",
+   "status": "test",
+   "level": "high",
+   "category": "wmi_event",
+   "product": "windows",
+   "service": null,
+   "techniques": [
+    "T1059.005"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "aa35a627-33fb-4d04-a165-d33b4afca3e8",
+   "title": "Remote LSASS Process Access Through Windows Remote Management",
+   "path": "rules/windows/process_access/proc_access_win_lsass_remote_access_trough_winrm.yml",
+   "status": "stable",
+   "level": "high",
+   "category": "process_access",
+   "product": "windows",
+   "service": null,
+   "techniques": [
+    "T1003.001",
+    "T1059.001",
+    "T1021.006"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "f674e36a-4b91-431e-8aef-f8a96c2aca35",
+   "title": "CurrentControlSet Autorun Keys Modification",
+   "path": "rules/windows/registry/registry_set/registry_set_asep_reg_keys_modification_currentcontrolset.yml",
+   "status": "test",
+   "level": "medium",
+   "category": "registry_set",
+   "product": "windows",
+   "service": null,
+   "techniques": [
+    "T1547.001"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "e7a2fd40-3ae1-4a85-bf80-15cf624fb1b1",
+   "title": "System Scripts Autorun Keys Modification",
+   "path": "rules/windows/registry/registry_set/registry_set_asep_reg_keys_modification_system_scripts.yml",
+   "status": "test",
+   "level": "medium",
+   "category": "registry_set",
+   "product": "windows",
+   "service": null,
+   "techniques": [
+    "T1547.001"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "20f0ee37-5942-4e45-b7d5-c5b5db9df5cd",
+   "title": "CurrentVersion Autorun Keys Modification",
+   "path": "rules/windows/registry/registry_set/registry_set_asep_reg_keys_modification_currentversion.yml",
+   "status": "test",
+   "level": "medium",
+   "category": "registry_set",
+   "product": "windows",
+   "service": null,
+   "techniques": [
+    "T1547.001"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "3aff0be0-7802-4a7e-a4fa-c60c74bc5e1d",
+   "title": "Lolbas OneDriveStandaloneUpdater.exe Proxy Download",
+   "path": "rules/windows/registry/registry_set/registry_set_lolbin_onedrivestandaloneupdater.yml",
+   "status": "test",
+   "level": "high",
+   "category": "registry_set",
+   "product": "windows",
+   "service": null,
+   "techniques": [
+    "T1105"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "baecf8fb-edbf-429f-9ade-31fc3f22b970",
+   "title": "Office Autorun Keys Modification",
+   "path": "rules/windows/registry/registry_set/registry_set_asep_reg_keys_modification_office.yml",
+   "status": "test",
+   "level": "medium",
+   "category": "registry_set",
+   "product": "windows",
+   "service": null,
+   "techniques": [
+    "T1547.001"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "944e8941-f6f6-4ee8-ac05-1c224e923c0e",
+   "title": "Add Port Monitor Persistence in Registry",
+   "path": "rules/windows/registry/registry_set/registry_set_add_port_monitor.yml",
+   "status": "test",
+   "level": "medium",
+   "category": "registry_set",
+   "product": "windows",
+   "service": null,
+   "techniques": [
+    "T1547.010"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "ba226dcf-d390-4642-b9af-b534872f1156",
+   "title": "Windows Event Log Access Tampering Via Registry",
+   "path": "rules/windows/registry/registry_set/registry_set_disable_windows_event_log_access.yml",
+   "status": "experimental",
+   "level": "high",
+   "category": "registry_set",
+   "product": "windows",
+   "service": null,
+   "techniques": [
+    "T1547.001",
+    "T1112"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "d6c2ce7e-afb5-4337-9ca4-4b5254ed0565",
+   "title": "WinSock2 Autorun Keys Modification",
+   "path": "rules/windows/registry/registry_set/registry_set_asep_reg_keys_modification_winsock2.yml",
+   "status": "test",
+   "level": "medium",
+   "category": "registry_set",
+   "product": "windows",
+   "service": null,
+   "techniques": [
+    "T1547.001"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "0442defa-b4a2-41c9-ae2c-ea7042fc4701",
+   "title": "Potential Credential Dumping Attempt Using New NetworkProvider - REG",
+   "path": "rules/windows/registry/registry_set/registry_set_new_network_provider.yml",
+   "status": "test",
+   "level": "medium",
+   "category": "registry_set",
+   "product": "windows",
+   "service": null,
+   "techniques": [
+    "T1003"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "674202d0-b22a-4af4-ae5f-2eda1f3da1af",
+   "title": "Bypass UAC Using Event Viewer",
+   "path": "rules/windows/registry/registry_set/registry_set_bypass_uac_using_eventviewer.yml",
+   "status": "test",
+   "level": "high",
+   "category": "registry_set",
+   "product": "windows",
+   "service": null,
+   "techniques": [
+    "T1547.010"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "bbf59793-6efb-4fa1-95ca-a7d288e52c88",
+   "title": "Winlogon Notify Key Logon Persistence",
+   "path": "rules/windows/registry/registry_set/registry_set_winlogon_notify_key.yml",
+   "status": "test",
+   "level": "high",
+   "category": "registry_set",
+   "product": "windows",
+   "service": null,
+   "techniques": [
+    "T1547.004"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "e4d22291-f3d5-4b78-9a0c-a1fbaf32a6a4",
+   "title": "Potentially Suspicious ODBC Driver Registered",
+   "path": "rules/windows/registry/registry_set/registry_set_odbc_driver_registered_susp.yml",
+   "status": "test",
+   "level": "high",
+   "category": "registry_set",
+   "product": "windows",
+   "service": null,
+   "techniques": [
+    "T1003"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "73a883d0-0348-4be4-a8d8-51031c2564f8",
+   "title": "Potential Registry Persistence Attempt Via Windows Telemetry",
+   "path": "rules/windows/registry/registry_set/registry_set_telemetry_persistence.yml",
+   "status": "test",
+   "level": "high",
+   "category": "registry_set",
+   "product": "windows",
+   "service": null,
+   "techniques": [
+    "T1053.005"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "4720b7df-40c3-48fd-bbdf-fd4b3c464f0d",
+   "title": "Scheduled TaskCache Change by Uncommon Program",
+   "path": "rules/windows/registry/registry_set/registry_set_taskcache_entry.yml",
+   "status": "test",
+   "level": "high",
+   "category": "registry_set",
+   "product": "windows",
+   "service": null,
+   "techniques": [
+    "T1053",
+    "T1053.005"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "e88a6ddc-74f7-463b-9b26-f69fc0d2ce85",
+   "title": "New TimeProviders Registered With Uncommon DLL Name",
+   "path": "rules/windows/registry/registry_set/registry_set_timeproviders_dllname.yml",
+   "status": "test",
+   "level": "high",
+   "category": "registry_set",
+   "product": "windows",
+   "service": null,
+   "techniques": [
+    "T1547.003"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "509e84b9-a71a-40e0-834f-05470369bd1e",
+   "title": "Default RDP Port Changed to Non Standard Port",
+   "path": "rules/windows/registry/registry_set/registry_set_change_rdp_port.yml",
+   "status": "test",
+   "level": "high",
+   "category": "registry_set",
+   "product": "windows",
+   "service": null,
+   "techniques": [
+    "T1547.010"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "a7df0e9e-91a5-459a-a003-4cde67c2ff5d",
+   "title": "Potentially Suspicious Command Executed Via Run Dialog Box - Registry",
+   "path": "rules/windows/registry/registry_set/registry_set_runmru_susp_command_execution.yml",
+   "status": "test",
+   "level": "high",
+   "category": "registry_set",
+   "product": "windows",
+   "service": null,
+   "techniques": [
+    "T1059.001"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "7f4c43f9-b1a5-4c7d-b24a-b41bf3a3ebf2",
+   "title": "Registry Tampering by Potentially Suspicious Processes",
+   "path": "rules/windows/registry/registry_event/registry_event_susp_process_registry_modification.yml",
+   "status": "experimental",
+   "level": "medium",
+   "category": "registry_event",
+   "product": "windows",
+   "service": null,
+   "techniques": [
+    "T1112",
+    "T1059.005"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "b3503044-60ce-4bf4-bbcb-e3db98788823",
+   "title": "DLL Load via LSASS",
+   "path": "rules/windows/registry/registry_event/registry_event_susp_lsass_dll_load.yml",
+   "status": "test",
+   "level": "high",
+   "category": "registry_event",
+   "product": "windows",
+   "service": null,
+   "techniques": [
+    "T1547.008"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "eeb30123-9fbd-4ee8-aaa0-2e545bbed6dc",
+   "title": "Security Support Provider (SSP) Added to LSA Configuration",
+   "path": "rules/windows/registry/registry_event/registry_event_ssp_added_lsa_config.yml",
+   "status": "test",
+   "level": "high",
+   "category": "registry_event",
+   "product": "windows",
+   "service": null,
+   "techniques": [
+    "T1547.005"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "5aad0995-46ab-41bd-a9ff-724f41114971",
+   "title": "Esentutl Volume Shadow Copy Service Keys",
+   "path": "rules/windows/registry/registry_event/registry_event_esentutl_volume_shadow_copy_service_keys.yml",
+   "status": "test",
+   "level": "high",
+   "category": "registry_event",
+   "product": "windows",
+   "service": null,
+   "techniques": [
+    "T1003.002"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "277efb8f-60be-4f10-b4d3-037802f37167",
+   "title": "Registry Persistence Mechanisms in Recycle Bin",
+   "path": "rules/windows/registry/registry_event/registry_event_persistence_recycle_bin.yml",
+   "status": "test",
+   "level": "high",
+   "category": "registry_event",
+   "product": "windows",
+   "service": null,
+   "techniques": [
+    "T1547"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "9577edbb-851f-4243-8c91-1d5b50c1a39b",
+   "title": "Atbroker Registry Change",
+   "path": "rules/windows/registry/registry_event/registry_event_susp_atbroker_change.yml",
+   "status": "test",
+   "level": "medium",
+   "category": "registry_event",
+   "product": "windows",
+   "service": null,
+   "techniques": [
+    "T1218",
+    "T1547"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "b98968aa-dbc0-4a9c-ac35-108363cbf8d5",
+   "title": "WINEKEY Registry Modification",
+   "path": "rules/windows/registry/registry_event/registry_event_runkey_winekey.yml",
+   "status": "test",
+   "level": "high",
+   "category": "registry_event",
+   "product": "windows",
+   "service": null,
+   "techniques": [
+    "T1547"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "cafeeba3-01da-4ab4-b6c4-a31b1d9730c7",
+   "title": "PrintBrm ZIP Creation of Extraction",
+   "path": "rules/windows/process_creation/proc_creation_win_lolbin_printbrm.yml",
+   "status": "test",
+   "level": "high",
+   "category": "process_creation",
+   "product": "windows",
+   "service": null,
+   "techniques": [
+    "T1105",
+    "T1564.004"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "39019a4e-317f-4ce3-ae63-309a8c6b53c5",
+   "title": "Suspicious Scheduled Task Creation Involving Temp Folder",
+   "path": "rules/windows/process_creation/proc_creation_win_schtasks_creation_temp_folder.yml",
+   "status": "test",
+   "level": "high",
+   "category": "process_creation",
+   "product": "windows",
+   "service": null,
+   "techniques": [
+    "T1053.005"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "e7be6119-fc37-43f0-ad4f-1f3f99be2f9f",
+   "title": "Copying Sensitive Files with Credential Data",
+   "path": "rules/windows/process_creation/proc_creation_win_esentutl_sensitive_file_copy.yml",
+   "status": "test",
+   "level": "high",
+   "category": "process_creation",
+   "product": "windows",
+   "service": null,
+   "techniques": [
+    "T1003.002",
+    "T1003.003"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "a2ea3ae7-d3d0-40a0-a55c-25a45c87cac1",
+   "title": "Suspicious Driver Install by pnputil.exe",
+   "path": "rules/windows/process_creation/proc_creation_win_lolbin_susp_driver_installed_by_pnputil.yml",
+   "status": "test",
+   "level": "medium",
+   "category": "process_creation",
+   "product": "windows",
+   "service": null,
+   "techniques": [
+    "T1547"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "d2b749ee-4225-417e-b20e-a8d2193cbb84",
+   "title": "PUA - AdvancedRun Execution",
+   "path": "rules/windows/process_creation/proc_creation_win_pua_advancedrun.yml",
+   "status": "test",
+   "level": "medium",
+   "category": "process_creation",
+   "product": "windows",
+   "service": null,
+   "techniques": [
+    "T1564.003",
+    "T1134.002",
+    "T1059.003"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "8a1b2c3d-4e5f-6789-abcd-ef1234567890",
+   "title": "PUA - Memory Dump Mount Via MemProcFS",
+   "path": "rules/windows/process_creation/proc_creation_win_pua_memprocfs.yml",
+   "status": "experimental",
+   "level": "high",
+   "category": "process_creation",
+   "product": "windows",
+   "service": null,
+   "techniques": [
+    "T1003",
+    "T1003.001",
+    "T1003.004",
+    "T1003.002"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "aaf46cdc-934e-4284-b329-34aa701e3771",
+   "title": "Uncommon Child Process Of BgInfo.EXE",
+   "path": "rules/windows/process_creation/proc_creation_win_bginfo_uncommon_child_process.yml",
+   "status": "test",
+   "level": "medium",
+   "category": "process_creation",
+   "product": "windows",
+   "service": null,
+   "techniques": [
+    "T1059.005",
+    "T1218",
+    "T1202"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "05c36dd6-79d6-4a9a-97da-3db20298ab2d",
+   "title": "XSL Script Execution Via WMIC.EXE",
+   "path": "rules/windows/process_creation/proc_creation_win_wmic_xsl_script_processing.yml",
+   "status": "test",
+   "level": "medium",
+   "category": "process_creation",
+   "product": "windows",
+   "service": null,
+   "techniques": [
+    "T1047",
+    "T1220",
+    "T1059.005",
+    "T1059.007"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "52cad028-0ff0-4854-8f67-d25dfcbc78b4",
+   "title": "HTML Help HH.EXE Suspicious Child Process",
+   "path": "rules/windows/process_creation/proc_creation_win_hh_html_help_susp_child_process.yml",
+   "status": "test",
+   "level": "high",
+   "category": "process_creation",
+   "product": "windows",
+   "service": null,
+   "techniques": [
+    "T1047",
+    "T1059.001",
+    "T1059.003",
+    "T1059.005",
+    "T1059.007",
+    "T1218",
+    "T1218.001",
+    "T1218.010",
+    "T1218.011",
+    "T1566",
+    "T1566.001"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "4f154fb6-27d1-4813-a759-78b93e0b9c48",
+   "title": "Operator Bloopers Cobalt Strike Modules",
+   "path": "rules/windows/process_creation/proc_creation_win_hktl_cobaltstrike_bloopers_modules.yml",
+   "status": "test",
+   "level": "high",
+   "category": "process_creation",
+   "product": "windows",
+   "service": null,
+   "techniques": [
+    "T1059.003"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "26488ad0-f9fd-4536-876f-52fea846a2e4",
+   "title": "HackTool - SharPersist Execution",
+   "path": "rules/windows/process_creation/proc_creation_win_hktl_sharpersist.yml",
+   "status": "test",
+   "level": "high",
+   "category": "process_creation",
+   "product": "windows",
+   "service": null,
+   "techniques": [
+    "T1053"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "023394c4-29d5-46ab-92b8-6a534c6f447b",
+   "title": "Suspicious HWP Sub Processes",
+   "path": "rules/windows/process_creation/proc_creation_win_hwp_exploits.yml",
+   "status": "test",
+   "level": "high",
+   "category": "process_creation",
+   "product": "windows",
+   "service": null,
+   "techniques": [
+    "T1566.001",
+    "T1203",
+    "T1059.003"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "2782fbd8-b662-4eb5-9962-5bfbfb671e7b",
+   "title": "Suspicious Usage of For Loop with Recursive Directory Search in CMD",
+   "path": "rules/windows/process_creation/proc_creation_win_susp_cmd_for_loop_execution_with_recursive_directory_search.yml",
+   "status": "experimental",
+   "level": "medium",
+   "category": "process_creation",
+   "product": "windows",
+   "service": null,
+   "techniques": [
+    "T1059.003",
+    "T1027.010"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "86588b36-c6d3-465f-9cee-8f9093e07798",
+   "title": "Scheduled Task Executing Payload from Registry",
+   "path": "rules/windows/process_creation/proc_creation_win_schtasks_reg_loader.yml",
+   "status": "test",
+   "level": "medium",
+   "category": "process_creation",
+   "product": "windows",
+   "service": null,
+   "techniques": [
+    "T1053.005",
+    "T1059.001"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "8537c866-072e-460d-bfff-aaf39cbd73d3",
+   "title": "Potentially Suspicious Inline JavaScript Execution via NodeJS Binary",
+   "path": "rules/windows/process_creation/proc_creation_win_susp_inline_node_js_execution.yml",
+   "status": "experimental",
+   "level": "medium",
+   "category": "process_creation",
+   "product": "windows",
+   "service": null,
+   "techniques": [
+    "T1059.007"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "f91e51c9-f344-4b32-969b-0b6f6b8537d4",
+   "title": "Renamed Schtasks Execution",
+   "path": "rules/windows/process_creation/proc_creation_win_renamed_schtasks_execution.yml",
+   "status": "experimental",
+   "level": "high",
+   "category": "process_creation",
+   "product": "windows",
+   "service": null,
+   "techniques": [
+    "T1036.003",
+    "T1053.005"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "5cddf373-ef00-4112-ad72-960ac29bac34",
+   "title": "HackTool - Koadic Execution",
+   "path": "rules/windows/process_creation/proc_creation_win_hktl_koadic.yml",
+   "status": "test",
+   "level": "high",
+   "category": "process_creation",
+   "product": "windows",
+   "service": null,
+   "techniques": [
+    "T1059.003",
+    "T1059.005",
+    "T1059.007"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "1d174d38-8fda-4081-a9b6-56d9763c0cd8",
+   "title": "Scheduled Task Creation with Curl and PowerShell Execution Combo",
+   "path": "rules/windows/process_creation/proc_creation_win_schtasks_curl_and_powershell_combo.yml",
+   "status": "experimental",
+   "level": "medium",
+   "category": "process_creation",
+   "product": "windows",
+   "service": null,
+   "techniques": [
+    "T1053.005",
+    "T1218",
+    "T1105"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "afa71271-6a97-4e47-810f-83120fb1a4ce",
+   "title": "New Agent Skills Installation Attempt Via Node.EXE",
+   "path": "rules/windows/process_creation/proc_creation_win_node_new_agent_skills_installed.yml",
+   "status": "experimental",
+   "level": "medium",
+   "category": "process_creation",
+   "product": "windows",
+   "service": null,
+   "techniques": [
+    "T1059.007"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "f0ca6c24-3225-47d5-b1f5-352bf07ecfa7",
+   "title": "PUA - DefenderCheck Execution",
+   "path": "rules/windows/process_creation/proc_creation_win_pua_defendercheck.yml",
+   "status": "test",
+   "level": "high",
+   "category": "process_creation",
+   "product": "windows",
+   "service": null,
+   "techniques": [
+    "T1027.005"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "84972c80-251c-4c3a-9079-4f00aad93938",
+   "title": "Sensitive File Recovery From Backup Via Wbadmin.EXE",
+   "path": "rules/windows/process_creation/proc_creation_win_wbadmin_restore_sensitive_files.yml",
+   "status": "test",
+   "level": "high",
+   "category": "process_creation",
+   "product": "windows",
+   "service": null,
+   "techniques": [
+    "T1003.003"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "9637e8a5-7131-4f7f-bdc7-2b05d8670c43",
+   "title": "Suspicious File Characteristics Due to Missing Fields",
+   "path": "rules/windows/process_creation/proc_creation_win_susp_file_characteristics.yml",
+   "status": "test",
+   "level": "medium",
+   "category": "process_creation",
+   "product": "windows",
+   "service": null,
+   "techniques": [
+    "T1059.006"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "8bc64091-6875-4881-aaf9-7bd25b5dda08",
+   "title": "Suspicious Process Patterns NTDS.DIT Exfil",
+   "path": "rules/windows/process_creation/proc_creation_win_susp_ntds.yml",
+   "status": "test",
+   "level": "high",
+   "category": "process_creation",
+   "product": "windows",
+   "service": null,
+   "techniques": [
+    "T1003.003"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "8b93a509-1cb8-42e1-97aa-ee24224cdc15",
+   "title": "Sensitive File Dump Via Wbadmin.EXE",
+   "path": "rules/windows/process_creation/proc_creation_win_wbadmin_dump_sensitive_files.yml",
+   "status": "test",
+   "level": "high",
+   "category": "process_creation",
+   "product": "windows",
+   "service": null,
+   "techniques": [
+    "T1003.003"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "c2c76b77-32be-4d1f-82c9-7e544bdfe0eb",
+   "title": "Potential Suspicious Activity Using SeCEdit",
+   "path": "rules/windows/process_creation/proc_creation_win_secedit_execution.yml",
+   "status": "test",
+   "level": "medium",
+   "category": "process_creation",
+   "product": "windows",
+   "service": null,
+   "techniques": [
+    "T1685.001",
+    "T1547.001",
+    "T1505.005",
+    "T1556.002",
+    "T1685",
+    "T1574.007",
+    "T1564.002",
+    "T1546.008",
+    "T1546.007",
+    "T1547.014",
+    "T1547.010",
+    "T1547.002",
+    "T1557",
+    "T1082"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "6f8b3439-a203-45dc-a88b-abf57ea15ccf",
+   "title": "HackTool - CrackMapExec PowerShell Obfuscation",
+   "path": "rules/windows/process_creation/proc_creation_win_hktl_crackmapexec_powershell_obfuscation.yml",
+   "status": "test",
+   "level": "high",
+   "category": "process_creation",
+   "product": "windows",
+   "service": null,
+   "techniques": [
+    "T1059.001",
+    "T1027.005"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "d3b70aad-097e-409c-9df2-450f80dc476b",
+   "title": "PUA - DIT Snapshot Viewer",
+   "path": "rules/windows/process_creation/proc_creation_win_pua_ditsnap.yml",
+   "status": "test",
+   "level": "high",
+   "category": "process_creation",
+   "product": "windows",
+   "service": null,
+   "techniques": [
+    "T1003.003"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "7df1713a-1a5b-4a4b-a071-dc83b144a101",
+   "title": "Esentutl Gather Credentials",
+   "path": "rules/windows/process_creation/proc_creation_win_esentutl_params.yml",
+   "status": "test",
+   "level": "medium",
+   "category": "process_creation",
+   "product": "windows",
+   "service": null,
+   "techniques": [
+    "T1003",
+    "T1003.003"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "07f8bdc2-c9b3-472a-9817-5a670b872f53",
+   "title": "Potential Reconnaissance For Cached Credentials Via Cmdkey.EXE",
+   "path": "rules/windows/process_creation/proc_creation_win_cmdkey_recon.yml",
+   "status": "test",
+   "level": "high",
+   "category": "process_creation",
+   "product": "windows",
+   "service": null,
+   "techniques": [
+    "T1003.005"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "0c92f2e6-f08f-4b73-9216-ecb0ca634689",
+   "title": "PUA - Potential PE Metadata Tamper Using Rcedit",
+   "path": "rules/windows/process_creation/proc_creation_win_pua_rcedit_execution.yml",
+   "status": "test",
+   "level": "medium",
+   "category": "process_creation",
+   "product": "windows",
+   "service": null,
+   "techniques": [
+    "T1036.003",
+    "T1036",
+    "T1027.005",
+    "T1027"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "42a993dd-bb3e-48c8-b372-4d6684c4106c",
+   "title": "HackTool - CrackMapExec Execution",
+   "path": "rules/windows/process_creation/proc_creation_win_hktl_crackmapexec_execution.yml",
+   "status": "test",
+   "level": "high",
+   "category": "process_creation",
+   "product": "windows",
+   "service": null,
+   "techniques": [
+    "T1047",
+    "T1053",
+    "T1059.003",
+    "T1059.001",
+    "T1110",
+    "T1201"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "f14e169e-9978-4c69-acb3-1cff8200bc36",
+   "title": "Suspicious GrpConv Execution",
+   "path": "rules/windows/process_creation/proc_creation_win_lolbin_susp_grpconv.yml",
+   "status": "test",
+   "level": "high",
+   "category": "process_creation",
+   "product": "windows",
+   "service": null,
+   "techniques": [
+    "T1547"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "50a0aa3d-ab16-4594-a8aa-5145a6e6792b",
+   "title": "Python One-Liners with Base64 Decoding",
+   "path": "rules/windows/process_creation/proc_creation_win_python_base64_encoded_execution.yml",
+   "status": "experimental",
+   "level": "high",
+   "category": "process_creation",
+   "product": "windows",
+   "service": null,
+   "techniques": [
+    "T1059.006",
+    "T1027.010"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "40b19fa6-d835-400c-b301-41f3a2baacaf",
+   "title": "VolumeShadowCopy Symlink Creation Via Mklink",
+   "path": "rules/windows/process_creation/proc_creation_win_cmd_mklink_shadow_copies_access_symlink.yml",
+   "status": "stable",
+   "level": "high",
+   "category": "process_creation",
+   "product": "windows",
+   "service": null,
+   "techniques": [
+    "T1003.002",
+    "T1003.003"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "058f4380-962d-40a5-afce-50207d36d7e2",
+   "title": "HackTool - CrackMapExec Execution Patterns",
+   "path": "rules/windows/process_creation/proc_creation_win_hktl_crackmapexec_execution_patterns.yml",
+   "status": "stable",
+   "level": "high",
+   "category": "process_creation",
+   "product": "windows",
+   "service": null,
+   "techniques": [
+    "T1047",
+    "T1053",
+    "T1059.003",
+    "T1059.001"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "2fcda7e2-8c57-4904-86ac-37fc3157e09d",
+   "title": "Sensitive File Dump Via Print.EXE",
+   "path": "rules/windows/process_creation/proc_creation_win_print_dump_sensitive_files.yml",
+   "status": "test",
+   "level": "high",
+   "category": "process_creation",
+   "product": "windows",
+   "service": null,
+   "techniques": [
+    "T1003.003",
+    "T1003.002",
+    "T1218"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "60fc936d-2eb0-4543-8a13-911c750a1dfc",
+   "title": "Interactive AT Job",
+   "path": "rules/windows/process_creation/proc_creation_win_at_interactive_execution.yml",
+   "status": "test",
+   "level": "high",
+   "category": "process_creation",
+   "product": "windows",
+   "service": null,
+   "techniques": [
+    "T1053.002"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "a642964e-bead-4bed-8910-1bb4d63e3b4d",
+   "title": "HackTool - Mimikatz Execution",
+   "path": "rules/windows/process_creation/proc_creation_win_hktl_mimikatz_command_line.yml",
+   "status": "test",
+   "level": "high",
+   "category": "process_creation",
+   "product": "windows",
+   "service": null,
+   "techniques": [
+    "T1003.001",
+    "T1003.002",
+    "T1003.004",
+    "T1003.005",
+    "T1003.006"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "b1ec66c6-f4d1-4b5c-96dd-af28ccae7727",
+   "title": "New Generic Credentials Added Via Cmdkey.EXE",
+   "path": "rules/windows/process_creation/proc_creation_win_cmdkey_adding_generic_creds.yml",
+   "status": "test",
+   "level": "medium",
+   "category": "process_creation",
+   "product": "windows",
+   "service": null,
+   "techniques": [
+    "T1003.005"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "fd877b94-9bb5-4191-bb25-d79cbd93c167",
+   "title": "Dumping of Sensitive Hives Via Reg.EXE",
+   "path": "rules/windows/process_creation/proc_creation_win_reg_dumping_sensitive_hives.yml",
+   "status": "test",
+   "level": "high",
+   "category": "process_creation",
+   "product": "windows",
+   "service": null,
+   "techniques": [
+    "T1003.002",
+    "T1003.004",
+    "T1003.005"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "0ea8db81-2ff6-4525-9448-33bbe7effc13",
+   "title": "New DMSA Service Account Created in Specific OUs",
+   "path": "rules/windows/process_creation/proc_creation_win_create_new_dmsasvc_account.yml",
+   "status": "experimental",
+   "level": "medium",
+   "category": "process_creation",
+   "product": "windows",
+   "service": null,
+   "techniques": [
+    "T1078.002",
+    "T1098"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "06d71506-7beb-4f22-8888-e2e5e2ca7fd8",
+   "title": "Mimikatz Use",
+   "path": "rules/windows/builtin/win_alert_mimikatz_keywords.yml",
+   "status": "test",
+   "level": "high",
+   "category": null,
+   "product": "windows",
+   "service": null,
+   "techniques": [
+    "T1003.002",
+    "T1003.004",
+    "T1003.001",
+    "T1003.006"
+   ],
+   "event_ids": [
+    15
+   ]
+  },
+  {
+   "id": "4976aa50-8f41-45c6-8b15-ab3fc10e79ed",
+   "title": "Credential Dumping Tools Service Execution - System",
+   "path": "rules/windows/builtin/system/service_control_manager/win_system_mal_creddumper.yml",
+   "status": "test",
+   "level": "high",
+   "category": null,
+   "product": "windows",
+   "service": "system",
+   "techniques": [
+    "T1003.001",
+    "T1003.002",
+    "T1003.004",
+    "T1003.005",
+    "T1003.006",
+    "T1569.002"
+   ],
+   "event_ids": [
+    7045
+   ]
+  },
+  {
+   "id": "401e5d00-b944-11ea-8f9a-00163ecd60ae",
+   "title": "AppLocker Prevented Application or Script from Running",
+   "path": "rules/windows/builtin/applocker/win_applocker_application_was_prevented_from_running.yml",
+   "status": "test",
+   "level": "medium",
+   "category": null,
+   "product": "windows",
+   "service": "applocker",
+   "techniques": [
+    "T1204.002",
+    "T1059.001",
+    "T1059.003",
+    "T1059.005",
+    "T1059.006",
+    "T1059.007"
+   ],
+   "event_ids": [
+    8004,
+    8007,
+    8022,
+    8025
+   ]
+  },
+  {
+   "id": "557e3bd3-7f21-495d-8d50-7c8bdfb8041c",
+   "title": "AppLocker Application Would Have Been Blocked",
+   "path": "rules/windows/builtin/applocker/win_applocker_application_would_have_been_blocked.yml",
+   "status": "experimental",
+   "level": "medium",
+   "category": null,
+   "product": "windows",
+   "service": "applocker",
+   "techniques": [
+    "T1204.002",
+    "T1059.001",
+    "T1059.003",
+    "T1059.005",
+    "T1059.006",
+    "T1059.007"
+   ],
+   "event_ids": [
+    8003,
+    8006,
+    8021,
+    8024
+   ]
+  },
+  {
+   "id": "17d619c1-e020-4347-957e-1d1207455c93",
+   "title": "Active Directory Replication from Non Machine Account",
+   "path": "rules/windows/builtin/security/win_security_ad_replication_non_machine_account.yml",
+   "status": "test",
+   "level": "critical",
+   "category": null,
+   "product": "windows",
+   "service": "security",
+   "techniques": [
+    "T1003.006"
+   ],
+   "event_ids": [
+    4662
+   ]
+  },
+  {
+   "id": "252902e3-5830-4cf6-bf21-c22083dfd5cf",
+   "title": "Possible Impacket SecretDump Remote Activity",
+   "path": "rules/windows/builtin/security/win_security_impacket_secretdump.yml",
+   "status": "test",
+   "level": "high",
+   "category": null,
+   "product": "windows",
+   "service": "security",
+   "techniques": [
+    "T1003.002",
+    "T1003.004",
+    "T1003.003"
+   ],
+   "event_ids": [
+    5145
+   ]
+  },
+  {
+   "id": "611eab06-a145-4dfa-a295-3ccc5c20f59a",
+   "title": "Mimikatz DC Sync",
+   "path": "rules/windows/builtin/security/win_security_dcsync.yml",
+   "status": "test",
+   "level": "high",
+   "category": null,
+   "product": "windows",
+   "service": "security",
+   "techniques": [
+    "T1003.006"
+   ],
+   "event_ids": [
+    4662
+   ]
+  },
+  {
+   "id": "123e4e6d-b123-48f8-b261-7214938acaf0",
+   "title": "Startup/Logon Script Added to Group Policy Object",
+   "path": "rules/windows/builtin/security/win_security_susp_group_policy_startup_script_added_to_gpo.yml",
+   "status": "test",
+   "level": "medium",
+   "category": null,
+   "product": "windows",
+   "service": "security",
+   "techniques": [
+    "T1484.001",
+    "T1547"
+   ],
+   "event_ids": [
+    5136,
+    5145
+   ]
+  },
+  {
+   "id": "f0d1feba-4344-4ca9-8121-a6c97bd6df52",
+   "title": "Credential Dumping Tools Service Execution - Security",
+   "path": "rules/windows/builtin/security/win_security_mal_creddumper.yml",
+   "status": "test",
+   "level": "high",
+   "category": null,
+   "product": "windows",
+   "service": "security",
+   "techniques": [
+    "T1003.001",
+    "T1003.002",
+    "T1003.004",
+    "T1003.005",
+    "T1003.006",
+    "T1569.002"
+   ],
+   "event_ids": [
+    4697
+   ]
+  },
+  {
+   "id": "f6de6525-4509-495a-8a82-1f8b0ed73a00",
+   "title": "Remote Task Creation via ATSVC Named Pipe",
+   "path": "rules/windows/builtin/security/win_security_atsvc_task.yml",
+   "status": "test",
+   "level": "medium",
+   "category": null,
+   "product": "windows",
+   "service": "security",
+   "techniques": [
+    "T1053.002"
+   ],
+   "event_ids": [
+    5145
+   ]
+  },
+  {
+   "id": "39a80702-d7ca-4a83-b776-525b1f86a36d",
+   "title": "Potential Secure Deletion with SDelete",
+   "path": "rules/windows/builtin/security/win_security_sdelete_potential_secure_deletion.yml",
+   "status": "test",
+   "level": "medium",
+   "category": null,
+   "product": "windows",
+   "service": "security",
+   "techniques": [
+    "T1070.004",
+    "T1027.005",
+    "T1485",
+    "T1553.002"
+   ],
+   "event_ids": [
+    4656,
+    4658,
+    4663
+   ]
+  },
+  {
+   "id": "35bc7e28-ee6b-492f-ab04-da58fcf6402e",
+   "title": "Windows Network Access Suspicious desktop.ini Action",
+   "path": "rules/windows/builtin/security/win_security_net_share_obj_susp_desktop_ini.yml",
+   "status": "test",
+   "level": "medium",
+   "category": null,
+   "product": "windows",
+   "service": "security",
+   "techniques": [
+    "T1547.009"
+   ],
+   "event_ids": [
+    5145
+   ]
+  },
+  {
+   "id": "02122374-b74e-495c-b285-9e4da973f3d6",
+   "title": "DMSA Service Account Created in Specific OUs - PowerShell",
+   "path": "rules/windows/powershell/powershell_script/posh_ps_create_new_dmsasvc_account.yml",
+   "status": "experimental",
+   "level": "medium",
+   "category": "ps_script",
+   "product": "windows",
+   "service": null,
+   "techniques": [
+    "T1078.002",
+    "T1098"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "851c506b-6b7c-4ce2-8802-c703009d03c0",
+   "title": "Winlogon Helper DLL",
+   "path": "rules/windows/powershell/powershell_script/posh_ps_winlogon_helper_dll.yml",
+   "status": "test",
+   "level": "medium",
+   "category": "ps_script",
+   "product": "windows",
+   "service": null,
+   "techniques": [
+    "T1547.004"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "81315b50-6b60-4d8f-9928-3466e1022515",
+   "title": "Desktop.INI Created by Uncommon Process",
+   "path": "rules/windows/file/file_event/file_event_win_desktop_ini_created_by_uncommon_process.yml",
+   "status": "test",
+   "level": "medium",
+   "category": "file_event",
+   "product": "windows",
+   "service": null,
+   "techniques": [
+    "T1547.009"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "8c3c76ca-8f8b-4b1d-aaf3-81aebcd367c9",
+   "title": "Creation Exe for Service with Unquoted Path",
+   "path": "rules/windows/file/file_event/file_event_win_creation_unquoted_service_path.yml",
+   "status": "test",
+   "level": "high",
+   "category": "file_event",
+   "product": "windows",
+   "service": null,
+   "techniques": [
+    "T1547.009"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "ee63c85c-6d51-4d12-ad09-04e25877a947",
+   "title": "New Custom Shim Database Created",
+   "path": "rules/windows/file/file_event/file_event_win_creation_new_shim_database.yml",
+   "status": "test",
+   "level": "medium",
+   "category": "file_event",
+   "product": "windows",
+   "service": null,
+   "techniques": [
+    "T1547.009"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "9b64de98-9db3-4033-bd7a-f51430105f00",
+   "title": "Windows Terminal Profile Settings Modification By Uncommon Process",
+   "path": "rules/windows/file/file_event/file_event_win_susp_windows_terminal_profile.yml",
+   "status": "test",
+   "level": "medium",
+   "category": "file_event",
+   "product": "windows",
+   "service": null,
+   "techniques": [
+    "T1547.015"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "80e1f67a-4596-4351-98f5-a9c3efabac95",
+   "title": "Suspicious Scheduled Task Write to System32 Tasks",
+   "path": "rules/windows/file/file_event/file_event_win_susp_task_write.yml",
+   "status": "test",
+   "level": "high",
+   "category": "file_event",
+   "product": "windows",
+   "service": null,
+   "techniques": [
+    "T1053"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "821bcf4d-46c7-4b87-bc57-9509d3ba7c11",
+   "title": "Root Account Enable Via Dsenableroot",
+   "path": "rules/macos/process_creation/proc_creation_macos_dsenableroot_enable_root_account.yml",
+   "status": "test",
+   "level": "medium",
+   "category": "process_creation",
+   "product": "macos",
+   "service": null,
+   "techniques": [
+    "T1078",
+    "T1078.001",
+    "T1078.003"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "b743623c-2776-40e0-87b1-682b975d0ca5",
+   "title": "User Added To Admin Group Via Dscl",
+   "path": "rules/macos/process_creation/proc_creation_macos_dscl_add_user_to_admin_group.yml",
+   "status": "test",
+   "level": "medium",
+   "category": "process_creation",
+   "product": "macos",
+   "service": null,
+   "techniques": [
+    "T1078.003"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "1bc2e6c5-0885-472b-bed6-be5ea8eace55",
+   "title": "MacOS Scripting Interpreter AppleScript",
+   "path": "rules/macos/process_creation/proc_creation_macos_applescript.yml",
+   "status": "test",
+   "level": "medium",
+   "category": "process_creation",
+   "product": "macos",
+   "service": null,
+   "techniques": [
+    "T1059.002"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "69483748-1525-4a6c-95ca-90dc8d431b68",
+   "title": "Suspicious Microsoft Office Child Process - MacOS",
+   "path": "rules/macos/process_creation/proc_creation_macos_office_susp_child_processes.yml",
+   "status": "test",
+   "level": "high",
+   "category": "process_creation",
+   "product": "macos",
+   "service": null,
+   "techniques": [
+    "T1059.002",
+    "T1137.002",
+    "T1204.002"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "7c3b43d8-d794-47d2-800a-d277715aa460",
+   "title": "Scheduled Cron Task/Job - MacOs",
+   "path": "rules/macos/process_creation/proc_creation_macos_schedule_task_job_cron.yml",
+   "status": "test",
+   "level": "medium",
+   "category": "process_creation",
+   "product": "macos",
+   "service": null,
+   "techniques": [
+    "T1053.003"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "5d0fdb62-f225-42fb-8402-3dfe64da468a",
+   "title": "User Added To Admin Group Via DseditGroup",
+   "path": "rules/macos/process_creation/proc_creation_macos_dseditgroup_add_to_admin_group.yml",
+   "status": "test",
+   "level": "medium",
+   "category": "process_creation",
+   "product": "macos",
+   "service": null,
+   "techniques": [
+    "T1078.003"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "6e4dcdd1-e48b-42f7-b2d8-3b413fc58cb4",
+   "title": "Suspicious Execution via macOS Script Editor",
+   "path": "rules/macos/process_creation/proc_creation_macos_susp_execution_macos_script_editor.yml",
+   "status": "test",
+   "level": "medium",
+   "category": "process_creation",
+   "product": "macos",
+   "service": null,
+   "techniques": [
+    "T1566",
+    "T1566.002",
+    "T1059",
+    "T1059.002",
+    "T1204",
+    "T1204.001",
+    "T1553"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "7794fa3c-edea-4cff-bec7-267dd4770fd7",
+   "title": "Clipboard Access Via OSAScript",
+   "path": "rules/macos/process_creation/proc_creation_macos_clipboard_access_via_osascript.yml",
+   "status": "test",
+   "level": "medium",
+   "category": "process_creation",
+   "product": "macos",
+   "service": null,
+   "techniques": [
+    "T1115",
+    "T1059.002"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "652c098d-dc11-4ba6-8566-c20e89042f2b",
+   "title": "User Added To Admin Group Via Sysadminctl",
+   "path": "rules/macos/process_creation/proc_creation_macos_sysadminctl_add_user_to_admin_group.yml",
+   "status": "test",
+   "level": "medium",
+   "category": "process_creation",
+   "product": "macos",
+   "service": null,
+   "techniques": [
+    "T1078.003"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "b9d9b652-d8ed-4697-89a2-a1186ee680ac",
+   "title": "OSACompile Run-Only Execution",
+   "path": "rules/macos/process_creation/proc_creation_macos_osacompile_runonly_execution.yml",
+   "status": "test",
+   "level": "high",
+   "category": "process_creation",
+   "product": "macos",
+   "service": null,
+   "techniques": [
+    "T1059.002"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "a753a6af-3126-426d-8bd0-26ebbcb92254",
+   "title": "Osacompile Execution By Potentially Suspicious Applet/Osascript",
+   "path": "rules/macos/process_creation/proc_creation_macos_suspicious_applet_behaviour.yml",
+   "status": "test",
+   "level": "medium",
+   "category": "process_creation",
+   "product": "macos",
+   "service": null,
+   "techniques": [
+    "T1059.002"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "53389db6-ba46-48e3-a94c-e0f2cefe1583",
+   "title": "MITRE BZAR Indicators for Persistence",
+   "path": "rules/network/zeek/zeek_dce_rpc_mitre_bzar_persistence.yml",
+   "status": "test",
+   "level": "medium",
+   "category": null,
+   "product": "zeek",
+   "service": "dce_rpc",
+   "techniques": [
+    "T1547.004"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "b640c0b8-87f8-4daa-aef8-95a24261dd1d",
+   "title": "MITRE BZAR Indicators for Execution",
+   "path": "rules/network/zeek/zeek_dce_rpc_mitre_bzar_execution.yml",
+   "status": "test",
+   "level": "medium",
+   "category": null,
+   "product": "zeek",
+   "service": "dce_rpc",
+   "techniques": [
+    "T1047",
+    "T1053.002",
+    "T1569.002"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "dde85b37-40cd-4a94-b00c-0b8794f956b5",
+   "title": "Remote Task Creation via ATSVC Named Pipe - Zeek",
+   "path": "rules/network/zeek/zeek_smb_converted_win_atsvc_task.yml",
+   "status": "test",
+   "level": "medium",
+   "category": null,
+   "product": "zeek",
+   "service": "smb_files",
+   "techniques": [
+    "T1053.002"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "671ffc77-50a7-464f-9e3d-9ea2b493b26b",
+   "title": "Cisco Modify Configuration",
+   "path": "rules/network/cisco/aaa/cisco_cli_modify_config.yml",
+   "status": "test",
+   "level": "medium",
+   "category": null,
+   "product": "cisco",
+   "service": "aaa",
+   "techniques": [
+    "T1490",
+    "T1505",
+    "T1565.002",
+    "T1053"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "0fcd1c79-4eeb-4746-aba9-1b458f7a79cb",
+   "title": "Remote Schedule Task Lateral Movement via ATSvc",
+   "path": "rules/application/rpc_firewall/rpc_firewall_atsvc_lateral_movement.yml",
+   "status": "test",
+   "level": "high",
+   "category": "application",
+   "product": "rpc_firewall",
+   "service": null,
+   "techniques": [
+    "T1053",
+    "T1053.002"
+   ],
+   "event_ids": [
+    3
+   ]
+  },
+  {
+   "id": "aff229ab-f8cd-447b-b215-084d11e79eb0",
+   "title": "Remote Schedule Task Lateral Movement via SASec",
+   "path": "rules/application/rpc_firewall/rpc_firewall_sasec_lateral_movement.yml",
+   "status": "test",
+   "level": "high",
+   "category": "application",
+   "product": "rpc_firewall",
+   "service": null,
+   "techniques": [
+    "T1053",
+    "T1053.002"
+   ],
+   "event_ids": [
+    3
+   ]
+  },
+  {
+   "id": "917789e1-2c1f-4bf5-8c91-6f71a017f469",
+   "title": "Commvault QLogin with PublicSharingUser and GUID Password (CVE-2025-57788)",
+   "path": "rules-emerging-threats/2025/Exploits/CVE-2025-57788/proc_creation_win_exploit_cve_2025_57788.yml",
+   "status": "experimental",
+   "level": "medium",
+   "category": "process_creation",
+   "product": "windows",
+   "service": null,
+   "techniques": [
+    "T1078.001"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "5660d8db-6e25-411f-b92f-094420168a5d",
+   "title": "Potential CVE-2022-22954 Exploitation Attempt - VMware Workspace ONE Access Remote Code Execution",
+   "path": "rules-emerging-threats/2022/Exploits/CVE-2022-22954/proc_creation_win_exploit_cve_2022_22954_vmware_workspace_one_rce.yml",
+   "status": "test",
+   "level": "medium",
+   "category": "process_creation",
+   "product": "windows",
+   "service": null,
+   "techniques": [
+    "T1059.006",
+    "T1190"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "474b415a-d917-4f3b-8c62-9e1a0d5f7b48",
+   "title": "Authencesn Crypto Module Load via Modprobe - Copy-Fail Indicator",
+   "path": "rules-emerging-threats/2026/Exploits/CVE-2026-31431/proc_creation_lnx_exploit_cve_2026_31431_copyfail.yml",
+   "status": "experimental",
+   "level": "high",
+   "category": "process_creation",
+   "product": "linux",
+   "service": null,
+   "techniques": [
+    "T1068",
+    "T1547.006"
+   ],
+   "event_ids": []
+  },
+  {
+   "id": "2b5e4d3f-7c9a-4fab-a8d1-3e6f5a7b8c9d",
+   "title": "TanStack Supply-Chain Attack File Creation Indicators - Linux",
+   "path": "rules-emerging-threats/2026/Malware/TanStack-Supply-Chain/file_event_lnx_malware_tanstack_supply_chain.yml",
+   "status": "experimental",
+   "level": "medium",
+   "category": "file_event",
+   "product": "linux",
+   "service": null,
+   "techniques": [
+    "T1195.002",
+    "T1059.007",
+    "T1547.004"
+   ],
+   "event_ids": []
+  }
+ ]
+}
