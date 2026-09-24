@@ -3,6 +3,8 @@ data/*.json
 data/.attack-meta.json
 # Pinned ATT&CK release for the corpus snapshot (python -m tools.corpus fetch)
 data/corpus/
+# Pinned Atomic Red Team index for the validation draw (python -m tools.validation fetch)
+data/validation/
 
 # Generated artefacts
 output/sigma/*.yml
@@ -31,6 +33,8 @@ htmlcov/
 .DS_Store
 Thumbs.db
 
-# Built by tools/webapp.py and published by CI
-docs/
+# Built by tools/webapp.py and published by CI; the validation protocol and sample live alongside and are tracked
+docs/*
+!docs/validation-protocol.md
+!docs/validation/
 site/
