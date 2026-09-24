@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "sigma-generator"
-version = "1.1.0"
+version = "1.2.0"
 description = "Turn MITRE ATT&CK techniques and threat groups into draft Sigma rules, attack-chain correlation rules and STIX 2.1 bundles."
 readme = "README.md"
 requires-python = ">=3.9"

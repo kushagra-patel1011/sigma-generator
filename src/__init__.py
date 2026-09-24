@@ -6,5 +6,5 @@ ATT&CK data, :mod:`src.mappings` owns the ATT&CK -> Sigma translation table,
 wraps the result in a STIX 2.1 bundle.
 """
 
-__version__ = "1.1.0"
+__version__ = "1.2.0"
 __all__ = ["__version__"]
