@@ -111,6 +111,27 @@ def _options_from(body: dict[str, Any]) -> GenerateOptions:
     )
 
 
+def _matches(detection: dict[str, Any]) -> list[dict[str, Any]]:
+    """A detection block as readable rows: the field, the values it looks for,
+    and whether it is required or one of several alternative signs."""
+    condition = str(detection.get("condition", ""))
+    any_of = "1 of selection_indicator_*" in condition
+    rows: list[dict[str, Any]] = []
+    for name, block in detection.items():
+        if name == "condition" or not isinstance(block, dict):
+            continue
+        for field, value in block.items():
+            values = value if isinstance(value, list) else [value]
+            rows.append({
+                "field": field,
+                "values": [str(v) for v in values[:8]],
+                "more": max(0, len(values) - 8),
+                "optional": any_of and name.startswith("selection_indicator"),
+                "event": name == "selection_source",
+            })
+    return rows
+
+
 def _rule_payload(rule: Any, include_banner: bool, problems: list[str]) -> dict[str, Any]:
     is_chain = hasattr(rule, "correlation")
     text = rule.to_yaml(include_banner=include_banner)
@@ -133,9 +154,11 @@ def _rule_payload(rule: Any, include_banner: bool, problems: list[str]) -> dict[
         "problems": problems + pysigma_problems,
         "pysigma_checked": ran,
     }
+    if not is_chain:
+        payload["matches"] = _matches(rule.detection)
     if is_chain:
         payload["steps"] = [{"name": s.name, "logsource": s.logsource_label, "telemetry": s.telemetry_source,
-                             "quality": s.quality.tier} for s in rule.steps]
+                             "quality": s.quality.tier, "matches": _matches(s.detection)} for s in rule.steps]
         payload["timespan"] = rule.correlation["timespan"]
         payload["group_by"] = rule.correlation["group-by"]
         payload["correlation_kind"] = rule.kind

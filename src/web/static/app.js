@@ -372,56 +372,86 @@ async function selectTechnique(id) {
   }
 }
 
+function matchList(matches) {
+  if (!matches || !matches.length) return null;
+  const wrap = h("div", { class: "matches" },
+    h("div", { class: "field-label" }, "What it matches"));
+  for (const row of matches) {
+    const values = row.values.map((v, i) =>
+      [i ? h("span", { class: "or" }, "or") : null, h("code", {}, v)]).flat().filter(Boolean);
+    if (row.more) values.push(h("span", { class: "or" }, `+${row.more} more`));
+    wrap.append(h("div", { class: `match${row.optional ? " is-optional" : ""}${row.event ? " is-event" : ""}` },
+      h("span", { class: "mfield" }, row.field),
+      h("span", { class: "mvalues" }, ...values),
+      row.optional ? h("span", { class: "mnote" }, "any of these") : null));
+  }
+  return wrap;
+}
+
 function ruleCard(rule, technique) {
   const isChain = rule.kind === "chain";
   const isCount = isChain && rule.correlation_kind === "count";
   const valid = rule.problems.length === 0;
+  const tier = rule.quality.tier;
   const validity = valid
     ? h("span", { class: "pill ok", title: rule.pysigma_checked ? "Passed the built-in validator and pySigma" : "Passed the built-in validator" },
         rule.pysigma_checked ? "✓ valid (pySigma)" : "✓ valid")
     : h("span", { class: "pill gap" }, `${rule.problems.length} problem(s)`);
 
-  const card = h("article", { class: "card rule-card" },
+  const card = h("article", { class: `card rule-card tier-${tier}` },
     h("div", { class: "rule-head" },
       h("div", {},
-        h("div", { class: "rule-kind" }, isCount ? "Count-threshold correlation rule" : isChain ? "Attack-chain correlation rule" : "Sigma rule"),
+        h("div", { class: "rule-kind" }, isCount ? "Count threshold" : isChain ? "Attack chain" : "Sigma rule"),
+        h("div", { class: "verdict" },
+          h("span", { class: `tier-word tier-${tier}` }, tier === "placeholder" ? "skeleton" : tier),
+          h("span", { class: "verdict-why" }, rule.quality.reasons.join("; ") || rule.quality.meaning)),
         h("h3", {}, rule.title),
         h("div", { class: "meta" },
-          tierPill(rule.quality.tier, rule.quality.reasons), levelPill(rule.level), validity,
-          h("span", {}, "logsource ", h("code", {}, rule.logsource)),
-          h("span", {}, `confidence ${Math.round(rule.confidence * 100)}%`),
-          rule.analytic ? h("span", {}, "analytic ", h("code", {}, rule.analytic)) : null)),
+          levelPill(rule.level), validity,
+          h("span", {}, h("span", { class: "k" }, "logsource "), h("code", {}, rule.logsource)),
+          rule.analytic ? h("span", {}, h("span", { class: "k" }, "analytic "), h("code", {}, rule.analytic)) : null,
+          h("span", {}, h("span", { class: "k" }, "confidence "), h("code", {}, `${Math.round(rule.confidence * 100)}%`)))),
       h("div", { class: "rule-actions" },
         h("button", { class: "btn small", type: "button", onclick: () => copyText(rule.yaml) }, "Copy"),
         h("button", { class: "btn small", type: "button", onclick: () => downloadText(rule.filename, rule.yaml) }, "Download"))),
   );
 
+  if (!isChain) card.append(matchList(rule.matches));
+
   if (isCount) {
     const condition = rule.condition || {};
     const counted = condition.field ? `distinct ${condition.field}` : "matching events";
     card.append(h("div", { class: "chain", "aria-label": "Threshold" },
-      h("div", { class: "step" }, h("b", {}, "Counted event"), rule.steps[0].logsource),
-      h("span", { class: "arrow", "aria-hidden": "true" }, "\u2265"),
-      h("div", { class: "step" }, h("b", {}, rule.correlation_type), `${condition.gte} ${counted}`),
-      h("span", { class: "chain-window" }, `within ${rule.timespan} \u00b7 per ${rule.group_by.join(", ")}`)));
+      h("div", { class: "step" },
+        h("span", { class: "lbl" }, "Counted event"),
+        h("span", { class: "s" }, rule.steps[0].logsource)),
+      h("span", { class: "arrow", "aria-hidden": "true" }, "≥"),
+      h("div", { class: "step" },
+        h("span", { class: "lbl" }, rule.correlation_type),
+        h("span", { class: "s" }, `${condition.gte} ${counted}`)),
+      h("span", { class: "chain-window" }, `within ${rule.timespan}`, h("br"), `per ${rule.group_by.join(", ")}`)));
+    card.append(matchList(rule.steps[0].matches));
   } else if (isChain) {
     const chain = h("div", { class: "chain", "aria-label": "Correlated steps" });
     rule.steps.forEach((step, index) => {
       if (index) chain.append(h("span", { class: "arrow", "aria-hidden": "true" }, "+"));
-      chain.append(h("div", { class: "step" }, h("b", {}, `Step ${index + 1}`), step.logsource));
+      chain.append(h("div", { class: "step" },
+        h("span", { class: "lbl" }, `Step ${index + 1}`),
+        h("span", { class: "s" }, step.logsource),
+        h("span", { class: "small" }, (step.matches[0] && step.matches[0].values[0]) || "")));
     });
-    chain.append(h("span", { class: "chain-window" }, `within ${rule.timespan} · same ${rule.group_by.join(", ")}`));
+    chain.append(h("span", { class: "chain-window" }, `within ${rule.timespan}`, h("br"), `same ${rule.group_by.join(", ")}`));
     card.append(chain);
   }
   if (!valid) card.append(h("div", { class: "notes" }, alertBox("error", rule.problems.join("; "))));
   if (rule.notes.length) card.append(h("ul", { class: "notes" }, rule.notes.map((n) => h("li", {}, n))));
 
-  const details = h("details", { class: "code" }, h("summary", {}, `${rule.filename}`));
+  const lines = rule.yaml.split("\n").length;
+  const details = h("details", { class: "code" },
+    h("summary", { class: "file-head" }, rule.filename, h("span", { class: "small" }, `${lines} lines · YAML`)));
   details.addEventListener("toggle", () => {
     if (details.open && details.childElementCount === 1) details.append(yamlBlock(rule.yaml));
   }, { once: false });
-  if (!isChain) details.open = true;
-  if (details.open) details.append(yamlBlock(rule.yaml));
   card.append(details);
   return card;
 }

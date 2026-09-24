@@ -44,6 +44,7 @@
 
         <div class="workspace">
           <form id="technique-form" class="options card" hidden>
+            <span class="recipe-label">Recipe</span>
             <div class="options-grid">
               <label class="select-field">Platform
                 <select name="platform"><option value="">Best telemetry</option></select>
@@ -59,17 +60,17 @@
               </label>
             </div>
             <div class="toggles">
-              <label class="toggle"><input type="checkbox" name="chains" checked>
+              <label class="toggle" title="Attack chains and count thresholds"><input type="checkbox" name="chains" checked>
                 <span>Correlation rules <small>attack chains and count thresholds</small></span></label>
-              <label class="toggle"><input type="checkbox" name="gaps_only">
+              <label class="toggle" title="Skip telemetry SigmaHQ already covers"><input type="checkbox" name="gaps_only">
                 <span>Gaps only <small>skip telemetry SigmaHQ covers</small></span></label>
-              <label class="toggle"><input type="checkbox" name="all_analytics">
+              <label class="toggle" title="One rule per ATT&amp;CK analytic"><input type="checkbox" name="all_analytics">
                 <span>Every analytic <small>one rule per ATT&amp;CK analytic</small></span></label>
-              <label class="toggle"><input type="checkbox" name="include_skeletons">
+              <label class="toggle" title="Write fill-in rules when ATT&amp;CK has no values"><input type="checkbox" name="include_skeletons">
                 <span>Skeletons <small>write fill-in rules when ATT&amp;CK has no values</small></span></label>
-              <label class="toggle"><input type="checkbox" name="deterministic">
+              <label class="toggle" title="Reproducible IDs, identical output every run"><input type="checkbox" name="deterministic">
                 <span>Deterministic IDs <small>reproducible output</small></span></label>
-              <label class="toggle"><input type="checkbox" name="banner" checked>
+              <label class="toggle" title="Provenance and review notes in each file"><input type="checkbox" name="banner" checked>
                 <span>Provenance banner <small>review notes in each file</small></span></label>
             </div>
             <div class="actions">
@@ -79,17 +80,30 @@
           </form>
           <div id="technique-output" class="output">
             <div class="hero">
-              <h1>Draft detections, grounded in ATT&amp;CK</h1>
-              <p>Every rule is built from MITRE's own detection analytics: the log sources they name,
-                the time windows they suggest, and the procedures real threat groups used.</p>
-              <ul class="hero-points">
-                <li><strong>Attack chains.</strong> Sigma correlation rules that link the steps of an attack.
-                  SigmaHQ publishes none.</li>
-                <li><strong>Gap check.</strong> See which recommended telemetry SigmaHQ's community rules
-                  already cover, and draft only the rest.</li>
-                <li><strong>Threat packs.</strong> A full detection pack for a group like APT29, mined from
-                  its documented procedures.</li>
-              </ul>
+              <h1>Start with a technique</h1>
+              <p>Rules are built from MITRE's own detection analytics - the log sources they name, the time
+                windows they suggest, the procedures real groups used - then graded by how much of that is
+                concrete enough to detect on. Nothing is invented, and nothing leaves this machine.</p>
+              <ol class="pipeline">
+                <li>
+                  <span class="lbl">ATT&amp;CK analytic</span>
+                  <span class="s">AN1030</span>
+                  <span class="small">a handle opened on lsass.exe</span>
+                </li>
+                <li>
+                  <span class="lbl">Log source it names</span>
+                  <span class="s">Sysmon EventCode 10</span>
+                  <span class="small">process access, confidence 0.95</span>
+                </li>
+                <li>
+                  <span class="lbl">What you get</span>
+                  <span class="s">process_access / windows</span>
+                  <span class="small">3 signals, graded strong</span>
+                </li>
+              </ol>
+              <p class="hero-note">T1003.001 with correlation rules on writes three files:
+                <code>t1003_001_process_access_lsass_memory.yml</code>,
+                <code>mr_t1003_001_an1030_lsass_memory.yml</code> and a STIX 2.1 bundle.</p>
             </div>
           </div>
         </div>
@@ -119,6 +133,7 @@
 
         <div class="workspace">
           <form id="pack-form" class="options card" hidden>
+            <span class="recipe-label">Recipe</span>
             <div class="options-grid">
               <label class="select-field">Level
                 <select name="level"><option value="">From tactic</option></select>
@@ -128,17 +143,17 @@
               </label>
             </div>
             <div class="toggles">
-              <label class="toggle"><input type="checkbox" name="chains" checked>
+              <label class="toggle" title="Attack chains and count thresholds"><input type="checkbox" name="chains" checked>
                 <span>Correlation rules <small>attack chains and count thresholds</small></span></label>
-              <label class="toggle"><input type="checkbox" name="gaps_only">
+              <label class="toggle" title="Skip telemetry SigmaHQ already covers"><input type="checkbox" name="gaps_only">
                 <span>Gaps only <small>skip techniques SigmaHQ fully covers</small></span></label>
-              <label class="toggle" id="with-campaigns-toggle"><input type="checkbox" name="with_campaigns">
+              <label class="toggle" id="with-campaigns-toggle" title="Techniques from attributed campaigns"><input type="checkbox" name="with_campaigns">
                 <span>Include campaigns <small>techniques from attributed campaigns</small></span></label>
-              <label class="toggle"><input type="checkbox" name="include_skeletons">
+              <label class="toggle" title="Write fill-in rules when ATT&amp;CK has no values"><input type="checkbox" name="include_skeletons">
                 <span>Skeletons <small>write fill-in rules when ATT&amp;CK has no values</small></span></label>
-              <label class="toggle"><input type="checkbox" name="deterministic">
+              <label class="toggle" title="Reproducible IDs, identical output every run"><input type="checkbox" name="deterministic">
                 <span>Deterministic IDs <small>reproducible output</small></span></label>
-              <label class="toggle"><input type="checkbox" name="banner" checked>
+              <label class="toggle" title="Provenance and review notes in each file"><input type="checkbox" name="banner" checked>
                 <span>Provenance banner <small>review notes in each file</small></span></label>
             </div>
             <div class="actions">
