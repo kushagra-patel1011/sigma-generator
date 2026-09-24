@@ -1,0 +1,41 @@
+name: tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # The oldest supported interpreter and a current one.
+        python-version: ["3.9", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements-dev.txt
+
+      - name: Run tests
+        # The suite is offline: it runs against the fixtures in tests/fixtures.
+        run: python -m pytest -q
+
+      - name: Check the package installs and the CLI runs
+        run: |
+          pip install .
+          sigma-gen generate T1003.001 \
+            --data tests/fixtures/mini-attack.json --offline --chains \
+            --deterministic --output-dir "$RUNNER_TEMP/out"
+          sigma-gen validate "$RUNNER_TEMP/out"
