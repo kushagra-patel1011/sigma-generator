@@ -1,5 +1,7 @@
 # Validation protocol, round 1 (Windows)
 
+**Status: pre-registered, not executed. No ART test has run and no benign telemetry has been evaluated.**
+
 This document fixes, before any measurement exists, how sigma-generator's rules are tested against executed
 attacks and benign activity, and how the results will be read. It is committed before the sample is drawn: the
 seed for the draw is the hash of the commit that adds this file, so the sample cannot be chosen, and the reading

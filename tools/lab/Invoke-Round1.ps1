@@ -3,6 +3,9 @@
     Runs round 1 of the validation protocol on the attack VM, one ART test at a time.
 
 .DESCRIPTION
+    UNUSED: round 1 was stopped before execution. This script has never been run against a real host; it is
+    kept only as part of the documented plan in docs/validation-protocol.md.
+
     Implements docs/validation-protocol.md, section 8, for every ART test of every sampled rule in
     docs/validation/sample.json:
 

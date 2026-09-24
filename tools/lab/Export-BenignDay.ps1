@@ -4,6 +4,9 @@
     (docs/validation-protocol.md, sections 6 and 10).
 
 .DESCRIPTION
+    UNUSED: round 1 was stopped before execution. This script has never been run against a real host; it is
+    kept only as part of the documented plan in docs/validation-protocol.md.
+
     For the given UTC day (default: yesterday), exports the Sysmon, Security, System and PowerShell channels
     to <OutDir>\<COMPUTERNAME>\<yyyy-MM-dd>\*.evtx and writes host-day.json with the evidence for the
     protocol's completeness rule:

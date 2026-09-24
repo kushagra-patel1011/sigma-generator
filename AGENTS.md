@@ -42,8 +42,8 @@ passes; the tests that need it skip themselves.
 | `tools/webapp.py` | Builds the browser build of the UI: trimmed ATT&CK bundle + wheel + Pyodide runtime, published to Pages by CI (dev only, not packaged) |
 | `tools/corpus.py` | Corpus snapshot: digest of every technique's output, drift report, re-bless (dev only, not packaged) |
 | `tools/validation.py` | Eligibility and the seeded sample draw that `docs/validation-protocol.md` fixes (dev only, not packaged) |
-| `tools/lab/` | Windows PowerShell scripts for the validation lab: runner (VirtualBox or Hyper-V, behind one provider interface), telemetry acceptance test, benign-day export |
-| `docs/validation-protocol.md`, `docs/validation/` | The validation protocol, the drawn sample, the frozen rules under test and the lab build sheet |
+| `tools/lab/` | **Unused.** Windows PowerShell scripts for the validation lab (runner, telemetry acceptance test, benign-day export), kept with the plan; never run |
+| `docs/validation-protocol.md`, `docs/validation/` | The validation protocol (pre-registered, not executed), the drawn sample, the frozen rules under test and the lab build sheet |
 
 ## Data
 

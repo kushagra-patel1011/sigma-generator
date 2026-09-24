@@ -1,5 +1,8 @@
 # Lab build sheet, round 1
 
+**Status: unused. Round 1 was stopped before the lab was built; nothing in this sheet or in `tools/lab/` has
+been run.** It is kept as part of the documented plan in [the protocol](../validation-protocol.md).
+
 How to build the lab that [the protocol](../validation-protocol.md) assumes, and what to record while doing it.
 Every command below is run in an **elevated** Windows PowerShell 5.1 prompt unless it says otherwise. Anything
 recorded goes into `output/round1/lab-record/` on the lab host and is published with the results.

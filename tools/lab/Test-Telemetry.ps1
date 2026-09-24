@@ -3,6 +3,9 @@
     Telemetry acceptance test for round 1 (docs/validation-protocol.md, section 6).
 
 .DESCRIPTION
+    UNUSED: round 1 was stopped before execution. This script has never been run against a real host; it is
+    kept only as part of the documented plan in docs/validation-protocol.md.
+
     Checks that a host records every native log source the sampled rules depend on, before the attack
     checkpoint is taken, and on every benign host before its collection starts.
 
