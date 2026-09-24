@@ -353,11 +353,9 @@ class AttackDataset:
         timeout: Optional[int] = None,
     ) -> "AttackDataset":
         """Load from cache, downloading it first when the cache is cold."""
-        data_path = Path(path or env_str("ATTACK_DATA_PATH", "data/enterprise-attack.json"))
-        if not data_path.is_absolute():
-            from .utils import PROJECT_ROOT
+        from .utils import resolve_path
 
-            data_path = PROJECT_ROOT / data_path
+        data_path = resolve_path(path, env_str("ATTACK_DATA_PATH", "data/enterprise-attack.json"))
 
         if data_path.is_file():
             return cls.from_file(data_path)

@@ -739,3 +739,38 @@ class TestNewCommands:
         path.write_text("title: broken\ncorrelation:\n    type: temporal\n    rules: [ghost]\n", encoding="utf-8")
         assert main(["validate", str(path)]) == 3
         assert "FAIL" in capsys.readouterr().out
+
+
+# --------------------------------------------------------------------------- #
+# Path resolution
+# --------------------------------------------------------------------------- #
+class TestPathResolution:
+    """Paths typed on the command line are relative to the working directory,
+    not to wherever the package happens to be installed."""
+
+    def test_given_paths_follow_the_working_directory(self, tmp_path, monkeypatch):
+        from pathlib import Path
+
+        from src.utils import resolve_path
+
+        monkeypatch.chdir(tmp_path)
+        assert resolve_path("my.json", "data/default.json") == Path("my.json")
+        assert resolve_path(None, "data/default.json").is_absolute()
+
+    def test_defaults_use_the_checkout_when_there_is_one(self):
+        from pathlib import Path
+
+        from src.utils import PROJECT_ROOT, resolve_path
+
+        assert (PROJECT_ROOT / "pyproject.toml").is_file()
+        assert resolve_path(None, "data/x.json") == PROJECT_ROOT / "data" / "x.json"
+        absolute = Path(__file__).resolve()
+        assert resolve_path(None, str(absolute)) == absolute
+
+    def test_relative_data_and_output_paths_work_from_another_directory(self, tmp_path, monkeypatch):
+        fixture = tmp_path / "attack.json"
+        fixture.write_bytes(ATTACK_FIXTURE.read_bytes())
+        monkeypatch.chdir(tmp_path)
+        assert main(["generate", "T1059.001", "--data", "attack.json", "--offline", "--no-stix",
+                     "--deterministic", "-o", "out"]) == 0
+        assert list((tmp_path / "out" / "sigma").glob("*.yml"))

@@ -28,12 +28,12 @@ from .attack_fetcher import Analytic, LogSourceRef, Technique
 from .mappings import TelemetryMapping, resolve_telemetry
 from .utils import (
     LOG,
-    PROJECT_ROOT,
     DataUnavailableError,
     ensure_dir,
     env_int,
     env_str,
     format_bytes,
+    resolve_path,
     utcnow_iso,
 )
 
@@ -240,8 +240,7 @@ class SigmaHQIndex:
 
 
 def default_index_path(path: Optional[str | os.PathLike[str]] = None) -> Path:
-    index_path = Path(path or env_str("SIGMAHQ_INDEX_PATH", f"data/{INDEX_FILENAME}"))
-    return index_path if index_path.is_absolute() else PROJECT_ROOT / index_path
+    return resolve_path(path, env_str("SIGMAHQ_INDEX_PATH", f"data/{INDEX_FILENAME}"))
 
 
 def download_index(destination: Optional[str | os.PathLike[str]] = None, url: Optional[str] = None,

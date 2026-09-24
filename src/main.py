@@ -40,6 +40,7 @@ from .utils import (
     env_str,
     first_sentences,
     load_env,
+    resolve_path,
     setup_logging,
     utcnow_iso,
     write_text,
@@ -254,8 +255,7 @@ def _options(args: argparse.Namespace) -> GenerateOptions:
 
 
 def _output_root(args: argparse.Namespace) -> Path:
-    root = Path(args.output_dir or env_str("SIGMA_OUTPUT_DIR", str(DEFAULT_OUTPUT_DIR)))
-    return root if root.is_absolute() else PROJECT_ROOT / root
+    return resolve_path(args.output_dir, env_str("SIGMA_OUTPUT_DIR", str(DEFAULT_OUTPUT_DIR)))
 
 
 # --------------------------------------------------------------------------- #
@@ -700,9 +700,7 @@ def cmd_update(args: argparse.Namespace) -> int:
         return EXIT_ERROR
 
     if not args.sigmahq_only:
-        data_path = Path(args.data or env_str("ATTACK_DATA_PATH", "data/enterprise-attack.json"))
-        if not data_path.is_absolute():
-            data_path = PROJECT_ROOT / data_path
+        data_path = resolve_path(args.data, env_str("ATTACK_DATA_PATH", "data/enterprise-attack.json"))
         if data_path.is_file():
             try:
                 print(f"Cached ATT&CK version {AttackDataset.from_file(data_path).version}; checking for a newer release...")

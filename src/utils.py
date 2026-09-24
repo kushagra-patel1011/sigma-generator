@@ -19,9 +19,34 @@ from typing import Any, Iterable, Sequence
 
 import yaml
 
-PROJECT_ROOT = Path(__file__).resolve().parent.parent
+def _project_root() -> Path:
+    """Where the built-in ``data/`` and ``output/`` defaults live.
+
+    In a checkout that is the folder holding ``pyproject.toml``, so running the
+    tool from anywhere still finds the cached ATT&CK bundle.  Once installed with
+    pip, the package sits in ``site-packages``, which is no place to write
+    downloads to - the working directory is then the sane base.
+    """
+    root = Path(__file__).resolve().parent.parent
+    return root if (root / "pyproject.toml").is_file() else Path.cwd()
+
+
+PROJECT_ROOT = _project_root()
 DEFAULT_DATA_DIR = PROJECT_ROOT / "data"
 DEFAULT_OUTPUT_DIR = PROJECT_ROOT / "output"
+
+
+def resolve_path(path: str | os.PathLike[str] | None, default: str) -> Path:
+    """A path the user gave, or the built-in default.
+
+    Paths typed on the command line are relative to the *working directory*, the
+    way every other command-line tool behaves.  Only the default is relative to
+    :data:`PROJECT_ROOT`.
+    """
+    if path:
+        return Path(path).expanduser()
+    given = Path(default).expanduser()
+    return given if given.is_absolute() else PROJECT_ROOT / given
 TEMPLATE_DIR = Path(__file__).resolve().parent / "templates"
 
 LOG = logging.getLogger("sigma_generator")
