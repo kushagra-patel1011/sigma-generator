@@ -1,0 +1,61 @@
+name: pages
+
+# Builds the browser version of the UI and publishes it to GitHub Pages.
+# Nothing is committed: the ATT&CK data and the wheel are assembled here.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# One deployment at a time; never cancel one half-way.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt build wheel
+
+      - name: Cache the pinned ATT&CK bundle
+        uses: actions/cache@v4
+        with:
+          path: data/corpus
+          key: attack-corpus-${{ hashFiles('tools/corpus.py') }}
+
+      - name: Fetch the SigmaHQ index
+        # Only for the gap check; the site still works without it.
+        run: python -m src.main update --sigmahq-only || echo "SigmaHQ unavailable; building without gap checks"
+
+      - name: Build the site
+        # --check regenerates the whole corpus from the trimmed bundle and
+        # refuses to publish if a single rule would differ.
+        run: python -m tools.webapp build --output site --check
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

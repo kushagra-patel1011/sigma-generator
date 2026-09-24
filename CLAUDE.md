@@ -15,6 +15,7 @@ python -m src.main generate T1003.001 --chains
 python -m src.main quality --group APT29
 python -m src.main gaps T1621
 python -m src.main ui                  # local web interface on 127.0.0.1:8765
+python -m tools.webapp build --check   # browser build into docs/ (needs the pinned bundle)
 python -m src.main update              # download ATT&CK (~55 MB) and the SigmaHQ index (~3 MB)
 ```
 
@@ -35,6 +36,7 @@ passes; the tests that need it skip themselves.
 | `src/web/` | Standard-library HTTP server plus a dependency-free single-page app |
 | `src/main.py` | The CLI |
 | `src/data/tools.yml` | Curated tool vocabulary used when mining ATT&CK prose |
+| `tools/webapp.py` | Builds the browser build of the UI: trimmed ATT&CK bundle + wheel + Pyodide runtime, published to Pages by CI (dev only, not packaged) |
 | `tools/corpus.py` | Corpus snapshot: digest of every technique's output, drift report, re-bless (dev only, not packaged) |
 
 ## Data

@@ -41,6 +41,19 @@ output.
 
 ---
 
+## Use it in your browser
+
+**https://kushagra-patel1011.github.io/sigma-generator/** - no install, no clone, no server.
+
+The same generator runs inside the page, compiled to WebAssembly: ATT&CK data and the code are
+downloaded once (about 14 MB, cached afterwards) and every rule is built on your own machine.
+Nothing you type is sent anywhere, and the site has no backend to send it to.
+
+The browser build is the page below, with two differences: it cannot write to your output folder
+(use the download buttons), and its SigmaHQ index is fixed at build time.
+
+---
+
 ## Quick start
 
 Requires Python 3.9+.
@@ -491,6 +504,8 @@ flowchart LR
 | `src/service.py` | One service layer used by both the CLI and the web UI |
 | `src/web/` | Standard-library HTTP server and a dependency-free single-page app |
 | `src/main.py` | The CLI |
+| `tools/corpus.py` | Corpus snapshot: every technique's output digested and compared with a committed baseline |
+| `tools/webapp.py` | Builds the browser version of the UI (trimmed ATT&CK data + wheel + Pyodide runtime) |
 
 ---
 
