@@ -28,6 +28,7 @@ Everything below is fixed by this commit. Moving any pin is an amendment (sectio
 | Sysmon configuration | olafhartong/sysmon-modular release `configs-082cba578667` (built from commit `082cba578667a5f57b44a8e64bc02548d2338859`), asset `sysmonconfig-15.21.xml`, sha256 `f115aac5770dae468e5cfb48c58a8b6e37588208a31f1b746812c534577a244b` |
 | Sysmon binary | Sysmon 15.21, the same `Sysmon64.exe` on every host; its sha256 is recorded at install and published |
 | Audit policy and log sizes | Yamato-Security/EnableWindowsLogSettings `6d2c0a15351650309d9bb325d63c5ef051a2157d`, `YamatoSecurityConfigureWinEventLogs.bat`, applied on every host, plus two additions it leaves out: the Sysmon log at 1 GB, and PowerShell module and script-block logging under the native `HKLM\SOFTWARE\Policies` path as well as `Wow6432Node` |
+| Hypervisor | VirtualBox 7.2 on the maintainer's machine (Windows 11 Home has no Hyper-V); the exact version, and the Guest Additions version, are recorded and published. `tools/lab/Invoke-Round1.ps1` also supports Hyper-V, and the results state which hypervisor produced them |
 | Lab procedure | `docs/validation/lab-build.md` and the scripts in `tools/lab/` |
 | Sigma conversion | Yamato-Security/sigma-to-hayabusa-converter `3786d70d362455cbd89110d36b678307c8f9c889` |
 | Detection engine (backend) | Yamato-Security/hayabusa `v4.1.0` (`11a7f64accf9fa815a92aea1b36e174975f1df9a`), official release binary |
@@ -85,9 +86,10 @@ rate (section 11), not the pooled test count, is the primary measure.
 
 ## 6. Lab and telemetry
 
-**Attack host.** One Windows 11 Enterprise VM (build recorded), standalone workgroup, local administrator,
-Microsoft Defender real-time protection and tamper protection disabled so that tests are not blocked before they
-produce telemetry. A clean snapshot is taken after installing Sysmon, the audit policy and the test runner.
+**Attack host.** One Windows 11 Enterprise VM (build recorded) under VirtualBox, controlled with `VBoxManage` and
+reached over WinRM on a host-only network. The runner is provider-based, and a Hyper-V run uses the same steps.
+The VM is a standalone workgroup machine with a local administrator. Microsoft Defender real-time protection and
+tamper protection are disabled so that tests are not blocked before they produce telemetry. A clean snapshot is taken after installing Sysmon, the audit policy and the test runner.
 **There is no domain in round 1.** Tests that need a domain, a second host or network services the VM does not
 have will fail their prerequisites and are reported as such (section 8). A sampled rule all of whose tests fail
 that way is substituted (section 4). A domain-dependent test that has no prerequisite to fail runs anyway and stays
@@ -117,8 +119,8 @@ noise criterion (section 12).
 - there is no Sysmon gap. A gap is a Sysmon "Stopped" state change (Sysmon 4) *not* followed within 5 minutes by a
   Windows shutdown or restart (System 1074 or 6006). Switching the machine off is not a gap;
 - the host was in use for at least **4 active hours**, meaning distinct UTC hours with at least one Sysmon event;
-- the lab runner did not run on that host that day. This only matters if the real endpoint is also the Hyper-V
-  host.
+- no lab work happened on that host that day: no hypervisor, host-only network or WinRM client installed or
+  configured, and the runner not running. This only matters if the real endpoint is also the lab host.
 
 Days that fail are excluded from the denominators, and counted and published with the reason.
 `tools/lab/Export-BenignDay.ps1` records this evidence every day.
@@ -213,6 +215,9 @@ Alerts are then **deduplicated by (original rule, host, UTC day)**: one rule fir
 one day is one **alert-day**. The measure per rule is alert-days ÷ host-days, computed separately for the real
 endpoint and for the lab VMs.
 
+**Excluded host-days** are published per host, one row per day, with every reason that applies: logs not
+covering the day, a log clear, a Sysmon configuration change, a Sysmon gap, fewer than 4 active hours, or lab work.
+
 **Raw alert table.** Every alert is published, before deduplication: original rule ID, converted rule ID, host label,
 UTC timestamp, channel, event ID. Every summary in the results can be recomputed from this table and the host-day
 table. For the real endpoint, event contents (command lines, paths, user names) are not published. For the attack
@@ -237,7 +242,11 @@ False positives (the whole Windows population, real endpoint and lab VMs reporte
 - conversion failures;
 - share of rules with **zero alert-days**, with a Wilson 95% interval;
 - alert-days per host-day across rules: median, 90th percentile, maximum;
-- the same for correlation rules, by type.
+- the same for correlation rules, by type;
+- a **sensitivity check** on the 4-active-hour minimum. Every measure above is also computed with that minimum
+  removed, so days that fail only that condition are included. The version with the minimum stays primary. If
+  dropping the minimum changes the outcome of the noise criterion in section 12 (falsified, supported or
+  inconclusive), the results say so next to the headline.
 
 The full per-rule table (technique, tier, tests executed, tests detected, confounded, alert-days per host and day)
 is published alongside the summaries. No precision figure is published: without the rate of real attacks in the
@@ -322,3 +331,20 @@ drawn sample are unchanged.
    its activity is not the endpoint's normal use.
 8. **Editorial** (section 1). The tier definitions are now stated inline instead of pointing to the project guide
    by filename.
+
+**Amendment 2, 2026-09-24.** Made before any ART test was executed or any benign log evaluated. The seed and the
+drawn sample are unchanged. Amendment 1 was reviewed and approved in full.
+
+1. **Excluded host-days are published** (section 10), per host, with every reason that applies to each day.
+2. **Sensitivity check on the 4-active-hour minimum** (section 11). The false-positive measures are also reported
+   without it. If that changes the outcome of the noise criterion, it is stated next to the headline.
+3. **Hypervisor: VirtualBox** (sections 2 and 6). The maintainer's machine runs Windows 11 Home, which has no
+   Hyper-V, so the attack VM runs under VirtualBox 7.2. The runner drives the VM through a provider (restore
+   snapshot, start, wait until ready, run in guest, stop) with VirtualBox and Hyper-V implementations, and the
+   protocol steps are identical in both. The snapshot is still `round1-clean`, taken powered off. Guest commands go
+   over WinRM on a host-only network. The virtual RTC runs in UTC and the guest time zone is UTC, so the guest boots
+   on the right time, and the Guest Additions keep it synchronised. Detection windows still use only the guest's
+   clock. The results name the hypervisor and its version.
+4. **Lab work excludes a host-day** (section 6). Besides days the runner ran, days on which the hypervisor, its
+   host-only network or the WinRM client was installed or configured on the real endpoint are excluded. Installing a
+   hypervisor is not the endpoint's normal use either.

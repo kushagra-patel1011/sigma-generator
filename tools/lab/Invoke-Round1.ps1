@@ -1,12 +1,12 @@
 <#
 .SYNOPSIS
-    Runs round 1 of the validation protocol on a Hyper-V attack VM, one ART test at a time.
+    Runs round 1 of the validation protocol on the attack VM, one ART test at a time.
 
 .DESCRIPTION
     Implements docs/validation-protocol.md, section 8, for every ART test of every sampled rule in
     docs/validation/sample.json:
 
-      1. restore the clean checkpoint, boot, settle 5 minutes
+      1. restore the clean snapshot, boot, settle 5 minutes
       2. -GetPrereqs, then -CheckPrereqs ("Prerequisites met" or the test is recorded as prerequisites failed)
       3. quiet period, 5 minutes (the null window is cut from it at analysis time)
       4. t0, run the test, t1 (guest clock); exit code from the runner's execution log
@@ -20,16 +20,26 @@
     Each test's record is written to <ResultsDir>\<rule rank and technique>\<test guid>\result.json. A test that
     already has a result.json is skipped, so an interrupted run can be resumed.
 
-    Written for Windows PowerShell 5.1 on the Hyper-V host (run elevated). Commands reach the guest over
-    PowerShell Direct, so the guest needs no network path to the host. Test arguments are passed as
-    parameters, never embedded in the script block text, so the guest's script-block log does not carry
-    the technique being tested.
+    The VM is controlled through a provider with five operations: restore snapshot, start, wait until ready
+    (which returns a PowerShell session into the guest), stop, and a snapshot check. Everything that runs in
+    the guest goes through that session, so the protocol steps are identical on every hypervisor.
+
+      -Hypervisor VirtualBox  VBoxManage; guest commands over WinRM to -GuestAddress on a host-only network.
+                              Works on Windows Home, which has no Hyper-V.
+      -Hypervisor HyperV      Hyper-V cmdlets; guest commands over PowerShell Direct (no guest network needed).
+
+    Written for Windows PowerShell 5.1 on the host (run elevated). Test arguments are passed as parameters,
+    never embedded in the script block text, so the guest's script-block log does not carry the technique
+    being tested.
 #>
 [CmdletBinding(DefaultParameterSetName = 'Plan')]
 param(
+    [ValidateSet('VirtualBox', 'HyperV')] [string] $Hypervisor,
     [string] $VMName = 'ROUND1-ATK',
     [string] $CheckpointName = 'round1-clean',
     [pscredential] $Credential,
+    [string] $GuestAddress = '192.168.56.10',
+    [string] $VBoxManage,
     [string] $SamplePath = (Join-Path $PSScriptRoot '..\..\docs\validation\sample.json'),
     [string] $ResultsDir = (Join-Path $PSScriptRoot '..\..\output\round1'),
     [string] $GuestAtomics = 'C:\AtomicRedTeam\atomics',
@@ -79,13 +89,67 @@ function Get-ResultPath($item) {
     return Join-Path (Join-Path $ResultsDir $folder) $item.test_guid
 }
 
-function Wait-GuestSession {
-    $deadline = (Get-Date).AddMinutes(10)
-    while ((Get-Date) -lt $deadline) {
-        try { return New-PSSession -VMName $VMName -Credential $Credential -ErrorAction Stop }
-        catch { Start-Sleep -Seconds 5 }
+# --------------------------------------------------------------------------- #
+# Providers: restore snapshot, start, wait-ready (returns a guest session), stop
+# --------------------------------------------------------------------------- #
+function Invoke-VBoxManage {
+    # VBoxManage writes progress to stderr; under 'Stop', Windows PowerShell 5.1 would throw on it.
+    $ErrorActionPreference = 'Continue'
+    $output = & $VBoxManage @args 2>&1 | Out-String
+    if ($LASTEXITCODE -ne 0) { throw "VBoxManage $($args -join ' ') failed ($LASTEXITCODE): $output" }
+    return $output
+}
+
+function Get-VBoxState {
+    $info = Invoke-VBoxManage showvminfo $VMName --machinereadable
+    if ($info -match '(?m)^VMState="([^"]+)"') { return $Matches[1] }
+    throw "VBoxManage showvminfo did not report VMState for $VMName"
+}
+
+function New-LabProvider([string] $Name) {
+    if ($Name -eq 'VirtualBox') {
+        return @{
+            Name = 'VirtualBox'
+            Version = { (Invoke-VBoxManage --version).Trim() }
+            SnapshotExists = {
+                $ErrorActionPreference = 'Continue'
+                & $VBoxManage snapshot $VMName showvminfo $CheckpointName *> $null
+                return ($LASTEXITCODE -eq 0)
+            }
+            Stop = {
+                if ((Get-VBoxState) -in @('running', 'paused', 'starting', 'stuck')) {
+                    Invoke-VBoxManage controlvm $VMName poweroff | Out-Null
+                }
+                $deadline = (Get-Date).AddMinutes(2)
+                while ((Get-VBoxState) -notin @('poweroff', 'aborted', 'saved')) {
+                    if ((Get-Date) -gt $deadline) { throw "$VMName did not power off" }
+                    Start-Sleep -Seconds 2
+                }
+            }
+            Restore = { Invoke-VBoxManage snapshot $VMName restore $CheckpointName | Out-Null }
+            Start = { Invoke-VBoxManage startvm $VMName --type headless | Out-Null }
+            NewSession = { New-PSSession -ComputerName $GuestAddress -Credential $Credential -ErrorAction Stop }
+        }
     }
-    throw "PowerShell Direct did not come up on $VMName within 10 minutes"
+    return @{
+        Name = 'Hyper-V'
+        Version = { (Get-CimInstance Win32_OperatingSystem).Version }
+        SnapshotExists = { [bool](Get-VMCheckpoint -VMName $VMName -Name $CheckpointName -ErrorAction SilentlyContinue) }
+        Stop = { Stop-VM -Name $VMName -TurnOff -Force -ErrorAction SilentlyContinue }
+        Restore = { Restore-VMCheckpoint -VMName $VMName -Name $CheckpointName -Confirm:$false }
+        Start = { Start-VM -Name $VMName }
+        NewSession = { New-PSSession -VMName $VMName -Credential $Credential -ErrorAction Stop }
+    }
+}
+
+function Wait-GuestSession($Provider) {
+    $deadline = (Get-Date).AddMinutes(10)
+    $last = ''
+    while ((Get-Date) -lt $deadline) {
+        try { return & $Provider.NewSession }
+        catch { $last = $_.Exception.Message; Start-Sleep -Seconds 5 }
+    }
+    throw "No guest session to $VMName through $($Provider.Name) within 10 minutes: $last"
 }
 
 function Invoke-Guest($Session, [scriptblock] $Block, [object[]] $Arguments) {
@@ -170,19 +234,26 @@ function Invoke-OneTest($item, [switch] $Smoke) {
         protocol = 'docs/validation-protocol.md'; smoke_test = [bool]$Smoke
         tier = $item.tier; rank = $item.rank; technique_id = $item.technique_id; rule_id = $item.rule_id
         test_guid = $item.test_guid; test_name = $item.test_name; executor = $item.executor
-        vm = $VMName; checkpoint = $CheckpointName
+        hypervisor = $Provider.Name; hypervisor_version = $HypervisorVersion
+        vm = $VMName; snapshot = $CheckpointName
         host_started_utc = [DateTime]::UtcNow.ToString('o')
     }
     Write-Host "start $($item.tier) #$($item.rank) $($item.technique_id) $($item.test_guid) $($item.test_name)"
 
-    Stop-VM -Name $VMName -TurnOff -Force -ErrorAction SilentlyContinue
-    Restore-VMCheckpoint -VMName $VMName -Name $CheckpointName -Confirm:$false
-    Start-VM -Name $VMName
-    $session = Wait-GuestSession
+    & $Provider.Stop
+    & $Provider.Restore
+    & $Provider.Start
+    $session = Wait-GuestSession $Provider
     try {
         $record.boot_utc = Invoke-Guest $session $GuestNow
         Start-Sleep -Seconds $SettleSeconds
+        $hostBefore = [DateTime]::UtcNow
         $record.settled_utc = Invoke-Guest $session $GuestNow
+        $hostAfter = [DateTime]::UtcNow
+        # Guest minus host clock, host time taken as the midpoint of the round trip. Informational: the
+        # detection windows use the guest clock only (protocol section 6).
+        $hostMid = $hostBefore.AddTicks([long](($hostAfter - $hostBefore).Ticks / 2))
+        $record.clock_skew_seconds = [math]::Round(([DateTimeOffset]::Parse($record.settled_utc).UtcDateTime - $hostMid).TotalSeconds, 3)
         $record.preflight = Invoke-Guest $session $GuestPreflight @($GuestWork)
         $record.w32tm_before = Invoke-Guest $session $GuestTime
         if (-not $record.preflight.elevated) { throw 'the guest session is not elevated' }
@@ -237,7 +308,7 @@ function Invoke-OneTest($item, [switch] $Smoke) {
         $name = $(if ($record.Contains('harness_error')) { 'harness-error.json' } else { 'result.json' })
         $record | ConvertTo-Json -Depth 6 | Set-Content -Encoding UTF8 (Join-Path $resultPath $name)
         Remove-PSSession $session -ErrorAction SilentlyContinue
-        Stop-VM -Name $VMName -TurnOff -Force -ErrorAction SilentlyContinue
+        & $Provider.Stop
     }
     Write-Host "done  $($item.technique_id) $($item.test_guid): prerequisites $($record.prereq_status), $($record['execution_status'])"
 }
@@ -252,10 +323,13 @@ if ($PSCmdlet.ParameterSetName -eq 'Plan') {
     Write-Host 'Plan only. Run with -SmokeTest to check the orchestration, or -Execute to run the protocol.'
     return
 }
+if (-not $Hypervisor) { throw 'Pass -Hypervisor VirtualBox or -Hypervisor HyperV' }
+if (-not $VBoxManage -and $env:ProgramFiles) { $VBoxManage = Join-Path $env:ProgramFiles 'Oracle\VirtualBox\VBoxManage.exe' }
+$Provider = New-LabProvider $Hypervisor
+$HypervisorVersion = & $Provider.Version
+Write-Host "Hypervisor: $($Provider.Name) $HypervisorVersion; VM $VMName; snapshot $CheckpointName"
 if (-not $Credential) { $Credential = Get-Credential -Message "Local administrator on $VMName" }
-if (-not (Get-VMCheckpoint -VMName $VMName -Name $CheckpointName -ErrorAction SilentlyContinue)) {
-    throw "Checkpoint '$CheckpointName' not found on $VMName"
-}
+if (-not (& $Provider.SnapshotExists)) { throw "Snapshot '$CheckpointName' not found on $VMName" }
 
 if ($SmokeTest) {
     $smoke = [pscustomobject]@{ tier = 'smoke'; rank = 0; technique_id = 'SMOKE'; rule_id = ''; rule_file = ''

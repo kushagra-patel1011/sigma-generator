@@ -66,7 +66,9 @@ Add-Result 'Sysmon configuration file is the pinned release asset' ($configHash 
 $sysmonExe = Join-Path $env:windir 'Sysmon64.exe'
 if (Test-Path $sysmonExe) {
     Add-Result 'Sysmon binary' $true $false ("{0} sha256 {1}" -f (Get-Item $sysmonExe).VersionInfo.FileVersion, (Get-FileHash $sysmonExe).Hash.ToLower())
+    $ErrorActionPreference = 'Continue'    # native stderr under 'Stop' throws in Windows PowerShell 5.1
     (& $sysmonExe -c 2>&1 | Out-String) | Set-Content -Encoding UTF8 (Join-Path $OutDir 'sysmon-active-config.txt')
+    $ErrorActionPreference = 'Stop'
 }
 
 foreach ($size in @(@($sysmonLog, 1073741824), @('Security', 1073741824), @($psLog, 1073741824), @('System', 134217728))) {
@@ -126,7 +128,9 @@ if ($Lab) {
     if ($handle -ne [IntPtr]::Zero) { [void][Round1.Native]::CloseHandle($handle) }
     Add-Result 'Sysmon 10 process access (lsass, 0x1010)' (Find-Event $sysmonLog 10 'lsass.exe') $false ''
 
+    $ErrorActionPreference = 'Continue'    # net use reports the failed logon on stderr
     & net.exe use \\127.0.0.1\IPC$ /user:$marker wrong-password 2>&1 | Out-Null
+    $ErrorActionPreference = 'Stop'
     Add-Result 'Security 4625 failed logon' (Find-Event 'Security' 4625 $marker) $true ''
 } else {
     foreach ($check in @(@($sysmonLog, 10), @($sysmonLog, 12), @($sysmonLog, 13), @('Security', 4625))) {
