@@ -18,6 +18,7 @@ python -m src.main quality --group APT29
 python -m src.main gaps T1621
 python -m src.main ui                  # local web interface on 127.0.0.1:8765
 python -m tools.webapp build --check   # browser build into docs/ (needs the pinned bundle)
+python -m tools.validation fetch       # pinned Atomic Red Team index for the validation draw (~7 MB)
 python -m src.main update              # download ATT&CK (~55 MB) and the SigmaHQ index (~3 MB)
 ```
 
@@ -40,6 +41,9 @@ passes; the tests that need it skip themselves.
 | `src/data/tools.yml` | Curated tool vocabulary used when mining ATT&CK prose |
 | `tools/webapp.py` | Builds the browser build of the UI: trimmed ATT&CK bundle + wheel + Pyodide runtime, published to Pages by CI (dev only, not packaged) |
 | `tools/corpus.py` | Corpus snapshot: digest of every technique's output, drift report, re-bless (dev only, not packaged) |
+| `tools/validation.py` | Eligibility and the seeded sample draw that `docs/validation-protocol.md` fixes (dev only, not packaged) |
+| `tools/lab/` | **Unused.** Windows PowerShell scripts for the validation lab (runner, telemetry acceptance test, benign-day export), kept with the plan; never run |
+| `docs/validation-protocol.md`, `docs/validation/` | The validation protocol (pre-registered, not executed), the drawn sample, the frozen rules under test and the lab build sheet |
 
 ## Data
 
@@ -48,7 +52,8 @@ re-downloadable with `update`. Nothing in the test suite needs it. The tests run
 `tests/fixtures/mini-attack.json` and `tests/fixtures/mini-sigmahq-index.json` with `--offline`, so a
 fresh clone can run everything immediately.
 
-Generated output goes to `output/` and is ignored by git.
+Generated output goes to `output/` and is ignored by git. `docs/` is the browser build's output folder and is
+ignored too, except for `docs/validation-protocol.md` and `docs/validation/`.
 
 ## Conventions
 
@@ -66,6 +71,14 @@ Generated output goes to `output/` and is ignored by git.
   with the change only when every line of that drift is intended.
 - **Paths given on the command line are relative to the working directory**; only the built-in
   defaults resolve against the checkout (see `resolve_path` in `src/utils.py`).
+- **The validation protocol is pre-registered.** The seed for the sample draw is the hash of the commit that added
+  `docs/validation-protocol.md`, so that commit must stay in `main`'s history: merge validation branches with a
+  merge commit, never squash or rebase them. `docs/validation/sample.json` and `docs/validation/rules/` are never
+  regenerated or edited. Protocol changes are dated amendments appended to the document, and are only allowed
+  before any ART test runs or any benign log is evaluated.
+- **No attribution lines, credits or session links** anywhere in the project: commit messages and trailers, PR
+  and issue text, review comments, release notes, code comments, docs and file contents. Commits carry the
+  maintainer as author and committer.
 
 ## Rule quality model
 
