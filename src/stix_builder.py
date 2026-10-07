@@ -26,7 +26,7 @@ from typing import Any, Iterable, Optional, Sequence
 from . import __version__
 from .attack_fetcher import Technique, ThreatProfile
 from .sigma_generator import ChainRule, SigmaRule
-from .utils import LOG, first_sentences, utcnow_iso
+from .utils import LOG, utcnow_iso
 
 STIX_VERSION = "2.1"
 SIGMA_SPEC_VERSION = "2.0"
@@ -185,14 +185,14 @@ def build_indicator(rule: SigmaRule | ChainRule, technique: Technique, identity_
         f"Log source{'s' if is_chain else ''}: {provenance.logsource_label} "
         f"(resolved from {provenance.telemetry_source}).",
     ]
-    if is_chain and rule.kind == "count":
+    if isinstance(rule, ChainRule) and rule.kind == "count":
         condition = rule.correlation["condition"]
         counted = f"distinct {condition['field']} values" if "field" in condition else "matching events"
         description_parts.append(
             f"Fires when {condition['gte']} or more {counted} occur per {', '.join(rule.correlation['group-by'])} "
             f"within {rule.correlation['timespan']}; the pattern holds the correlation and its base rule."
         )
-    elif is_chain:
+    elif isinstance(rule, ChainRule):
         description_parts.append(
             f"Fires when {len(rule.steps)} behaviours occur together within "
             f"{rule.correlation['timespan']}; the pattern holds the correlation and its base rules."

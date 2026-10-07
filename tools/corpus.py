@@ -35,10 +35,9 @@ ROOT = Path(__file__).resolve().parent.parent
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from src import __version__  # noqa: E402
 from src.attack_fetcher import AttackDataset, download_bundle  # noqa: E402
 from src.sigma_generator import ChainRule, SigmaRule, SigmaRuleGenerator  # noqa: E402
-from src.utils import InsufficientEvidenceError, SigmaGeneratorError, UnmappableTechniqueError  # noqa: E402
+from src.utils import InsufficientEvidenceError, UnmappableTechniqueError  # noqa: E402
 
 #: The ATT&CK release the baseline is generated from.  Pinned by content hash,
 #: so a MITRE release can never move the baseline on its own.

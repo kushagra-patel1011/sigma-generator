@@ -22,7 +22,13 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["pytest>=8.0"]
+dev = [
+    "pytest>=8.0",
+    "ruff==0.16.10",
+    "mypy==1.19.1",
+    "types-PyYAML==6.0.12.20250915",
+    "types-requests==2.32.4.20260107",
+]
 strict = ["pysigma>=0.11"]
 
 [project.scripts]
@@ -44,3 +50,28 @@ addopts = "-m 'not corpus'"
 markers = [
     "corpus: full-corpus snapshot against tests/corpus/baseline.json (needs `python -m tools.corpus fetch`)",
 ]
+
+[tool.mypy]
+# Type-check the package and the dev tools against the oldest supported interpreter.
+python_version = "3.9"
+files = ["src", "tools"]
+warn_unused_ignores = true
+warn_redundant_casts = true
+
+[tool.ruff]
+target-version = "py39"
+line-length = 120
+extend-exclude = ["docs", "output", "data"]
+
+[tool.ruff.lint]
+# pyflakes and pycodestyle errors only; formatting is not enforced.
+select = ["E4", "E7", "E9", "F"]
+
+[[tool.mypy.overrides]]
+# pySigma is optional (`pip install .[strict]`); its import is guarded at runtime.
+module = ["sigma.*"]
+ignore_missing_imports = true
+
+[tool.ruff.lint.per-file-ignores]
+# Frozen with the validation protocol's seed commit; not edited for style.
+"tools/validation.py" = ["F541"]

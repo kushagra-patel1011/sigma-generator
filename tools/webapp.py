@@ -34,7 +34,7 @@ if str(ROOT) not in sys.path:
 
 from src import __version__  # noqa: E402
 from src.sigmahq import default_index_path  # noqa: E402
-from tools.corpus import BUNDLE_PATH, PINNED_ATTACK, fetch_bundle  # noqa: E402
+from tools.corpus import PINNED_ATTACK, fetch_bundle  # noqa: E402
 
 STATIC_DIR = ROOT / "src" / "web" / "static"
 WEBAPP_DIR = Path(__file__).resolve().parent / "webapp"
@@ -134,6 +134,12 @@ def build_wheel(destination: Path) -> Path:
     return wheels[-1]
 
 
+def _write_lf(path: Path, text: str) -> None:
+    """Write UTF-8 with LF line endings. ``Path.write_text`` only accepts ``newline`` from Python 3.10."""
+    with open(path, "w", encoding="utf-8", newline="\n") as handle:
+        handle.write(text)
+
+
 def build(output: Path, check: bool = False, sigmahq: Optional[Path] = None) -> None:
     output.mkdir(parents=True, exist_ok=True)
     print(f"Building the browser app into {output}")
@@ -162,13 +168,13 @@ def build(output: Path, check: bool = False, sigmahq: Optional[Path] = None) -> 
 
     shutil.copy2(STATIC_DIR / "app.js", output / "app.js")
     shutil.copy2(WEBAPP_DIR / "runtime.js", output / "runtime.js")
-    (output / "styles.css").write_text(
+    _write_lf(
+        output / "styles.css",
         (STATIC_DIR / "styles.css").read_text(encoding="utf-8")
         + "\n\n/* --- browser build --- */\n"
         + (WEBAPP_DIR / "boot.css").read_text(encoding="utf-8"),
-        encoding="utf-8", newline="\n",
     )
-    (output / "index.html").write_text(build_page(wheel.name), encoding="utf-8", newline="\n")
+    _write_lf(output / "index.html", build_page(wheel.name))
     (output / ".nojekyll").write_text("", encoding="utf-8")
     manifest = {
         "version": __version__,
@@ -176,7 +182,7 @@ def build(output: Path, check: bool = False, sigmahq: Optional[Path] = None) -> 
         "wheel": wheel.name,
     }
     (output / "manifest.json").write_text(json.dumps(manifest, indent=1) + "\n", encoding="utf-8")
-    print(f"  index.html, app.js, styles.css, runtime.js, manifest.json")
+    print("  index.html, app.js, styles.css, runtime.js, manifest.json")
     total = sum(p.stat().st_size for p in output.rglob("*") if p.is_file())
     print(f"Done: {total/1e6:.1f} MB on disk. Serve it with: python -m http.server -d {output}")
 

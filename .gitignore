@@ -24,6 +24,8 @@ dist/
 .venv/
 venv/
 .pytest_cache/
+.mypy_cache/
+.ruff_cache/
 .coverage
 htmlcov/
 
@@ -37,4 +39,6 @@ Thumbs.db
 docs/*
 !docs/validation-protocol.md
 !docs/validation/
+!docs/case-study.md
+!docs/architecture.md
 site/

@@ -6,9 +6,7 @@ browser is byte-for-byte the rule the CLI would have written.
 
 from __future__ import annotations
 
-import os
 from dataclasses import dataclass, field
-from pathlib import Path
 from typing import Any, Optional
 
 from .attack_fetcher import THREAT_ID_RE, AttackDataset, Technique, ThreatProfile
@@ -24,7 +22,6 @@ from .sigma_generator import (
 from .sigmahq import CoverageReport, SigmaHQIndex, assess_coverage, default_index_path
 from .stix_builder import BundleOptions, build_bundle, validate_bundle
 from .utils import (
-    LOG,
     DataUnavailableError,
     FullyCoveredError,
     InsufficientEvidenceError,

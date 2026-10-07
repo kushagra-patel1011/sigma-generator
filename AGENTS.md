@@ -9,7 +9,8 @@ deterministic: no model is called at runtime, and every decision is written into
 ## Commands
 
 ```bash
-python -m pytest                       # offline unit tests, ~10s
+python -m pytest                       # offline unit tests, ~10s (or: make test)
+make lint                              # ruff and mypy, as CI runs them
 python -m tools.corpus fetch           # pinned ATT&CK 19.2 for the corpus snapshot (~55 MB, once)
 python -m pytest -m corpus             # full-corpus snapshot against tests/corpus/baseline.json
 python -m tools.corpus bless           # accept intended drift as the new baseline
@@ -19,6 +20,7 @@ python -m src.main gaps T1621
 python -m src.main ui                  # local web interface on 127.0.0.1:8765
 python -m tools.webapp build --check   # browser build into docs/ (needs the pinned bundle)
 python -m tools.validation fetch       # pinned Atomic Red Team index for the validation draw (~7 MB)
+python -m tools.pilot                  # the validation pilot's 12 rules, in run order
 python -m src.main update              # download ATT&CK (~55 MB) and the SigmaHQ index (~3 MB)
 ```
 
@@ -42,8 +44,10 @@ passes; the tests that need it skip themselves.
 | `tools/webapp.py` | Builds the browser build of the UI: trimmed ATT&CK bundle + wheel + Pyodide runtime, published to Pages by CI (dev only, not packaged) |
 | `tools/corpus.py` | Corpus snapshot: digest of every technique's output, drift report, re-bless (dev only, not packaged) |
 | `tools/validation.py` | Eligibility and the seeded sample draw that `docs/validation-protocol.md` fixes (dev only, not packaged) |
+| `tools/pilot.py` | The validation pilot's subset of the drawn sample (lowest draw ranks, 4 per tier) and its run phases |
 | `tools/lab/` | **Unused.** Windows PowerShell scripts for the validation lab (runner, telemetry acceptance test, benign-day export), kept with the plan; never run |
-| `docs/validation-protocol.md`, `docs/validation/` | The validation protocol (pre-registered, not executed), the drawn sample, the frozen rules under test and the lab build sheet |
+| `docs/case-study.md`, `docs/architecture.md` | The project's case study, and its architecture with Mermaid diagrams |
+| `docs/validation-protocol.md`, `docs/validation/` | The validation protocol (pre-registered, not executed), the drawn sample, the frozen rules under test, the lab build sheet, the pilot plan and the `RESULTS.md` template |
 
 ## Data
 
@@ -53,11 +57,15 @@ re-downloadable with `update`. Nothing in the test suite needs it. The tests run
 fresh clone can run everything immediately.
 
 Generated output goes to `output/` and is ignored by git. `docs/` is the browser build's output folder and is
-ignored too, except for `docs/validation-protocol.md` and `docs/validation/`.
+ignored too, except for `docs/validation-protocol.md`, `docs/validation/`, `docs/case-study.md` and
+`docs/architecture.md`. A new tracked file under `docs/` needs its own exception in `.gitignore`.
 
 ## Conventions
 
 - **Python 3.9+.** No syntax or standard-library feature newer than 3.9 (checked with vermin).
+- **Static checks pass.** `make lint` runs ruff (pyflakes and pycodestyle errors; formatting is not
+  enforced) and mypy against Python 3.9, both configured in `pyproject.toml` and both run in CI. Fix
+  type errors rather than silencing them; a `# type: ignore[code]` needs a comment saying why.
 - **Runtime dependencies are PyYAML and requests only.** The web UI adds none: no framework, no build
   step, no external fonts or scripts. Keep it that way.
 - **The web page is served under a strict Content-Security-Policy** (`default-src 'self'`). Inline

@@ -119,7 +119,7 @@ def load_env(path: str | os.PathLike[str] | None = None, override: bool = False)
 
 def env_str(name: str, default: str) -> str:
     value = os.environ.get(name)
-    return value if value not in (None, "") else default
+    return value if value else default
 
 
 def env_int(name: str, default: int) -> int:
@@ -610,12 +610,12 @@ class _SigmaDumper(yaml.SafeDumper):
         return True
 
 
-def _literal_representer(dumper: yaml.Dumper, data: LiteralScalar):
+def _literal_representer(dumper: _SigmaDumper, data: LiteralScalar) -> yaml.ScalarNode:
     text = "\n".join(line.rstrip() for line in str(data).splitlines())
     return dumper.represent_scalar("tag:yaml.org,2002:str", text + "\n", style="|")
 
 
-def _str_representer(dumper: yaml.Dumper, data: str):
+def _str_representer(dumper: _SigmaDumper, data: str) -> yaml.ScalarNode:
     if "\n" in data:
         return _literal_representer(dumper, LiteralScalar(data))
     # Single-quote anything a Sigma backend would rather see quoted.

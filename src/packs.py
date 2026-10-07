@@ -316,9 +316,13 @@ def render_pack_files(pack: DetectionPack, dataset: AttackDataset, bundle_option
 
     bundle_errors: list[str] = []
     if include_stix and pack.generated:
+        contents = []
+        for entry in pack.generated:
+            assert entry.technique is not None, f"{entry.technique_id} has rules but no technique"
+            contents.append((entry.technique, entry.rules, entry.chains))
         bundle = build_pack_bundle(
             pack.profile,
-            [(entry.technique, entry.rules, entry.chains) for entry in pack.generated],
+            contents,
             dataset,
             bundle_options,
         )
