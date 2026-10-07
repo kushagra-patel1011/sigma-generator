@@ -34,6 +34,7 @@ already has coverage.
 | Static checks | ruff and mypy, run against Python 3.9, locally (`make lint`) and in CI |
 | Validation protocol | A pre-registered plan to test the quality tiers against Atomic Red Team and benign telemetry, with a seeded sample, an exact definition of "detected", and falsification criteria fixed before any data |
 | Lab tooling | A runner for VirtualBox or Hyper-V, a telemetry acceptance test, and a daily benign-log export, all in Windows PowerShell 5.1 |
+| Detection scoring | Converts the rules under test with the pinned converter, traces every converted rule back to its original through a manifest, runs the pinned Hayabusa per test, and applies the protocol's definition of "detected", including the null window |
 
 ## Problems caught before they shipped
 
@@ -68,14 +69,14 @@ weak), 232 correlation rules with `--all-analytics`, and zero files failing Sigm
 - Validation round 1 covers Windows only. Only rules whose technique has automated Atomic Red Team tests are
   eligible, which favours strong rules: 83% of strong rules are eligible against 49% of weak ones.
 - The benign data planned for round 1 is one real endpoint plus lab VMs: a lower bound on false positives.
-- The step that converts rules for Hayabusa and scores alerts against each test's window has no script yet.
+- Detection scoring is tested on synthetic records, and on a real Hayabusa run over a public sample log, but not
+  yet on lab output. False-positive scoring over benign host-days has no script yet.
 - The lab scripts are checked for syntax and against a simulated `VBoxManage`, but have not run on real hardware.
 
 ## Next steps
 
 1. Build the lab ([lab-build.md](validation/lab-build.md)) and pass the smoke test.
 2. Run the pilot ([pilot-plan.md](validation/pilot-plan.md)): 12 rules, 125 tests.
-3. Write the scoring step: Sigma to Hayabusa conversion, the conversion manifest, and the detection and null-window
-   checks the protocol defines.
+3. Score the pilot with `tools/score.py`, and write the false-positive scoring over benign host-days.
 4. Collect at least 7 complete benign days, run the full sample, and publish the results, including if they show
    the tiers are wrong.

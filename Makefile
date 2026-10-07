@@ -1,6 +1,6 @@
 PYTHON ?= python
 
-.PHONY: test lint typecheck corpus-fetch corpus corpus-bless pilot-plan pilot-smoke pilot
+.PHONY: test lint typecheck corpus-fetch corpus corpus-bless pilot-plan pilot-smoke pilot score
 
 # Offline unit tests (~10s).
 test:
@@ -51,3 +51,10 @@ pilot:
 	$(call round1,-Hypervisor $(HYPERVISOR) -Execute -Technique $(PILOT_PHASE2))
 
 comma := ,
+
+# Scoring (protocol sections 7-8): pinned converter and Hayabusa, the conversion manifest, one Hayabusa run per
+# executed test, and the per-rule detection table. Run where the runner's .evtx files are.
+RESULTS ?= output/round1
+SCORES ?= output/round1-scores
+score:
+	$(PYTHON) -m tools.score all --results $(RESULTS) --out $(SCORES)

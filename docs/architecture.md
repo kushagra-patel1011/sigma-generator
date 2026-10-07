@@ -76,7 +76,7 @@ CI runs the unit tests and the corpus snapshot on Python 3.9 and 3.13, and ruff 
 
 ## Validation (pre-registered, not executed)
 
-Dashed boxes are not built yet.
+The dashed box is not built yet.
 
 ```mermaid
 flowchart TB
@@ -89,16 +89,22 @@ flowchart TB
     SAMPLE --> RUNNER
     PILOT --> RUNNER["tools/lab/Invoke-Round1.ps1<br/>per test: restore snapshot, settle,<br/>prerequisites, quiet period,<br/>execute, export logs"]
     RUNNER --> RECORDS["result.json and .evtx per test"]
-    RECORDS --> SCORE["Scoring: Sigma to Hayabusa,<br/>conversion manifest,<br/>detection and null windows"]
-    BENIGN["tools/lab/Export-BenignDay.ps1<br/>daily benign logs and host-day evidence"] --> SCORE
-    SCORE --> RESULTS["docs/validation/RESULTS.md"]
+    SAMPLE --> CONVERT
+    CONVERT["tools/score.py convert<br/>pinned sigma-to-hayabusa-converter,<br/>conversion manifest"] --> HAYA
+    RECORDS --> HAYA["tools/score.py run<br/>pinned Hayabusa 4.1.0 per test,<br/>only that rule's converted files"]
+    HAYA --> SCORE["tools/score.py report<br/>rule ID, attack host,<br/>execution and null windows"]
+    RECORDS --> SCORE
+    SCORE --> RESULTS["docs/validation/RESULTS.md<br/>per-rule detection table"]
+    BENIGN["tools/lab/Export-BenignDay.ps1<br/>daily benign logs and host-day evidence"] --> FP["False-positive scoring<br/>over benign host-days"]
+    FP --> RESULTS
 
     classDef pending stroke-dasharray: 5 5
-    class SCORE pending
+    class FP pending
 ```
 
 The protocol fixes the sample, the meaning of "detected" and the criteria that would show the tiers are wrong
-before any test runs. The pilot is the first slice of that same run. [RESULTS.md](validation/RESULTS.md) lists
+before any test runs. The pilot is the first slice of that same run. `tools/score.py` applies the "detected"
+definition (protocol section 8 and amendment 3); false-positive scoring over the benign logs is not built yet. [RESULTS.md](validation/RESULTS.md) lists
 the commands for the Windows lab host and the files to copy back.
 
 ## Related
