@@ -271,9 +271,15 @@ def _security(event_ids: list[int], fields: tuple[str, ...], roles: dict[str, st
 _SECURITY_EVENTS: dict[int, Callable[[list[int]], TelemetryMapping]] = {}
 
 
+def _security_builder(fields: tuple[str, ...], roles: dict[str, str]) -> Callable[[list[int]], TelemetryMapping]:
+    def build(selected: list[int]) -> TelemetryMapping:
+        return _security(selected, fields, roles)
+    return build
+
+
 def _register_security(ids: tuple[int, ...], fields: tuple[str, ...], roles: dict[str, str]) -> None:
     for event_id in ids:
-        _SECURITY_EVENTS[event_id] = lambda selected, f=fields, r=roles: _security(selected, f, r)
+        _SECURITY_EVENTS[event_id] = _security_builder(fields, roles)
 
 
 _register_security(
@@ -990,9 +996,9 @@ def _resolve_by_name(name: str, channel: Optional[str], platform: Optional[str])
         return mapping
 
     if key == "wineventlog:security":
-        mapping = _windows_event_mapping(codes, "Windows Security")
-        if mapping:
-            return mapping
+        found = _windows_event_mapping(codes, "Windows Security")
+        if found:
+            return found
         if codes:
             mapping = _security(codes, ("SubjectUserName", "TargetUserName"), {"user": "TargetUserName"})
             mapping.confidence = CONF_SOURCE
@@ -1235,10 +1241,10 @@ def _resolve_by_component(component: Optional[str], platform: Optional[str]) -> 
     # Authentication" component on Okta or GCP is not a 4624 event.
     if key in _SECURITY_COMPONENTS and windows_ok:
         codes = list(_SECURITY_COMPONENTS[key])
-        mapping = _windows_event_mapping(codes, f"data component '{component}'")
-        if mapping:
-            mapping.confidence = CONF_COMPONENT
-            return mapping
+        found = _windows_event_mapping(codes, f"data component '{component}'")
+        if found:
+            found.confidence = CONF_COMPONENT
+            return found
 
     if key in _SERVICE_COMPONENTS and windows_ok:
         mapping = _clone(SYSTEM_EVENTS[7045], confidence=CONF_COMPONENT)

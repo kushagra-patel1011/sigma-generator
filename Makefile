@@ -1,10 +1,18 @@
 PYTHON ?= python
 
-.PHONY: test corpus-fetch corpus corpus-bless
+.PHONY: test lint typecheck corpus-fetch corpus corpus-bless
 
 # Offline unit tests (~10s).
 test:
 	$(PYTHON) -m pytest -q
+
+# Static checks: ruff (pyflakes and pycodestyle errors) and mypy. Configured in pyproject.toml.
+lint:
+	$(PYTHON) -m ruff check .
+	$(PYTHON) -m mypy
+
+typecheck:
+	$(PYTHON) -m mypy
 
 # Download the pinned ATT&CK bundle the corpus snapshot is generated from.
 corpus-fetch:

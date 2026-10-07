@@ -27,7 +27,7 @@ from . import __version__
 from .attack_fetcher import DEFAULT_INDEX_URL, AttackDataset, download_bundle
 from .mappings import resolve_telemetry
 from .packs import write_pack
-from .service import GenerateOptions, TechniqueResult, Workspace, technique_as_dict
+from .service import GenerateOptions, Workspace, technique_as_dict
 from .sigma_generator import TIER_MEANING, TIER_ORDER, VALID_LEVEL, VALID_STATUS, validate_sigma_text, validate_with_pysigma
 from .sigmahq import assess_coverage, default_index_path, download_index
 from .stix_builder import VALID_TLP, dump_bundle, merge_bundles, validate_bundle
@@ -334,6 +334,7 @@ def _generate_techniques(args: argparse.Namespace, technique_ids: list[str]) -> 
             elif args.stdout:
                 print(dump_bundle(result.bundle))
             else:
+                assert result.technique is not None, "a bundle is only built for a resolved technique"
                 name = f"{result.technique.id.lower().replace('.', '_')}.json"
                 written_bundles.append(write_text(stix_dir / name, dump_bundle(result.bundle)))
 
@@ -441,6 +442,7 @@ def cmd_gaps(args: argparse.Namespace) -> int:
         return EXIT_ERROR
 
     index = workspace.sigmahq(required=True)
+    assert index is not None, "required=True raises rather than returning None"
     reports = []
     missing: list[str] = []
     for technique_id in technique_ids:

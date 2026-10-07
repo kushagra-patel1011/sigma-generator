@@ -9,7 +9,8 @@ deterministic: no model is called at runtime, and every decision is written into
 ## Commands
 
 ```bash
-python -m pytest                       # offline unit tests, ~10s
+python -m pytest                       # offline unit tests, ~10s (or: make test)
+make lint                              # ruff and mypy, as CI runs them
 python -m tools.corpus fetch           # pinned ATT&CK 19.2 for the corpus snapshot (~55 MB, once)
 python -m pytest -m corpus             # full-corpus snapshot against tests/corpus/baseline.json
 python -m tools.corpus bless           # accept intended drift as the new baseline
@@ -58,6 +59,9 @@ ignored too, except for `docs/validation-protocol.md` and `docs/validation/`.
 ## Conventions
 
 - **Python 3.9+.** No syntax or standard-library feature newer than 3.9 (checked with vermin).
+- **Static checks pass.** `make lint` runs ruff (pyflakes and pycodestyle errors; formatting is not
+  enforced) and mypy against Python 3.9, both configured in `pyproject.toml` and both run in CI. Fix
+  type errors rather than silencing them; a `# type: ignore[code]` needs a comment saying why.
 - **Runtime dependencies are PyYAML and requests only.** The web UI adds none: no framework, no build
   step, no external fonts or scripts. Keep it that way.
 - **The web page is served under a strict Content-Security-Policy** (`default-src 'self'`). Inline

@@ -353,8 +353,8 @@ def assess_quality(detection: dict[str, Any]) -> RuleQuality:
     if not behavioural:
         return RuleQuality("weak", 0, ("only the event type is selected - every such event matches",))
     if not specific:
-        values = ", ".join(str(v) for vals in behavioural.values() for v in vals)[:80]
-        return RuleQuality("weak", 0, (f"only values common in normal activity ({values})",))
+        common = ", ".join(str(v) for vals in behavioural.values() for v in vals)[:80]
+        return RuleQuality("weak", 0, (f"only values common in normal activity ({common})",))
     if len(specific) >= 2:
         return RuleQuality("strong", len(specific), (f"{len(specific)} independent behavioural selections",))
     name, values = next(iter(specific.items()))
@@ -389,7 +389,8 @@ class ThreatContext:
         if not self.platforms:
             return True
         wanted = {platform.lower() for platform in self.platforms}
-        if (product or "").lower() in ("windows", "linux", "macos") and product.lower() not in wanted:
+        product_key = (product or "").lower()
+        if product_key in ("windows", "linux", "macos") and product_key not in wanted:
             return False
         if analytic is None or not analytic.platforms:
             return True
@@ -463,7 +464,7 @@ class SigmaRule:
             value = getattr(self, key, None)
             if value in (None, "", [], {}):
                 continue
-            body[key] = LiteralScalar(value) if key == "description" and "\n" in value else value
+            body[key] = LiteralScalar(value) if key == "description" and isinstance(value, str) and "\n" in value else value
         return body
 
     def to_yaml(self, include_banner: bool = True) -> str:
@@ -995,10 +996,11 @@ class SigmaRuleGenerator:
         if not technique.platforms:
             return [None]
         preference = self._PLATFORM_PREFERENCE
-        return sorted(
+        ordered = sorted(
             technique.platforms,
             key=lambda name: preference.index(name.lower()) if name.lower() in preference else len(preference),
         )
+        return list(ordered)
 
     def _mine(self, technique: Technique, analytic: Optional[Analytic],
               context: Optional[ThreatContext] = None) -> Artefacts:
@@ -2087,7 +2089,7 @@ def validate_with_pysigma(rule_yaml: str) -> tuple[bool, list[str]]:
     Returns ``(ran, errors)`` so callers can tell "no errors" from "not checked".
     """
     try:
-        from sigma.collection import SigmaCollection  # type: ignore
+        from sigma.collection import SigmaCollection
     except ImportError:
         return False, []
     try:
@@ -2181,8 +2183,8 @@ def validate_sigma_text(text: str) -> list[str]:
     if not documents:
         return ["file contains no YAML documents"]
 
-    names = [doc.get("name") for doc in documents if isinstance(doc, dict) and doc.get("name")]
-    known = set(names) | {doc.get("id") for doc in documents if isinstance(doc, dict) and doc.get("id")}
+    names: list[Any] = [doc.get("name") for doc in documents if isinstance(doc, dict) and doc.get("name")]
+    known: set[Any] = set(names) | {doc.get("id") for doc in documents if isinstance(doc, dict) and doc.get("id")}
     errors: list[str] = []
     duplicates = sorted({name for name in names if names.count(name) > 1})
     if duplicates:

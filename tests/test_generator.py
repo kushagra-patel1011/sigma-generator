@@ -25,7 +25,7 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from src import mappings, stix_builder, utils  # noqa: E402
+from src import mappings, utils  # noqa: E402
 from src.attack_fetcher import AttackDataset  # noqa: E402
 from src.main import main  # noqa: E402
 from src.sigma_generator import (  # noqa: E402

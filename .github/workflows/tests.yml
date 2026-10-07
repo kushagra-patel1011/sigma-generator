@@ -40,6 +40,26 @@ jobs:
             --deterministic --output-dir "$RUNNER_TEMP/out"
           sigma-gen validate "$RUNNER_TEMP/out"
 
+  lint:
+    # ruff and mypy, as `make lint` runs them; mypy checks against Python 3.9 (pyproject.toml).
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements-dev.txt
+
+      - name: ruff
+        run: python -m ruff check .
+
+      - name: mypy
+        run: python -m mypy
+
   corpus:
     # Every technique in the pinned ATT&CK release against tests/corpus/baseline.json.
     # Run on both interpreters so the digest is shown to be identical on each.

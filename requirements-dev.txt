@@ -3,6 +3,13 @@
 # Test + lint tooling
 pytest>=8.0
 
+# Static checks (`make lint`). Pinned so local runs and CI agree; these are the
+# newest releases that still install on Python 3.9, which the test job uses.
+ruff==0.16.10
+mypy==1.19.1
+types-PyYAML==6.0.12.20250915
+types-requests==2.32.4.20260107
+
 # Optional: enables deep Sigma validation via `--strict` (pySigma parses the rule
 # the same way the official converters do).  The tool degrades gracefully when
 # it is not installed.

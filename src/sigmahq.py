@@ -24,7 +24,7 @@ from typing import Any, Iterable, Optional
 
 import yaml
 
-from .attack_fetcher import Analytic, LogSourceRef, Technique
+from .attack_fetcher import LogSourceRef, Technique
 from .mappings import TelemetryMapping, resolve_telemetry
 from .utils import (
     LOG,

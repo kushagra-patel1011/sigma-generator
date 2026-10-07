@@ -39,7 +39,7 @@ from ..service import GenerateOptions, TechniqueResult, Workspace
 from ..sigma_generator import VALID_LEVEL, VALID_STATUS, validate_with_pysigma
 from ..sigmahq import default_index_path, download_index
 from ..stix_builder import VALID_TLP, dump_bundle
-from ..utils import DEFAULT_OUTPUT_DIR, LOG, PROJECT_ROOT, SigmaGeneratorError, slugify, write_text
+from ..utils import DEFAULT_OUTPUT_DIR, LOG, SigmaGeneratorError, slugify, write_text
 
 STATIC_DIR = Path(__file__).resolve().parent / "static"
 STATIC_FILES = {
@@ -229,7 +229,8 @@ class WebApp:
             return self.workspace.technique_dict(technique, include_coverage=True)
 
     def threat(self, identifier: str, query: dict[str, list[str]]) -> dict[str, Any]:
-        kind = (query.get("kind") or [None])[0]
+        kinds = query.get("kind")
+        kind = kinds[0] if kinds else None
         if kind is not None and kind not in THREAT_KINDS:
             raise ApiError(HTTPStatus.BAD_REQUEST, "kind must be group, software or campaign")
         with_campaigns = (query.get("with_campaigns") or ["false"])[0] == "true"
@@ -311,6 +312,7 @@ class WebApp:
         for rule in list(result.rules) + list(result.chains):
             paths.append(str(write_text(root / "sigma" / rule.filename(), rule.to_yaml(include_banner=include_banner))))
         if result.bundle is not None:
+            assert result.technique is not None, "a bundle is only built for a resolved technique"
             name = f"{result.technique.id.lower().replace('.', '_')}.json"
             paths.append(str(write_text(root / "stix" / name, dump_bundle(result.bundle))))
         return paths
@@ -416,13 +418,15 @@ def make_handler(app: WebApp, allowed_hosts: set[str]) -> type[BaseHTTPRequestHa
             if path == "/api/search":
                 self._dispatch(lambda: app.search(query))
                 return
-            match = _TECHNIQUE_PATH.match(path)
-            if match:
-                self._dispatch(lambda: app.technique(match.group(1)))
+            technique_match = _TECHNIQUE_PATH.match(path)
+            if technique_match:
+                technique_id = technique_match.group(1)
+                self._dispatch(lambda: app.technique(technique_id))
                 return
-            match = _THREAT_PATH.match(path)
-            if match:
-                self._dispatch(lambda: app.threat(unquote(match.group(1)), query))
+            threat_match = _THREAT_PATH.match(path)
+            if threat_match:
+                threat_id = unquote(threat_match.group(1))
+                self._dispatch(lambda: app.threat(threat_id, query))
                 return
             self._json(HTTPStatus.NOT_FOUND, {"error": "Not found"})
 
