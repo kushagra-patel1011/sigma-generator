@@ -16,9 +16,9 @@ before committing the full ~70 hours. How to run it, and what to copy back, is i
   in the results. So the smoke test must pass first (`RESULTS.md`, step 2).
 - **Its numbers are not tier results.** Four rules per tier cannot support a claim about a tier. Pilot rules appear
   in the full run's per-rule table, and tier measures are computed only over the full sample.
-- **It does not score detections yet.** Scoring needs the protocol's conversion and Hayabusa steps (sections 7
-  and 8), and this repository has no script for them yet. The pilot produces the execution records and event logs
-  those steps will read.
+- **Detections are scored by `tools/score.py`** (`RESULTS.md` step 4b). It converts the rules with the pinned
+  converter, runs the pinned Hayabusa over each test's logs, and applies protocol section 8 as amendment 3 fixes
+  it. It runs on the lab host, where the `.evtx` files are, and runs no ART test.
 - **It does not measure false positives.** That is the benign collection (protocol section 10), which is separate.
 
 ## Selection rule

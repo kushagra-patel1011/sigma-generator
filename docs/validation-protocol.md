@@ -32,8 +32,9 @@ Everything below is fixed by this commit. Moving any pin is an amendment (sectio
 | Audit policy and log sizes | Yamato-Security/EnableWindowsLogSettings `6d2c0a15351650309d9bb325d63c5ef051a2157d`, `YamatoSecurityConfigureWinEventLogs.bat`, applied on every host, plus two additions it leaves out: the Sysmon log at 1 GB, and PowerShell module and script-block logging under the native `HKLM\SOFTWARE\Policies` path as well as `Wow6432Node` |
 | Hypervisor | VirtualBox 7.2 on the maintainer's machine (Windows 11 Home has no Hyper-V); the exact version, and the Guest Additions version, are recorded and published. `tools/lab/Invoke-Round1.ps1` also supports Hyper-V, and the results state which hypervisor produced them |
 | Lab procedure | `docs/validation/lab-build.md` and the scripts in `tools/lab/` |
-| Sigma conversion | Yamato-Security/sigma-to-hayabusa-converter `3786d70d362455cbd89110d36b678307c8f9c889` |
-| Detection engine (backend) | Yamato-Security/hayabusa `v4.1.0` (`11a7f64accf9fa815a92aea1b36e174975f1df9a`), official release binary |
+| Scoring | `tools/score.py`: conversion, the conversion manifest, Hayabusa runs and the "detected" test of section 8 (amendment 3) |
+| Sigma conversion | Yamato-Security/sigma-to-hayabusa-converter `3786d70d362455cbd89110d36b678307c8f9c889`; the five files it needs are pinned by sha256, and it runs with `ruamel.yaml` 0.18.5 from its own lockfile (amendment 3) |
+| Detection engine (backend) | Yamato-Security/hayabusa `v4.1.0` (`11a7f64accf9fa815a92aea1b36e174975f1df9a`), official release binary: `hayabusa-4.1.0-win-x64.zip` sha256 `4d304cc5baaa750ed08cc24b7b89c58ea058740c7e344502d7b82554637543a8`, `hayabusa-4.1.0-lin-x64-gnu.zip` sha256 `ed2c4595f95b8e765d37f392212587304ce89ed7cfb6682b425a96d126ed67eb` |
 
 Hayabusa is used because it evaluates Sigma, including all four correlation types, directly over `.evtx` files, and
 because v4.1.0 contains fixes to `temporal` group-by handling and `value_count` windows (hayabusa #1841, #1896).
@@ -173,7 +174,7 @@ is the configuration shipped in the pinned release):
 
 ```
 hayabusa dfir-timeline -d <test logs> -r <converted rules of this rule> -c rules/config -w -m informational \
-  -n -D -u -U -p all-field-info -t jsonl -o alerts.jsonl
+  -n -D -u -U -p all-field-info -t jsonl -o alerts.jsonl -q -K -C
 ```
 
 A test is **detected** by the rule under test when Hayabusa emits at least one alert that meets all three of:
@@ -182,13 +183,17 @@ A test is **detected** by the rule under test when Hayabusa emits at least one a
 - its `Computer` is the attack host;
 - its `Timestamp` (the event's own creation time, UTC) falls inside the execution window.
 
+How each condition is checked, including several alerts for one test, is fixed in amendment 3 and implemented by
+`tools/score.py`.
+
 A test that would be detected, but where an alert meeting the first two conditions also falls inside the null
 window, is **confounded**. The rule fires on the host's background activity, so the test cannot be credited.
 Confounded tests count as **not detected** in every primary measure, and are reported separately.
 
 Diagnostic only, not affecting any measure: a missed test is marked **telemetry absent** when the host recorded no
 event at all of the rule's native log source (channel and event ID) inside the execution window. That separates
-"the rule did not match" from "the configuration did not log it".
+"the rule did not match" from "the configuration did not log it". `tools/score.py` does not compute it in round 1;
+it is reported as not computed (amendment 3).
 
 ## 9. What is bucketed and published separately
 
@@ -350,3 +355,41 @@ drawn sample are unchanged. Amendment 1 was reviewed and approved in full.
 4. **Lab work excludes a host-day** (section 6). Besides days the runner ran, days on which the hypervisor, its
    host-only network or the WinRM client was installed or configured on the real endpoint are excluded. Installing a
    hypervisor is not the endpoint's normal use either.
+
+**Amendment 3, 2026-10-07.** Made before any ART test was executed or any benign log evaluated. The seed and the
+drawn sample are unchanged. It records how `tools/score.py` applies sections 7 and 8, where the text left a choice.
+
+1. **Pins** (section 2). Hayabusa is downloaded from the `v4.1.0` release and checked against the sha256 of its
+   Windows and Linux archives. The converter's five files (the script, three mapping files and
+   `ignore-uuid-list.txt`) are fetched at the pinned commit and checked by sha256. The converter runs in its own
+   environment with `ruamel.yaml` 0.18.5, the version its lockfile pins. It needs Python 3.10 or newer; that is
+   the converter's requirement, and `tools/score.py` itself still runs on 3.9.
+2. **Running the converter.** It reads `ignore-uuid-list.txt` from the working directory, so it runs from its own
+   folder. It only converts files under a folder whose path contains "rule", so the rules under test are staged in
+   one. All rules under test are converted in one run, and each rule's converted files are then copied into a
+   folder of their own, so that Hayabusa loads only the rule under test (section 8).
+3. **Hayabusa command** (section 8). `-q`, `-K` and `-C` are added: no banner, no colour, and overwrite a previous
+   run's output so scoring can be repeated. None of them changes what is detected. The summary Hayabusa prints
+   still carries reset codes with `-K`; they are stripped before it is read.
+4. **Conversion failure** (section 7). A rule is a conversion failure when the converter produced no file whose
+   `related: derived` entry names it, or when any Hayabusa run for it reports a rule parsing error or loads fewer
+   rules than the converter produced for it. The whole rule then counts as a conversion failure, even if some of its
+   converted files loaded: the protocol says "converts into anything Hayabusa refuses to load". Its executed tests
+   count as not detected.
+5. **Several alerts for one test** (section 8). A test is detected when at least one qualifying alert falls inside
+   the execution window. Further alerts change nothing, but the counts are published per test. It is confounded when
+   at least one alert meeting the first two conditions falls inside the null window, however many fall inside the
+   execution window. Alerts from any of the rule's converted variants (Sysmon or built-in channel) count equally.
+6. **Attack host** (section 8). An alert's `Computer` matches when its first DNS label equals, ignoring case, the
+   `COMPUTERNAME` the runner recorded on the attack host before the test.
+7. **Time** (section 8). An alert's `Timestamp` is the event's creation time, to the millisecond, in UTC (`-U`),
+   on the attack host's clock. The window bounds are the runner's guest-clock timestamps. The execution window
+   includes both ends. The null window includes its start and excludes its end, which is the execution window's
+   start. A timestamp without a time zone is refused rather than guessed.
+8. **Telemetry absent** (section 8) is not computed by `tools/score.py` in round 1, and is reported as not
+   computed. It is diagnostic only and affects no measure.
+9. **Records left out of scoring.** Smoke-test records; tests that stopped on a harness error, which are counted
+   per rule; and, as section 8 already says, tests whose prerequisites failed.
+10. **Outputs.** `rules.csv` (per rule), `tests.csv` (per test), `alerts.csv` (every alert of the rule under test,
+    placed in the execution window, the null window, outside both, or on another host), `rules.md`, and the
+    conversion manifest. On the attack host these are published in full (section 10).

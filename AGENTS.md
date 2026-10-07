@@ -21,6 +21,7 @@ python -m src.main ui                  # local web interface on 127.0.0.1:8765
 python -m tools.webapp build --check   # browser build into docs/ (needs the pinned bundle)
 python -m tools.validation fetch       # pinned Atomic Red Team index for the validation draw (~7 MB)
 python -m tools.pilot                  # the validation pilot's 12 rules, in run order
+python -m tools.score all              # score runner records: convert, Hayabusa per test, detection table (make score)
 python -m src.main update              # download ATT&CK (~55 MB) and the SigmaHQ index (~3 MB)
 ```
 
@@ -45,14 +46,16 @@ passes; the tests that need it skip themselves.
 | `tools/corpus.py` | Corpus snapshot: digest of every technique's output, drift report, re-bless (dev only, not packaged) |
 | `tools/validation.py` | Eligibility and the seeded sample draw that `docs/validation-protocol.md` fixes (dev only, not packaged) |
 | `tools/pilot.py` | The validation pilot's subset of the drawn sample (lowest draw ranks, 4 per tier) and its run phases |
+| `tools/score.py` | Validation scoring: pinned Sigma-to-Hayabusa conversion, conversion manifest, Hayabusa per test, and the protocol's "detected" test (dev only, not packaged) |
 | `tools/lab/` | **Unused.** Windows PowerShell scripts for the validation lab (runner, telemetry acceptance test, benign-day export), kept with the plan; never run |
 | `docs/case-study.md`, `docs/architecture.md` | The project's case study, and its architecture with Mermaid diagrams |
 | `docs/validation-protocol.md`, `docs/validation/` | The validation protocol (pre-registered, not executed), the drawn sample, the frozen rules under test, the lab build sheet, the pilot plan and the `RESULTS.md` template |
 
 ## Data
 
-`data/*.json` (the ATT&CK bundle and the SigmaHQ index) is **not** in the repository: it is large and
-re-downloadable with `update`. Nothing in the test suite needs it. The tests run against
+`data/*.json` (the ATT&CK bundle and the SigmaHQ index), and the pinned downloads under `data/corpus/`,
+`data/validation/` and `data/score/`, are **not** in the repository: they are large and re-downloadable with
+`update` or each tool's `fetch`. Nothing in the test suite needs them. The tests run against
 `tests/fixtures/mini-attack.json` and `tests/fixtures/mini-sigmahq-index.json` with `--offline`, so a
 fresh clone can run everything immediately.
 

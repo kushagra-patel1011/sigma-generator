@@ -628,6 +628,7 @@ evaluated, so the quality tiers have not yet been checked against real attacks.
 | Seed | commit `9eb1930`, the commit that added the protocol, so nobody could choose the sample |
 | Pilot | the first 12 rules, with 125 tests ([plan](docs/validation/pilot-plan.md)) |
 | Run it | exact commands, and the files to copy back: [RESULTS.md](docs/validation/RESULTS.md) (a template, empty until run) |
+| Scoring | `tools/score.py` converts the rules with the pinned converter, runs the pinned Hayabusa per test, and applies the protocol's definition of "detected"; `make score` |
 | Lab | [build sheet](docs/validation/lab-build.md) for VirtualBox or Hyper-V. The scripts in `tools/lab/` have not been run yet. |
 
 Background: [case study](docs/case-study.md) · [architecture](docs/architecture.md)

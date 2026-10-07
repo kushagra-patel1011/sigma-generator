@@ -5,6 +5,8 @@ data/.attack-meta.json
 data/corpus/
 # Pinned Atomic Red Team index for the validation draw (python -m tools.validation fetch)
 data/validation/
+# Pinned Hayabusa, converter and scoring work files (python -m tools.score fetch)
+data/score/
 
 # Generated artefacts
 output/sigma/*.yml

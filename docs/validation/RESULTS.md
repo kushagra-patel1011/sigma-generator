@@ -50,14 +50,30 @@ stops the run. Resolve the cause, delete that test's folder, and rerun.
 With GNU make installed on Windows, steps 2–4 are `make pilot-plan`, `make pilot-smoke` and
 `make pilot HYPERVISOR=VirtualBox`. Without `-Credential`, the runner asks for the password.
 
+### 4b. Score (on the lab host, where the `.evtx` files are)
+
+```powershell
+python -m tools.score fetch       # pinned Hayabusa 4.1.0 (Windows build) and converter, checked by sha256
+python -m tools.score convert     # converts the rules under test; writes the conversion manifest
+python -m tools.score run         # Hayabusa over each executed test's logs, with only that test's rule loaded
+python -m tools.score report      # writes output\round1-scores\ and prints the per-rule table
+```
+
+`python -m tools.score all` (or `make score`) runs the four in order. The converter needs Python 3.10 or newer. If
+the `python` on the lab host is older, add `--converter-python C:\Path\To\python3.11.exe` to `fetch` or `all`.
+Scoring reads files and runs no ART test, so it can be repeated, for example after phase 1 and again after phase 2.
+
 ### 5. Copy the outputs back into the repository
 
 ```powershell
 $dest = 'docs\validation\results\pilot'
 
-# Execution records: one small result.json per test, plus any harness-error.json.
-# robocopy exit codes below 8 mean success.
-robocopy output\round1 $dest result.json harness-error.json /S /XD lab-record
+# Execution and scoring records: per test, result.json, hayabusa.json, alerts.jsonl and any
+# harness-error.json. robocopy exit codes below 8 mean success.
+robocopy output\round1 $dest result.json hayabusa.json alerts.jsonl harness-error.json /S /XD lab-record
+
+# The scoring tables (step 4b).
+robocopy output\round1-scores "$dest\scores" /S
 
 # The lab record (text files).
 robocopy output\round1\lab-record "$dest\lab-record" /S
@@ -87,6 +103,8 @@ Remove-PSSession $s
 | `smoke-00-SMOKE/smoke-<UTC time>/result.json` | 1 | smoke test |
 | `<tier>-<rank>-<technique>/<test guid>/result.json` (e.g. `strong-01-T1003.004/55295ab0-…/result.json`) | 125, less any test that stopped on a harness error | pilot |
 | `<tier>-<rank>-<technique>/<test guid>/harness-error.json` | one per harness error, if any | pilot |
+| `<tier>-<rank>-<technique>/<test guid>/hayabusa.json`, `alerts.jsonl` | one each per executed test (`alerts.jsonl` only if Hayabusa wrote alerts) | step 4b |
+| `scores/rules.csv`, `tests.csv`, `alerts.csv`, `rules.md`, `conversion-manifest.json` | 5 | step 4b |
 | `lab-record/host-w32tm.txt` | 1 | `lab-build.md` step 1 |
 | `lab-record/virtualbox-version.txt` (VirtualBox) | 1 | step 1 |
 | `lab-record/snapshot.txt`, `lab-record/vm.txt` (VirtualBox) | 2 | step 6 |
@@ -127,8 +145,33 @@ None recorded.
 
 ## Detection
 
-Not scored. Scoring needs the protocol's conversion and Hayabusa steps (sections 7 and 8), which have no script
-in this repository yet.
+Filled from `scores/rules.md`, which `python -m tools.score report` writes. The definitions are protocol section 8
+and amendment 3:
+
+- **Detected:** at least one alert from a rule derived from the rule under test, on the attack host, inside the
+  execution window.
+- **Confounded:** detected, but an alert meeting the first two conditions also fell inside the null window.
+- **Detection rate:** detected ÷ executed. A conversion failure scores 0.
+- **Null window truncated:** the test ran longer than the quiet period, so its null window is the whole quiet
+  period.
+
+Pilot numbers are not tier results (see [pilot-plan.md](pilot-plan.md)). The per-test outcomes and every alert are
+in `scores/tests.csv` and `scores/alerts.csv`. Telemetry absent is not computed in round 1 (amendment 3).
+
+| Tier | Rank | Technique | Conversion | Executed | Prerequisites failed | Execution failed | Detected | Confounded | Missed | Detection rate | Null window truncated |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| strong | 1 | T1003.004 | — | — | — | — | — | — | — | — | — |
+| strong | 2 | T1056.001 | — | — | — | — | — | — | — | — | — |
+| strong | 3 | T1218.002 | — | — | — | — | — | — | — | — | — |
+| strong | 4 | T1574.011 | — | — | — | — | — | — | — | — | — |
+| moderate | 1 | T1003.005 | — | — | — | — | — | — | — | — | — |
+| moderate | 2 | T1112 | — | — | — | — | — | — | — | — | — |
+| moderate | 3 | T1556.002 | — | — | — | — | — | — | — | — | — |
+| moderate | 4 | T1546.008 | — | — | — | — | — | — | — | — | — |
+| weak | 1 | T1025 | — | — | — | — | — | — | — | — | — |
+| weak | 2 | T1518 | — | — | — | — | — | — | — | — | — |
+| weak | 3 | T1552 | — | — | — | — | — | — | — | — | — |
+| weak | 4 | T1574.001 | — | — | — | — | — | — | — | — | — |
 
 ## False positives
 
