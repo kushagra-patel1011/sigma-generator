@@ -25,6 +25,33 @@ Detection pack for APT29 (G0016): 66 technique(s) attributed by ATT&CK
 
 ---
 
+## At a glance
+
+**What it is.** A rule-based generator that turns MITRE ATT&CK techniques, threat groups, software and campaigns
+into draft Sigma detection rules, Sigma correlation rules and STIX 2.1 bundles, with a gap check against SigmaHQ's
+community rules. It runs on the command line, in a local web UI, or [in the browser](#use-it-in-your-browser).
+
+**Why it matters.** Writing a first detection for every technique a threat actor uses is slow, manual work. This
+turns ATT&CK's own detection strategies into reviewable drafts, says how much real detection content each one has,
+and points out the telemetry that no community rule watches yet.
+
+**Proof points**
+
+- **697** active ATT&CK v19.2 techniques processed. **556** get a rule (130 strong, 195 moderate, 231 weak); the
+  other 141 are skipped with the reason stated ([numbers](#measured-against-attck-enterprise-v192-and-sigmahq-r2026-07-01)).
+- **Corpus snapshot:** every technique's full output is pinned in a committed baseline and checked in CI, so any
+  change to the generated rules is reported technique by technique ([how](#corpus-snapshot)).
+- **CI on Python 3.9 and 3.13:** the offline test suite and the corpus snapshot run on both, and ruff and mypy run
+  with zero findings on every push to `main` and every pull request.
+- **Deterministic:** no AI model at runtime. The same input gives the same detection content, and the corpus
+  snapshot checks that across the whole corpus.
+- **Validation:** a pre-registered protocol with a seeded 50-rule sample. **Not yet executed**
+  ([status](#validation)).
+
+**Demo (60 seconds):** *link to be added.*
+
+---
+
 ## What makes it different
 
 | | What it does | Why it matters |
@@ -79,6 +106,18 @@ python -m src.main generate T1003.001 --chains
 
 Rules are written to `output/sigma/`, bundles to `output/stix/` and packs to `output/packs/<name>/`. To get a
 `sigma-gen` command instead of `python -m src.main`, run `pip install -e .`.
+
+### Develop
+
+```bash
+pip install -r requirements-dev.txt
+make test      # offline unit tests, ~10 s
+make lint      # ruff and mypy, as CI runs them
+make corpus    # downloads the pinned ATT&CK bundle once (~55 MB), then checks the corpus snapshot
+```
+
+Each target is a thin wrapper: `python -m pytest`, `python -m ruff check .` plus `python -m mypy`, and
+`python -m pytest -m corpus`. See [Tests](#tests).
 
 ---
 
@@ -479,6 +518,8 @@ Copy `.env.example` to `.env`. Every value is optional, and command-line flags t
 
 ## How it works
 
+More detail, including the validation pipeline, is in [docs/architecture.md](docs/architecture.md).
+
 ```mermaid
 flowchart TB
     subgraph frontends[Three ways in, one engine]
@@ -575,6 +616,24 @@ content is intended, and commit the baseline with the change so the drift is rev
 
 ---
 
+## Validation
+
+**Status: pre-registered, not executed.** No Atomic Red Team test has run and no benign telemetry has been
+evaluated, so the quality tiers have not yet been checked against real attacks.
+
+| | |
+|---|---|
+| Protocol | [docs/validation-protocol.md](docs/validation-protocol.md): pinned inputs, the exact definition of "detected", and what would prove the tiers wrong, all fixed before any data |
+| Sample | 50 Windows rules (17 strong, 17 moderate, 16 weak) drawn from 203 eligible, with 280 Atomic Red Team tests ([sample](docs/validation/sample.md)) |
+| Seed | commit `9eb1930`, the commit that added the protocol, so nobody could choose the sample |
+| Pilot | the first 12 rules, with 125 tests ([plan](docs/validation/pilot-plan.md)) |
+| Run it | exact commands, and the files to copy back: [RESULTS.md](docs/validation/RESULTS.md) (a template, empty until run) |
+| Lab | [build sheet](docs/validation/lab-build.md) for VirtualBox or Hyper-V. The scripts in `tools/lab/` have not been run yet. |
+
+Background: [case study](docs/case-study.md) · [architecture](docs/architecture.md)
+
+---
+
 ## Limitations
 
 - **Content is mined from prose.** ATT&CK names tools and paths as examples, not complete lists. Expect to add
@@ -586,7 +645,8 @@ content is intended, and commit the baseline with the change so the drift is rev
 - **Coverage matching is logsource-level.** "Covered" means SigmaHQ has a rule for the technique on that telemetry,
   not that the rule catches every variant.
 - **Quality tiers measure content, not accuracy.** "Strong" means two independent signals were found in ATT&CK, not
-  that the rule was tested against attacks. Every tier still needs validation against real telemetry.
+  that the rule was tested against attacks. Every tier still needs validation against real telemetry
+  ([status](#validation)).
 - **A `temporal` chain needs every step.** Where ATT&CK says a dump *or* a registry change follows, remove the
   steps your environment won't see before deploying.
 - **Levels are a heuristic**: the tactic, lowered for moderate and weak rules, raised for correlations.

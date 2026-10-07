@@ -46,6 +46,7 @@ passes; the tests that need it skip themselves.
 | `tools/validation.py` | Eligibility and the seeded sample draw that `docs/validation-protocol.md` fixes (dev only, not packaged) |
 | `tools/pilot.py` | The validation pilot's subset of the drawn sample (lowest draw ranks, 4 per tier) and its run phases |
 | `tools/lab/` | **Unused.** Windows PowerShell scripts for the validation lab (runner, telemetry acceptance test, benign-day export), kept with the plan; never run |
+| `docs/case-study.md`, `docs/architecture.md` | The project's case study, and its architecture with Mermaid diagrams |
 | `docs/validation-protocol.md`, `docs/validation/` | The validation protocol (pre-registered, not executed), the drawn sample, the frozen rules under test, the lab build sheet, the pilot plan and the `RESULTS.md` template |
 
 ## Data
@@ -56,7 +57,8 @@ re-downloadable with `update`. Nothing in the test suite needs it. The tests run
 fresh clone can run everything immediately.
 
 Generated output goes to `output/` and is ignored by git. `docs/` is the browser build's output folder and is
-ignored too, except for `docs/validation-protocol.md` and `docs/validation/`.
+ignored too, except for `docs/validation-protocol.md`, `docs/validation/`, `docs/case-study.md` and
+`docs/architecture.md`. A new tracked file under `docs/` needs its own exception in `.gitignore`.
 
 ## Conventions
 
