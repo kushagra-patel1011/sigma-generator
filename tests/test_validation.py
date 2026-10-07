@@ -131,3 +131,39 @@ def test_seed_is_the_commit_that_first_added_the_protocol(tmp_path):
     (tmp_path / "docs" / "validation-protocol.md").write_text("v1\namendment\n")
     _git(tmp_path, "commit", "-q", "-am", "amend")
     assert validation.protocol_seed(tmp_path) == added
+
+
+# --------------------------------------------------------------------------- #
+# Pilot (tools/pilot.py, docs/validation/pilot-plan.md)
+# --------------------------------------------------------------------------- #
+def test_pilot_takes_the_lowest_draw_ranks_in_each_tier():
+    from tools import pilot
+
+    sample = pilot.load_sample()
+    chosen = pilot.select(sample)
+    for tier in pilot.TIERS:
+        ranks = sorted(rule["rank"] for rule in sample["strata"][tier] if rule["selected"])
+        assert [rule["rank"] for rule in chosen[tier]] == ranks[:pilot.PER_TIER]
+        assert all(rule["selected"] for rule in chosen[tier])
+
+
+def test_pilot_runs_the_largest_rule_last():
+    from tools import pilot
+
+    def rule(technique_id, tests):
+        return {"technique_id": technique_id, "art_tests": [{}] * tests}
+
+    chosen = {"strong": [rule("T2", 3)], "moderate": [rule("T1", 9), rule("T3", 1)], "weak": [rule("T4", 9)]}
+    assert pilot.phases(chosen) == (["T2", "T1", "T3"], ["T4"])
+
+
+def test_makefile_and_plan_list_the_pilot():
+    from tools import pilot
+
+    first, second = pilot.phases(pilot.select(pilot.load_sample()))
+    makefile = (pilot.ROOT / "Makefile").read_text(encoding="utf-8")
+    assert f"PILOT_PHASE1 = {','.join(first)}\n" in makefile
+    assert f"PILOT_PHASE2 = {','.join(second)}\n" in makefile
+    plan = (pilot.ROOT / "docs" / "validation" / "pilot-plan.md").read_text(encoding="utf-8")
+    for technique_id in first + second:
+        assert f"| {technique_id} |" in plan
