@@ -89,6 +89,7 @@ class Workspace:
         self.offline = offline
         self._dataset: Optional[AttackDataset] = None
         self._sigmahq: Optional[SigmaHQIndex] = None
+        self._grades: dict[str, dict[str, Any]] = {}
 
     @property
     def dataset(self) -> AttackDataset:
@@ -234,6 +235,41 @@ class Workspace:
         )
 
     # -- serialisation for JSON consumers ------------------------------------- #
+    def technique_grade(self, technique_id: str) -> dict[str, Any]:
+        """What the default rule of a technique would be, without writing anything: its tier, signals,
+        confidence and log source, the best rule per analytic, and SigmaHQ coverage. Cached, since the
+        UI asks for it on every search; ``forget_grades`` drops the cache when the SigmaHQ index changes."""
+        technique = self.dataset.get_technique(technique_id)
+        if technique.id in self._grades:
+            return self._grades[technique.id]
+        entry: dict[str, Any] = {"id": technique.id, "name": technique.name, "tactics": list(technique.tactics),
+                                 "status": "generated", "tier": None, "analytics": {}}
+        generator = SigmaRuleGenerator(deterministic=True, attack_version=self.dataset.version)
+        try:
+            rules = generator.generate(technique, all_analytics=True)
+        except InsufficientEvidenceError:
+            entry["status"] = "insufficient"
+        except UnmappableTechniqueError:
+            entry["status"] = "unmappable"
+        else:
+            best = rules[0]
+            entry.update(tier=best.quality.tier, signals=best.quality.signals,
+                         confidence=best.provenance.confidence, logsource=best.provenance.logsource_label)
+            for rule in rules:
+                analytic = rule.provenance.analytic_id or ""
+                entry["analytics"].setdefault(analytic, {"tier": rule.quality.tier, "signals": rule.quality.signals})
+        index = self.coverage_index(required=False)
+        if index is not None:
+            report = assess_coverage(technique, index)
+            entry["coverage"] = {"status": report.status, "ratio": report.coverage_ratio,
+                                 "rules": len(report.exact_rules), "usable": len(report.usable_sources),
+                                 "gaps": len(report.gaps)}
+        self._grades[technique.id] = entry
+        return entry
+
+    def forget_grades(self) -> None:
+        self._grades.clear()
+
     def technique_dict(self, technique: Technique, include_coverage: bool = False) -> dict[str, Any]:
         payload = technique_as_dict(technique, self.dataset.version)
         if include_coverage:

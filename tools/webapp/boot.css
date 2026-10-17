@@ -5,46 +5,48 @@
   z-index: 50;
   display: grid;
   place-items: center;
-  padding: 20px;
-  background: var(--bg, #f6f7f9);
+  padding: 16px;
+  background: var(--bg);
 }
 .boot[hidden] { display: none; }
 .boot-card {
   width: 100%;
   max-width: 440px;
-  background: var(--surface, #fff);
-  border: 1px solid var(--border, #d5dae0);
-  border-radius: var(--radius, 6px);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 24px;
   padding: 24px;
 }
 .boot-mark {
   display: inline-grid;
   place-items: center;
-  width: 28px;
-  height: 28px;
-  border-radius: 5px;
-  background: var(--accent, #1f5fbf);
-  color: #fff;
-  font-size: 16px;
-  font-weight: 700;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: var(--mark);
+  color: var(--accent);
+  font-size: 20px;
 }
-.boot-card h1 { margin: 12px 0 6px; font-size: 18px; }
-.boot-lede { margin: 0 0 18px; color: var(--muted, #5c6672); font-size: 14px; line-height: 1.5; }
+.boot-card h1 { margin: 14px 0 6px; font-size: 18px; font-weight: 600; }
+.boot-lede { margin: 0 0 18px; color: var(--muted); font-size: 14px; line-height: 1.5; }
 .boot-track {
-  height: 6px;
-  border-radius: 3px;
-  background: var(--border-muted, #e6e9ed);
+  height: 4px;
+  border-radius: 999px;
+  background: var(--fill);
   overflow: hidden;
 }
 .boot-bar {
   display: block;
   height: 100%;
   width: 0;
-  background: var(--accent, #1f5fbf);
-  transition: width 0.3s ease;
+  background: var(--accent);
+  transition: width 0.3s ease-out;
 }
 .boot-status { margin: 12px 0 2px; font-weight: 600; font-size: 14px; }
-.boot-detail { margin: 0; color: var(--muted, #5c6672); font-size: 13px; min-height: 1.2em; }
+.boot-detail { margin: 0; color: var(--muted); font-size: 13px; min-height: 1.2em; }
+@media (prefers-reduced-motion: reduce) {
+  .boot-bar { transition: none; }
+}
 
 /* No filesystem in a browser tab: the save buttons have nothing to write to. */
 #save-technique-btn,

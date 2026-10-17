@@ -78,7 +78,9 @@ ignored too, except for `docs/validation-protocol.md`, `docs/validation/`, `docs
   enforced) and mypy against Python 3.9, both configured in `pyproject.toml` and both run in CI. Fix
   type errors rather than silencing them; a `# type: ignore[code]` needs a comment saying why.
 - **Runtime dependencies are PyYAML and requests only.** The web UI adds none: no framework, no build
-  step, no external fonts or scripts. Keep it that way.
+  step, no external fonts or scripts. Keep it that way. Its fonts (IBM Plex, SIL Open Font License) are bundled
+  in `src/web/static/fonts/` with their licence; a new static file needs its own entry in `STATIC_FILES` in
+  `src/web/server.py`.
 - **The web page is served under a strict Content-Security-Policy** (`default-src 'self'`). Inline
   `style="..."` attributes, inline `<script>` and anything loaded from another origin are blocked.
   Styling belongs in `styles.css`, and the page must insert text with `textContent`, never `innerHTML`.

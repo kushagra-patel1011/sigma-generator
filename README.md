@@ -131,20 +131,22 @@ python -m src.main ui
 This opens `http://127.0.0.1:8765/`, which has two modes:
 
 - **Technique**
-  1. Search ATT&CK and pick a technique.
-  2. See every log source MITRE recommends, how each maps to Sigma and with what confidence, and whether SigmaHQ
-     already covers it.
-  3. Generate rules and correlation rules, each validated on the spot (with pySigma when installed) and shown
-     with its quality tier and the reasons for it.
-  4. Copy or download them, or save them to the output folder.
+  1. Search ATT&CK (press `/` to jump to the search). Every result carries the grade its default rule would get.
+  2. Open a technique to see the telemetry MITRE names: one block per analytic with its grade, its log source and
+     how that maps to Sigma, the mapping confidence, and whether SigmaHQ already covers it.
+  3. Set the recipe (correlation rules, gaps only, every analytic, the provenance banner, level and TLP). The
+     draft rebuilds as you change it, with no Generate button. Each rule is validated on the spot (with pySigma
+     when installed) and shown with its grade and what that grade means.
+  4. Copy or download the file you are reading, or save every file to the output folder.
 - **Threat pack**
   1. Pick a group, piece of software or campaign.
-  2. Build the whole pack: summary tiles (including the strong / moderate / weak split), a technique table you
-     can filter to deployable rules, SigmaHQ coverage, and expandable rule previews.
+  2. Build the whole pack: totals, the strong / moderate / weak split, and a technique table with SigmaHQ
+     coverage that you can filter to deployable rules. "Open draft" takes any row to the technique view.
   3. Download it as a ZIP or save it to the output folder.
 
-The UI uses only the Python standard library and loads nothing from the Internet. Because it can write files, it is
-locked down:
+The UI uses only the Python standard library and loads nothing from the Internet: its fonts (IBM Plex, under the
+SIL Open Font License) ship with the package. It works the same on a desktop, a tablet or a phone. Because it can
+write files, it is locked down:
 
 - binds to `127.0.0.1` by default, and warns if you bind elsewhere
 - rejects requests whose `Host` header isn't the server itself, which blocks DNS rebinding
@@ -152,7 +154,8 @@ locked down:
   forms and requests can't send, which blocks CSRF
 - request bodies are capped at 64 KB, every field is type-checked, and stalled clients time out after 60 seconds
 - sends a strict Content-Security-Policy with no inline scripts, plus `nosniff` and `frame-ancestors 'none'`
-- serves only three known static files, so no path is taken from the URL
+- serves static files from a fixed allowlist (the page, its script and stylesheet, and three fonts), so no path is
+  taken from the URL
 - the page inserts ATT&CK and rule text with `textContent`, never `innerHTML`
 
 Options: `--port 8766`, `--no-browser`, `--offline`.

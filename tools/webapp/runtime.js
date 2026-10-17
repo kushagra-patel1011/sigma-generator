@@ -81,6 +81,8 @@ def handle(method, path, search, body_json):
                 return _ok(_app.status(query))
             if path == "/api/search":
                 return _ok(_app.search(query))
+            if path == "/api/grades":
+                return _ok(_app.grades(query))
             match = _TECHNIQUE_PATH.match(path)
             if match:
                 return _ok(_app.technique(match.group(1)))
