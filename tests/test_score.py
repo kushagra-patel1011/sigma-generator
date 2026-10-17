@@ -233,3 +233,83 @@ def test_pins_match_the_protocol():
     assert score.HAYABUSA_TAG_COMMIT in protocol and f"v{score.HAYABUSA_VERSION}" in protocol
     for _, digest, _ in score.HAYABUSA_ASSETS.values():
         assert digest in protocol
+
+
+def test_manifest_reads_correlation_files_by_their_first_document(tmp_path):
+    staged, converted = tmp_path / "rules", tmp_path / "converted" / "sysmon"
+    staged.mkdir()
+    converted.mkdir(parents=True)
+    (staged / "mr_chain.yml").write_text(
+        f"title: chain\nid: {RULE}\ncorrelation:\n  type: temporal\n---\nname: step1\nid: base-0001\n", encoding="utf-8")
+    (converted / "mr_chain.yml").write_text(
+        f"title: chain\nid: aaaaaaaa-0000-0000-0000-000000000001\nrelated:\n  - id: {RULE}\n    type: derived\n"
+        "---\nname: step1\nid: aaaaaaaa-0000-0000-0000-000000000009\nrelated:\n  - id: base-0001\n    type: derived\n",
+        encoding="utf-8")
+    manifest = score.build_manifest(staged, tmp_path / "converted")
+    assert [item["id"] for item in manifest[RULE]["converted"]] == ["aaaaaaaa-0000-0000-0000-000000000001"]
+
+
+REPLACEMENT = "cccccccc-0000-0000-0000-000000000000"
+REPLACEMENT_DERIVED = "dddddddd-0000-0000-0000-000000000001"
+
+
+def _sample_with_queue():
+    sample = _sample()
+    sample["strata"]["strong"][0]["art_tests"] = [{"guid": "test-1"}]
+    sample["strata"]["strong"].append({"rank": 18, "technique_id": "T1560", "selected": False,
+                                       "art_tests": [{"guid": "test-9"}]})
+    return sample
+
+
+def _replacement_run(tmp_path, substituted=True):
+    results = tmp_path / "round1"
+    failed = results / "strong-02-T1056.001" / "test-1"
+    failed.mkdir(parents=True)
+    (failed / "result.json").write_text(json.dumps(_record(prereq_status="failed", execution_status=None)),
+                                        encoding="utf-8")
+    ran = results / "strong-18-T1560" / "test-9"
+    ran.mkdir(parents=True)
+    (ran / "result.json").write_text(json.dumps(_record(technique_id="T1560", rule_id=REPLACEMENT,
+                                                        test_guid="test-9")), encoding="utf-8")
+    (ran / "hayabusa.json").write_text(json.dumps({"expected_rules": 1, "total_detection_rules": 1}), encoding="utf-8")
+    (ran / "alerts.jsonl").write_text(
+        json.dumps(_alert("2026-10-07 10:05:03.250 +00:00", rule_id=REPLACEMENT_DERIVED)) + "\n", encoding="utf-8")
+    if substituted:
+        (results / "substitutions.json").write_text(json.dumps({"substitutions": [{
+            "tier": "strong", "replaced": {"technique_id": "T1056.001", "rank": 2, "rule_id": RULE},
+            "replacement": {"technique_id": "T1560", "rank": 18, "rule_id": REPLACEMENT,
+                            "rule_file": "population/rules/t1560.yml"}}]}), encoding="utf-8")
+    manifest = {"rules": {RULE: {"rule_file": "r.yml", "converted": [{"id": d} for d in sorted(DERIVED)]},
+                          REPLACEMENT: {"rule_file": "t1560.yml", "converted": [{"id": REPLACEMENT_DERIVED}]}}}
+    population = {"rules": [{"technique_id": "T1560", "rule_id": REPLACEMENT, "rule_file": "rules/t1560.yml"}],
+                  "correlations": []}
+    return results, manifest, population
+
+
+def test_report_scores_a_replacement_and_marks_the_rule_it_replaced(tmp_path):
+    results, manifest, population = _replacement_run(tmp_path)
+    rows = score.report(results, tmp_path / "scores", sample=_sample_with_queue(), manifest=manifest,
+                        population=population)
+    replaced, replacement = rows
+    assert (replaced.technique_id, replaced.sample_status, replaced.executed) == ("T1056.001", "substituted", 0)
+    assert "substituted by T1560" in replaced.notes[0]
+    assert (replacement.technique_id, replacement.sample_status, replacement.detected) == ("T1560", "replacement", 1)
+    with open(tmp_path / "scores" / "rules.csv", encoding="utf-8") as handle:
+        assert [row["sample_status"] for row in csv.DictReader(handle)] == ["substituted", "replacement"]
+
+
+def test_report_refuses_a_queued_rule_no_substitution_brought_in(tmp_path):
+    results, manifest, population = _replacement_run(tmp_path, substituted=False)
+    with pytest.raises(score.ScoreError, match="neither sampled nor"):
+        score.report(results, tmp_path / "scores", sample=_sample_with_queue(), manifest=manifest,
+                     population=population)
+
+
+def test_queued_rules_are_converted_from_the_frozen_population():
+    from tools import population
+
+    sample = population.load_sample()
+    files = score.rules_under_test(sample)
+    assert len(files) == sum(len(rules) for rules in sample["strata"].values()) == 203
+    assert all(path.is_file() for path in files)
+    assert sum("population" in path.parts for path in files) == 153

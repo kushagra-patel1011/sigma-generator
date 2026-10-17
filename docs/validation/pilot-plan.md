@@ -66,8 +66,10 @@ stop after phase 1, review its records, and run phase 2 later.
 If every test of a pilot rule fails its prerequisites, protocol section 4 replaces the rule with the next one in
 its tier's substitution queue, and the replacement joins the pilot. The first replacements are **T1560** (strong),
 **T1048.003** (moderate) and **T1219** (weak). Round 1 has no domain, so T1003.005 (Cached Domain Credentials) is
-the likeliest candidate. Run a replacement with `-Execute -Technique <ID>`, and record the substitution in
-`RESULTS.md`.
+the likeliest candidate. Record the substitution with `python -m tools.substitute apply`, which checks it is due and
+takes the next rule of the queue, then run the replacement with the command it prints (`RESULTS.md`, step 4c). The
+runner plans a queued rule only once a recorded substitution names it, and the replacement's rule file is the one
+frozen before any test ran (protocol amendment 4).
 
 ## Before running
 
