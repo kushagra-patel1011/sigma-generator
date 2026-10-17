@@ -101,7 +101,7 @@ function alertBox(kind, message) {
 }
 
 function levelPill(level) {
-  return h("span", { class: `pill level-${level}` }, level);
+  return h("span", { class: "level" }, `level ${level}`);
 }
 
 const TIER_HELP = {
@@ -116,11 +116,6 @@ function tierPill(tier, reasons) {
   return h("span", { class: `pill tier-${tier}`, title }, tier === "placeholder" ? "skeleton" : tier);
 }
 
-function confidenceBar(value) {
-  const bar = h("span", { class: "conf", title: `confidence ${Math.round(value * 100)}%` }, h("i"));
-  bar.firstChild.style.width = `${Math.round(value * 100)}%`;
-  return bar;
-}
 
 /** Minimal YAML highlighting built from DOM nodes (no innerHTML). */
 function yamlBlock(text) {
@@ -239,10 +234,10 @@ async function loadStatus() {
   state.status = status;
   const sigmahq = status.sigmahq;
   $("#datasets").replaceChildren(
-    h("span", { class: "badge" }, h("span", { class: "dot" }), `ATT&CK v${status.attack.version}`),
-    h("span", { class: `badge ${sigmahq.available ? "" : "off"}` }, h("span", { class: "dot" }),
+    h("span", {}, `ATT&CK v${status.attack.version}`),
+    h("span", { class: sigmahq.available ? null : "off" },
       sigmahq.available ? `SigmaHQ ${sigmahq.release}` : "SigmaHQ not downloaded"),
-    h("span", { class: "badge" }, `v${status.version}`),
+    h("span", {}, `v${status.version}`),
   );
 
   const notice = $("#sigmahq-notice");
@@ -294,60 +289,77 @@ function coverageFor(detail) {
   return map;
 }
 
-function renderTechniqueDetail(detail) {
-  const container = $("#technique-detail");
-  container.classList.remove("empty-state");
-  const coverage = coverageFor(detail);
-  const description = h("div", { class: "desc clamped" }, detail.description.split("\n")[0]);
+function clampable(text) {
+  const description = h("p", { class: "desc clamped" }, text);
   const more = h("button", { class: "linkish", type: "button" }, "Show more");
   more.addEventListener("click", () => {
     description.classList.toggle("clamped");
     more.textContent = description.classList.contains("clamped") ? "Show more" : "Show less";
   });
+  return [description, more];
+}
+
+function renderTechniqueDetail(detail) {
+  const container = $("#technique-detail");
+  container.classList.remove("empty-state");
+  const coverage = coverageFor(detail);
+  const [description, more] = clampable(detail.description.split("\n")[0]);
 
   const telemetry = h("div", { class: "telemetry" });
   for (const strategy of detail.detection_strategies) {
     for (const analytic of strategy.analytics) {
-      telemetry.append(h("div", { class: "analytic-head" },
-        h("code", {}, analytic.id), ` · ${analytic.platforms.join(", ") || "any platform"}`));
+      const rows = h("ul", { class: "tel-list" });
       for (const source of analytic.log_sources) {
         const label = source.channel ? `${source.name} (${source.channel})` : source.name;
         const verdict = coverage.get(`${analytic.id}|${label}`);
-        let pill;
-        if (!source.mappable) pill = h("span", { class: "pill" }, "not Sigma");
-        else if (!detail.sigmahq) pill = h("span", { class: "pill info" }, `${Math.round(source.confidence * 100)}%`);
-        else if (verdict && verdict.covered_by.length) pill = h("span", { class: "pill ok", title: "SigmaHQ rules watch this log source" }, `SigmaHQ ×${verdict.covered_by.length}`);
-        else pill = h("span", { class: "pill gap", title: "No SigmaHQ rule for this technique on this log source" }, "gap");
-        const logsource = Object.values(source.sigma_logsource).join(" / ") || "no Sigma logsource";
-        telemetry.append(h("div", { class: "tel-row" },
-          h("div", { class: "tel-src" }, label),
-          pill,
-          h("div", { class: "tel-map" }, "→ ", h("b", {}, logsource), source.mappable ? confidenceBar(source.confidence) : null),
-        ));
+        let status = null;
+        if (!source.mappable) status = h("span", { class: "pill" }, "not Sigma");
+        else if (!detail.sigmahq) status = null;
+        else if (verdict && verdict.covered_by.length) {
+          status = h("span", { class: "pill ok", title: "SigmaHQ rules watch this log source" },
+            `${verdict.covered_by.length} SigmaHQ`);
+        } else status = h("span", { class: "pill gap", title: "No SigmaHQ rule for this technique on this log source" }, "gap");
+        const logsource = Object.values(source.sigma_logsource).join(" / ");
+        rows.append(h("li", { class: "tel-row" },
+          h("div", { class: "tel-text" },
+            h("div", { class: "tel-src" }, label),
+            h("div", { class: "tel-map" }, source.mappable
+              ? [h("code", {}, logsource || "no Sigma log source"), ` · ${Math.round(source.confidence * 100)}% confidence`]
+              : "no Sigma log source")),
+          status));
       }
+      telemetry.append(
+        h("p", { class: "analytic-head" }, h("code", {}, analytic.id), ` ${analytic.platforms.join(", ") || "any platform"}`),
+        rows);
     }
   }
 
-  const coverageSummary = detail.sigmahq
-    ? h("div", { class: "status-line" },
-        h("span", { class: `pill ${detail.sigmahq.status === "covered" ? "ok" : detail.sigmahq.status === "partial" ? "warn" : "gap"}` },
-          detail.sigmahq.status),
-        h("span", { class: "aliases" },
-          `${detail.sigmahq.sigmahq_rules.length} SigmaHQ rule(s) tagged ${detail.id} · ${Math.round(detail.sigmahq.coverage_ratio * 100)}% of recommended telemetry covered`))
+  const sigmahq = detail.sigmahq;
+  const coverageSummary = sigmahq
+    ? h("p", { class: "status-line" },
+        h("span", { class: `pill ${sigmahq.status === "covered" ? "ok" : sigmahq.status === "partial" ? "warn" : "gap"}` },
+          sigmahq.status),
+        ` ${Math.round(sigmahq.coverage_ratio * 100)}% of these covered by SigmaHQ · `
+          + `${sigmahq.sigmahq_rules.length} rule(s) tagged ${detail.id}`)
     : null;
 
   fill(container,
-    h("div", { class: "eyebrow" }, detail.id, detail.parent ? ` · sub-technique of ${detail.parent.id}` : ""),
-    h("h2", {}, detail.name),
-    h("div", { class: "chips" },
-      detail.tactics.map((t) => h("span", { class: "chip tactic" }, t)),
-      detail.platforms.map((p) => h("span", { class: "chip" }, p))),
+    h("p", { class: "eyebrow" }, detail.id, detail.parent ? ` · sub-technique of ${detail.parent.id}` : ""),
+    h("h2", { class: "detail-title" }, detail.name),
+    h("p", { class: "tags" },
+      detail.tactics.map((t) => h("span", { class: "tag" }, t)),
+      detail.platforms.map((p) => h("span", { class: "tag plain" }, p))),
     detail.revoked ? alertBox("warn", `Revoked in ATT&CK${detail.revoked_by ? ` - replaced by ${detail.revoked_by}` : ""}.`) : null,
-    description, more, " ",
-    h("a", { href: detail.url, target: "_blank", rel: "noopener noreferrer", class: "linkish" }, "ATT&CK page ↗"),
-    h("div", { class: "section-title" }, "Telemetry ATT&CK recommends"),
-    coverageSummary,
-    telemetry.childElementCount ? telemetry : h("p", { class: "desc" }, "ATT&CK attaches no detection analytic to this technique."),
+    description,
+    h("p", { class: "desc-links" }, more, " · ",
+      h("a", { href: detail.url, target: "_blank", rel: "noopener noreferrer" }, "ATT&CK page")),
+    telemetry.childElementCount
+      ? h("details", { class: "tel-details", open: window.matchMedia("(min-width: 960px)").matches },
+          h("summary", { class: "section-title" }, "Recommended log sources ",
+            h("span", { class: "muted" }, `(${telemetry.querySelectorAll(".tel-row").length})`)),
+          coverageSummary, telemetry)
+      : [h("h3", { class: "section-title" }, "Recommended log sources"), coverageSummary,
+         h("p", { class: "muted" }, "ATT&CK attaches no detection analytic to this technique.")],
   );
 
   const form = $("#technique-form");
@@ -365,8 +377,8 @@ async function selectTechnique(id) {
     state.technique = detail;
     $("#technique-search").value = `${detail.id} ${detail.name}`;
     renderTechniqueDetail(detail);
-    $("#technique-output").replaceChildren(h("p", { class: "desc" },
-      `Choose options and press Generate to build rules for ${detail.id}.`));
+    $("#technique-output").replaceChildren(h("p", { class: "hint" },
+      `Choose options, then press Generate rules to build the rules for ${detail.id}.`));
   } catch (error) {
     $("#technique-detail").replaceChildren(alertBox("error", error.message));
   }
@@ -374,104 +386,94 @@ async function selectTechnique(id) {
 
 function matchList(matches) {
   if (!matches || !matches.length) return null;
-  const wrap = h("div", { class: "matches" },
-    h("div", { class: "field-label" }, "What it matches"));
-  for (const row of matches) {
-    const values = row.values.map((v, i) =>
-      [i ? h("span", { class: "or" }, "or") : null, h("code", {}, v)]).flat().filter(Boolean);
-    if (row.more) values.push(h("span", { class: "or" }, `+${row.more} more`));
-    wrap.append(h("div", { class: `match${row.optional ? " is-optional" : ""}${row.event ? " is-event" : ""}` },
-      h("span", { class: "mfield" }, row.field),
-      h("span", { class: "mvalues" }, ...values),
-      row.optional ? h("span", { class: "mnote" }, "any of these") : null));
-  }
-  return wrap;
+  const rows = matches.map((row) => {
+    const values = row.values.map((v, i) => [i ? h("span", { class: "or" }, " or ") : null, h("code", {}, v)]).flat().filter(Boolean);
+    if (row.more) values.push(h("span", { class: "or" }, ` +${row.more} more`));
+    return h("tr", { class: row.event ? "is-event" : null },
+      h("th", { scope: "row" }, h("code", {}, row.field)),
+      h("td", {}, ...values, row.optional ? h("span", { class: "note" }, "any of these") : null));
+  });
+  return h("div", { class: "matches" },
+    h("h4", {}, "What it matches"),
+    h("div", { class: "scroll-x" }, h("table", { class: "kv" }, h("tbody", {}, rows))));
 }
 
-function ruleCard(rule, technique) {
+function fileActions(filename, text, type) {
+  return h("div", { class: "result-actions" },
+    h("button", { class: "btn small", type: "button", onclick: () => copyText(text) }, "Copy"),
+    h("button", { class: "btn small", type: "button", onclick: () => downloadText(filename, text, type) }, "Download"));
+}
+
+function ruleCard(rule) {
   const isChain = rule.kind === "chain";
   const isCount = isChain && rule.correlation_kind === "count";
   const valid = rule.problems.length === 0;
   const tier = rule.quality.tier;
-  const validity = valid
-    ? h("span", { class: "pill ok", title: rule.pysigma_checked ? "Passed the built-in validator and pySigma" : "Passed the built-in validator" },
-        rule.pysigma_checked ? "✓ valid (pySigma)" : "✓ valid")
-    : h("span", { class: "pill gap" }, `${rule.problems.length} problem(s)`);
+  const kind = isCount ? "Count threshold" : isChain ? "Attack chain" : "Sigma rule";
 
-  const card = h("article", { class: `card rule-card tier-${tier}` },
-    h("div", { class: "rule-head" },
-      h("div", {},
-        h("div", { class: "rule-kind" }, isCount ? "Count threshold" : isChain ? "Attack chain" : "Sigma rule"),
-        h("div", { class: "verdict" },
-          h("span", { class: `tier-word tier-${tier}` }, tier === "placeholder" ? "skeleton" : tier),
-          h("span", { class: "verdict-why" }, rule.quality.reasons.join("; ") || rule.quality.meaning)),
-        h("h3", {}, rule.title),
-        h("div", { class: "meta" },
-          levelPill(rule.level), validity,
-          h("span", {}, h("span", { class: "k" }, "logsource "), h("code", {}, rule.logsource)),
-          rule.analytic ? h("span", {}, h("span", { class: "k" }, "analytic "), h("code", {}, rule.analytic)) : null,
-          h("span", {}, h("span", { class: "k" }, "confidence "), h("code", {}, `${Math.round(rule.confidence * 100)}%`)))),
-      h("div", { class: "rule-actions" },
-        h("button", { class: "btn small", type: "button", onclick: () => copyText(rule.yaml) }, "Copy"),
-        h("button", { class: "btn small", type: "button", onclick: () => downloadText(rule.filename, rule.yaml) }, "Download"))),
+  const card = h("article", { class: "result" },
+    h("div", { class: "result-head" },
+      h("div", { class: "result-heading" },
+        h("p", { class: "result-kind" }, isChain ? `${kind} · ${rule.correlation_type}` : kind),
+        h("h3", {}, rule.title)),
+      fileActions(rule.filename, rule.yaml)),
+    h("p", { class: "result-meta" },
+      tierPill(tier, rule.quality.reasons),
+      valid
+        ? h("span", { class: "pill ok", title: rule.pysigma_checked ? "Passed the built-in validator and pySigma" : "Passed the built-in validator" },
+            rule.pysigma_checked ? "valid (pySigma)" : "valid")
+        : h("span", { class: "pill gap" }, `${rule.problems.length} problem(s)`),
+      h("span", {}, "Level ", h("strong", {}, rule.level)),
+      h("span", {}, "Log source ", h("code", {}, rule.logsource)),
+      rule.analytic ? h("span", {}, "Analytic ", h("code", {}, rule.analytic)) : null,
+      h("span", {}, `Confidence ${Math.round(rule.confidence * 100)}%`)),
+    h("p", { class: "result-why" }, `${tier === "placeholder" ? "Skeleton" : tier[0].toUpperCase() + tier.slice(1)}: `
+      + (rule.quality.reasons.join("; ") || rule.quality.meaning)),
   );
-
-  if (!isChain) card.append(matchList(rule.matches));
 
   if (isCount) {
     const condition = rule.condition || {};
-    const counted = condition.field ? `distinct ${condition.field}` : "matching events";
-    card.append(h("div", { class: "chain", "aria-label": "Threshold" },
-      h("div", { class: "step" },
-        h("span", { class: "lbl" }, "Counted event"),
-        h("span", { class: "s" }, rule.steps[0].logsource)),
-      h("span", { class: "arrow", "aria-hidden": "true" }, "≥"),
-      h("div", { class: "step" },
-        h("span", { class: "lbl" }, rule.correlation_type),
-        h("span", { class: "s" }, `${condition.gte} ${counted}`)),
-      h("span", { class: "chain-window" }, `within ${rule.timespan}`, h("br"), `per ${rule.group_by.join(", ")}`)));
+    const counted = condition.field ? `distinct ${condition.field} values` : "matching events";
+    card.append(h("p", { class: "chain-summary" },
+      `Fires when ${condition.gte} or more ${counted} occur within ${rule.timespan}, per ${rule.group_by.join(", ")}. Counted event: `,
+      h("code", {}, rule.steps[0].logsource), "."));
     card.append(matchList(rule.steps[0].matches));
   } else if (isChain) {
-    const chain = h("div", { class: "chain", "aria-label": "Correlated steps" });
-    rule.steps.forEach((step, index) => {
-      if (index) chain.append(h("span", { class: "arrow", "aria-hidden": "true" }, "+"));
-      chain.append(h("div", { class: "step" },
-        h("span", { class: "lbl" }, `Step ${index + 1}`),
-        h("span", { class: "s" }, step.logsource),
-        h("span", { class: "small" }, (step.matches[0] && step.matches[0].values[0]) || "")));
-    });
-    chain.append(h("span", { class: "chain-window" }, `within ${rule.timespan}`, h("br"), `same ${rule.group_by.join(", ")}`));
-    card.append(chain);
+    card.append(h("p", { class: "chain-summary" },
+      `Fires when all ${rule.steps.length} steps occur within ${rule.timespan} on the same ${rule.group_by.join(", ")}.`));
+    card.append(h("ol", { class: "steps" }, rule.steps.map((step) => {
+      const example = step.matches[0] && step.matches[0].values[0];
+      return h("li", {}, h("code", {}, step.logsource), example ? h("span", { class: "step-value" }, example) : null);
+    })));
+  } else {
+    card.append(matchList(rule.matches));
   }
-  if (!valid) card.append(h("div", { class: "notes" }, alertBox("error", rule.problems.join("; "))));
+  if (!valid) card.append(alertBox("error", rule.problems.join("; ")));
   if (rule.notes.length) card.append(h("ul", { class: "notes" }, rule.notes.map((n) => h("li", {}, n))));
 
   const lines = rule.yaml.split("\n").length;
-  const details = h("details", { class: "code" },
-    h("summary", { class: "file-head" }, rule.filename, h("span", { class: "small" }, `${lines} lines · YAML`)));
+  const details = h("details", { class: "yaml-details" },
+    h("summary", {}, "YAML ", h("code", {}, rule.filename), h("span", { class: "muted" }, ` · ${lines} lines`)));
   details.addEventListener("toggle", () => {
     if (details.open && details.childElementCount === 1) details.append(yamlBlock(rule.yaml));
-  }, { once: false });
+  });
   card.append(details);
   return card;
 }
 
 function bundleCard(bundle) {
-  return h("article", { class: "card rule-card" },
-    h("div", { class: "rule-head" },
-      h("div", {},
-        h("div", { class: "rule-kind" }, "STIX 2.1 bundle"),
-        h("h3", {}, bundle.filename),
-        h("div", { class: "meta" },
-          bundle.problems.length ? h("span", { class: "pill gap" }, `${bundle.problems.length} problem(s)`)
-            : h("span", { class: "pill ok" }, "✓ valid STIX 2.1"),
-          h("span", {}, "indicator pattern_type ", h("code", {}, "sigma")))),
-      h("div", { class: "rule-actions" },
-        h("button", { class: "btn small", type: "button", onclick: () => copyText(bundle.json) }, "Copy"),
-        h("button", { class: "btn small", type: "button", onclick: () => downloadText(bundle.filename, bundle.json, "application/json") }, "Download"))),
-    h("div", { class: "stix-counts" },
-      Object.entries(bundle.objects).map(([type, count]) => h("span", { class: "chip" }, `${count} ${type}`))),
-  );
+  const counts = Object.entries(bundle.objects).map(([type, count]) => `${count} ${type}`).join(", ");
+  return h("article", { class: "result" },
+    h("div", { class: "result-head" },
+      h("div", { class: "result-heading" },
+        h("p", { class: "result-kind" }, "STIX 2.1 bundle"),
+        h("h3", {}, bundle.filename)),
+      fileActions(bundle.filename, bundle.json, "application/json")),
+    h("p", { class: "result-meta" },
+      bundle.problems.length ? h("span", { class: "pill gap" }, `${bundle.problems.length} problem(s)`)
+        : h("span", { class: "pill ok" }, "valid STIX 2.1"),
+      h("span", {}, "Indicators use pattern type ", h("code", {}, "sigma"))),
+    h("p", { class: "result-why" }, `Objects: ${counts}`));
 }
 
 function renderTechniqueResult(result) {
@@ -482,8 +484,10 @@ function renderTechniqueResult(result) {
   if (result.status === "insufficient") parts.push(alertBox("warn", result.reason));
   if (result.status === "unmappable" || result.status === "error") parts.push(alertBox("error", result.reason));
   if (result.saved.length) parts.push(alertBox("ok", `Saved ${result.saved.length} file(s) to the output folder.`));
-  for (const chain of result.chains) parts.push(ruleCard(chain, result.technique));
-  for (const rule of result.rules) parts.push(ruleCard(rule, result.technique));
+  const files = result.chains.length + result.rules.length + (result.bundle ? 1 : 0);
+  if (files) parts.push(h("h2", { class: "results-title" }, `${files} file${files === 1 ? "" : "s"}`));
+  for (const chain of result.chains) parts.push(ruleCard(chain));
+  for (const rule of result.rules) parts.push(ruleCard(rule));
   if (result.bundle) parts.push(bundleCard(result.bundle));
   if (!parts.length) parts.push(alertBox("warn", "Nothing was generated."));
   output.replaceChildren(...parts);
@@ -513,25 +517,27 @@ async function generateTechnique(save = false) {
 function renderThreatDetail(profile) {
   const container = $("#threat-detail");
   container.classList.remove("empty-state");
-  const techniques = h("div", { class: "chips" },
-    profile.techniques.slice(0, 40).map((t) => h("span", { class: "chip", title: t.name }, t.id)),
-    profile.techniques.length > 40 ? h("span", { class: "chip" }, `+${profile.techniques.length - 40} more`) : null);
+  const [description, more] = clampable(profile.description);
+  const techniques = h("p", { class: "tags" },
+    profile.techniques.slice(0, 40).map((t) => h("span", { class: "tag plain mono", title: t.name }, t.id)),
+    profile.techniques.length > 40 ? h("span", { class: "muted" }, ` +${profile.techniques.length - 40} more`) : null);
   fill(container,
-    h("div", { class: "eyebrow" }, `${profile.id} · ${profile.kind}`),
-    h("h2", {}, profile.name),
-    profile.aliases.length ? h("div", { class: "aliases" }, `Also known as ${profile.aliases.slice(0, 10).join(", ")}`) : null,
-    h("p", { class: "desc" }, profile.description),
-    h("a", { href: profile.url, target: "_blank", rel: "noopener noreferrer", class: "linkish" }, "ATT&CK page ↗"),
-    h("div", { class: "section-title" }, `${profile.techniques.length} techniques attributed`),
+    h("p", { class: "eyebrow" }, `${profile.id} · ${profile.kind}`),
+    h("h2", { class: "detail-title" }, profile.name),
+    profile.aliases.length ? h("p", { class: "muted" }, `Also known as ${profile.aliases.slice(0, 10).join(", ")}`) : null,
+    description,
+    h("p", { class: "desc-links" }, more, " · ",
+      h("a", { href: profile.url, target: "_blank", rel: "noopener noreferrer" }, "ATT&CK page")),
+    h("h3", { class: "section-title" }, `${profile.techniques.length} techniques attributed`),
     techniques,
-    profile.campaigns.length ? h("div", { class: "aliases" }, `Attributed campaigns: ${profile.campaigns.join(", ")}`) : null,
+    profile.campaigns.length ? h("p", { class: "muted" }, `Attributed campaigns: ${profile.campaigns.join(", ")}`) : null,
   );
   $("#pack-form").hidden = false;
   $("#with-campaigns-toggle").hidden = profile.kind !== "group" || !profile.campaigns.length;
   $("#pack-zip-btn").disabled = true;
   $("#pack-save-btn").disabled = true;
-  $("#pack-output").replaceChildren(h("p", { class: "desc" },
-    `Press "Build detection pack" to generate detections for all ${profile.techniques.length} techniques.`));
+  $("#pack-output").replaceChildren(h("p", { class: "hint" },
+    `Press Build pack to generate detections for all ${profile.techniques.length} techniques.`));
 }
 
 async function selectThreat(item) {
@@ -547,7 +553,19 @@ async function selectThreat(item) {
 }
 
 function statTile(label, value, tone = "") {
-  return h("div", { class: `card stat ${tone}` }, h("div", { class: "num" }, String(value)), h("div", { class: "lbl" }, label));
+  return h("div", { class: `stat ${tone}` }, h("dt", {}, label), h("dd", {}, String(value)));
+}
+
+const STATUS_TEXT = {
+  "generated": "Rules written",
+  "insufficient evidence": "No concrete values",
+  "unmappable": "Not expressible as Sigma",
+};
+
+function statusText(status) {
+  if (STATUS_TEXT[status]) return STATUS_TEXT[status];
+  const text = status.replace(/_/g, " ");
+  return text[0].toUpperCase() + text.slice(1);
 }
 
 function renderPack(pack) {
@@ -557,34 +575,37 @@ function renderPack(pack) {
   if (pack.saved_to) parts.push(alertBox("ok", `Saved to ${pack.saved_to}`));
   if (pack.bundle_errors.length) parts.push(alertBox("error", `STIX bundle problems: ${pack.bundle_errors.join("; ")}`));
 
-  parts.push(h("div", { class: "stats" },
-    statTile("techniques attributed", summary.techniques),
-    statTile("Sigma rules", summary.rules, "accent"),
-    statTile("correlation rules", summary.correlation_rules, "accent"),
-    statTile("strong / moderate / weak", `${summary.quality.strong} / ${summary.quality.moderate} / ${summary.quality.weak}`),
-    pack.sigmahq_release ? statTile("with no SigmaHQ rule", noSigmahq, noSigmahq ? "danger" : "") : null,
-    pack.options.gaps_only ? statTile("fully covered, skipped", summary.covered_by_sigmahq) : null,
-    statTile("no concrete values in ATT&CK", summary.insufficient_evidence),
-    statTile("not expressible as Sigma", summary.unmappable),
+  parts.push(h("dl", { class: "stats" },
+    statTile("Techniques", summary.techniques),
+    statTile("Sigma rules", summary.rules),
+    statTile("Correlation rules", summary.correlation_rules),
+    statTile("Strong / moderate / weak", `${summary.quality.strong} / ${summary.quality.moderate} / ${summary.quality.weak}`),
+    pack.sigmahq_release ? statTile("No SigmaHQ rule", noSigmahq, noSigmahq ? "danger" : "") : null,
+    pack.options.gaps_only ? statTile("Fully covered, skipped", summary.covered_by_sigmahq) : null,
+    statTile("No concrete values", summary.insufficient_evidence),
+    statTile("Not expressible as Sigma", summary.unmappable),
   ));
 
+  const columns = ["Technique", "Name", "Rule quality", "Correlations", "SigmaHQ", "Status"];
   const tbody = h("tbody");
   let filter = "all";
   const rows = [];
   for (const technique of pack.techniques) {
     const cov = technique.sigmahq;
-    const sigmahqCell = !cov ? "-"
-      : !cov.sources.some((s) => s.usable) ? h("span", { class: "pill" }, "n/a")
-      : cov.sigmahq_rules.length === 0 ? h("span", { class: "pill gap" }, "no rules")
-      : h("span", { class: cov.gaps.length ? "pill warn" : "pill ok" }, `${cov.sigmahq_rules.length} rules · ${cov.gaps.length} gap(s)`);
-    const statusTone = technique.status === "generated" ? "ok" : technique.status.startsWith("covered") ? "info" : "";
+    const sigmahqCell = !cov ? h("span", { class: "muted" }, "-")
+      : !cov.sources.some((s) => s.usable) ? h("span", { class: "muted" }, "n/a")
+      : cov.sigmahq_rules.length === 0 ? h("span", { class: "text-danger" }, "No rules")
+      : h("span", { class: cov.gaps.length ? "text-warn" : "text-ok" },
+          `${cov.sigmahq_rules.length} rule${cov.sigmahq_rules.length === 1 ? "" : "s"}`
+          + (cov.gaps.length ? `, ${cov.gaps.length} gap${cov.gaps.length === 1 ? "" : "s"}` : ""));
+    const cell = (index, ...content) => h("td", { "data-label": columns[index] }, ...content);
     const row = h("tr", { class: "row", tabindex: "0", "aria-expanded": "false" },
-      h("td", { class: "tid" }, technique.id),
-      h("td", {}, technique.name, h("div", { class: "aliases" }, technique.tactics.join(", "))),
-      h("td", {}, technique.rules.length ? technique.rules.map((r) => tierPill(r.quality)) : "-"),
-      h("td", { class: "num-cell" }, String(technique.chains.length)),
-      h("td", {}, sigmahqCell),
-      h("td", {}, h("span", { class: `pill ${statusTone}` }, technique.status)));
+      cell(0, h("span", { class: "chev", "aria-hidden": "true" }), h("code", {}, technique.id)),
+      cell(1, technique.name, h("div", { class: "muted small" }, technique.tactics.join(", "))),
+      cell(2, technique.rules.length ? technique.rules.map((r) => tierPill(r.quality)) : h("span", { class: "muted" }, "-")),
+      cell(3, String(technique.chains.length)),
+      cell(4, sigmahqCell),
+      cell(5, h("span", { class: technique.status === "generated" ? null : "muted" }, statusText(technique.status))));
     const filesRow = h("tr", { class: "expanded", hidden: true }, h("td", { class: "files", colspan: "6" }));
 
     const toggle = () => {
@@ -592,19 +613,18 @@ function renderPack(pack) {
       filesRow.hidden = !open;
       row.setAttribute("aria-expanded", String(open));
       if (open && !filesRow.firstChild.childElementCount) {
-        const cell = filesRow.firstChild;
+        const target = filesRow.firstChild;
         for (const procedure of technique.procedures.slice(0, 2)) {
-          cell.append(h("div", { class: "procedure" }, procedure));
+          target.append(h("blockquote", { class: "procedure" }, procedure));
         }
-        if (technique.reason) cell.append(h("div", { class: "procedure" }, technique.reason));
+        if (technique.reason) target.append(h("p", { class: "muted" }, technique.reason));
         for (const file of [...technique.chains, ...technique.rules]) {
           const path = `sigma/${file.file}`;
           const text = pack.rule_files[path] || "";
-          cell.append(h("div", { class: "file-block" },
-            h("div", { class: "file-head" }, tierPill(file.quality), levelPill(file.level), file.file,
-              h("div", { class: "rule-actions" },
-                h("button", { class: "btn small", type: "button", onclick: () => copyText(text) }, "Copy"),
-                h("button", { class: "btn small", type: "button", onclick: () => downloadText(file.file, text) }, "Download"))),
+          target.append(h("div", { class: "file-block" },
+            h("div", { class: "file-head" },
+              h("div", { class: "file-name" }, tierPill(file.quality), levelPill(file.level), h("code", {}, file.file)),
+              fileActions(file.file, text)),
             yamlBlock(text)));
         }
       }
@@ -630,23 +650,27 @@ function renderPack(pack) {
   };
   const filters = [["all", "All"], ["generated", "With rules"], ["deployable", "Strong or moderate"], ["chains", "With correlations"],
     ...(pack.sigmahq_release ? [["gaps", "No SigmaHQ rule"]] : []), ["skipped", "Not generated"]];
-  const filterBar = h("div", { class: "filter-bar" },
-    filters.map(([key, label]) => {
-      const button = h("button", { class: `chip-btn${key === filter ? " is-active" : ""}`, type: "button" }, label);
-      button.addEventListener("click", () => {
-        filter = key;
-        filterBar.querySelectorAll(".chip-btn").forEach((b) => b.classList.toggle("is-active", b === button));
-        applyFilter();
-      });
-      return button;
-    }),
-    h("span", { class: "spacer" }),
-    h("span", { class: "aliases" }, `ATT&CK v${pack.attack_version}${pack.sigmahq_release ? ` · SigmaHQ ${pack.sigmahq_release}` : ""}`));
+  const group = h("div", { class: "filter", role: "group", "aria-label": "Show techniques" });
+  for (const [key, label] of filters) {
+    const button = h("button", { class: `filter-btn${key === filter ? " is-active" : ""}`, type: "button",
+      "aria-pressed": String(key === filter) }, label);
+    button.addEventListener("click", () => {
+      filter = key;
+      for (const other of group.children) {
+        other.classList.toggle("is-active", other === button);
+        other.setAttribute("aria-pressed", String(other === button));
+      }
+      applyFilter();
+    });
+    group.append(button);
+  }
 
-  parts.push(h("div", { class: "card" }, filterBar, h("div", { class: "table-wrap" },
+  parts.push(h("div", { class: "panel pack-table" },
+    h("div", { class: "filter-bar" }, group,
+      h("span", { class: "muted small" }, `ATT&CK v${pack.attack_version}${pack.sigmahq_release ? ` · SigmaHQ ${pack.sigmahq_release}` : ""}`)),
     h("table", { class: "pack" },
-      h("thead", {}, h("tr", {}, ["Technique", "Name", "Rule quality", "Correlations", "SigmaHQ", "Status"].map((c) => h("th", { scope: "col" }, c)))),
-      tbody))));
+      h("thead", {}, h("tr", {}, columns.map((c) => h("th", { scope: "col" }, c)))),
+      tbody)));
   $("#pack-output").replaceChildren(...parts);
 }
 
@@ -705,8 +729,9 @@ function switchView(view) {
 }
 
 function exampleButtons(container, examples, onPick) {
-  container.replaceChildren(h("span", { class: "aliases" }, "Try: "),
-    ...examples.map(([id, label]) => h("button", { class: "chip-btn", type: "button", onclick: () => onPick(id) }, label)));
+  container.replaceChildren(h("span", { class: "muted" }, "Examples: "),
+    ...examples.map(([id, label], index) => [index ? ", " : null,
+      h("button", { class: "linkish", type: "button", onclick: () => onPick(id) }, label)]).flat().filter(Boolean));
 }
 
 function init() {
@@ -762,7 +787,7 @@ function init() {
   $("#pack-zip-btn").addEventListener("click", downloadPackZip);
 
   loadStatus().catch((error) => {
-    $("#datasets").replaceChildren(h("span", { class: "badge off" }, h("span", { class: "dot" }), error.message));
+    $("#datasets").replaceChildren(h("span", { class: "off" }, error.message));
   });
 }
 

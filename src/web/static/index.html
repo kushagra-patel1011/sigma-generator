@@ -3,107 +3,100 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
   <title>Sigma Generator</title>
   <link rel="stylesheet" href="/static/styles.css">
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230f8a82'/%3E%3Ctext x='16' y='23' font-size='20' font-family='Arial' font-weight='700' text-anchor='middle' fill='white'%3E%CE%A3%3C/text%3E%3C/svg%3E">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%231f5fbf'/%3E%3Ctext x='16' y='23' font-size='20' font-family='Arial' font-weight='700' text-anchor='middle' fill='white'%3E%CE%A3%3C/text%3E%3C/svg%3E">
 </head>
 <body>
   <header class="topbar">
-    <div class="brand">
-      <span class="brand-mark" aria-hidden="true">&Sigma;</span>
-      <div>
-        <div class="brand-name">Sigma Generator</div>
-        <div class="brand-sub">ATT&amp;CK &rarr; Sigma &middot; attack chains &middot; STIX 2.1</div>
+    <div class="topbar-inner">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true">&Sigma;</span>
+        <span class="brand-name">Sigma Generator</span>
       </div>
+      <nav class="tabs" role="tablist" aria-label="Mode">
+        <button class="tab is-active" role="tab" aria-selected="true" data-view="technique">Technique</button>
+        <button class="tab" role="tab" aria-selected="false" data-view="pack">Threat pack</button>
+      </nav>
+      <div class="datasets" id="datasets" aria-live="polite">Loading data&hellip;</div>
     </div>
-    <nav class="tabs" role="tablist" aria-label="Mode">
-      <button class="tab is-active" role="tab" aria-selected="true" data-view="technique">Technique</button>
-      <button class="tab" role="tab" aria-selected="false" data-view="pack">Threat pack</button>
-    </nav>
-    <div class="datasets" id="datasets" aria-live="polite">Loading data&hellip;</div>
   </header>
 
-  <div id="sigmahq-notice" class="notice" hidden></div>
+  <main class="page">
+    <div id="sigmahq-notice" class="notice" hidden></div>
 
-  <main>
     <section id="view-technique" class="view" aria-label="Technique">
       <div class="layout">
         <aside class="sidebar">
-          <label class="field-label" for="technique-search">Find a technique</label>
-          <div class="search">
-            <input id="technique-search" type="search" autocomplete="off" spellcheck="false"
-                   placeholder="T1003.001, &quot;run key&quot;, powershell&hellip;" aria-controls="technique-results">
-            <ul id="technique-results" class="results" role="listbox" hidden></ul>
-          </div>
-          <div id="technique-detail" class="detail empty-state">
-            <p>Search for an ATT&amp;CK technique to see the telemetry MITRE recommends for it,
-              how that maps to Sigma, and what SigmaHQ already covers.</p>
-            <div class="examples" id="technique-examples"></div>
+          <div class="panel">
+            <label class="field-label" for="technique-search">Search techniques</label>
+            <div class="search">
+              <input id="technique-search" type="search" autocomplete="off" spellcheck="false"
+                     placeholder="ID, name or keyword, e.g. T1003.001" aria-controls="technique-results">
+              <ul id="technique-results" class="results" role="listbox" hidden></ul>
+            </div>
+            <div id="technique-detail" class="detail empty-state">
+              <p>Find a technique to see the log sources MITRE recommends for it, how each maps to Sigma,
+                and whether SigmaHQ already has rules for it.</p>
+              <div class="examples" id="technique-examples"></div>
+            </div>
           </div>
         </aside>
 
         <div class="workspace">
-          <form id="technique-form" class="options card" hidden>
-            <span class="recipe-label">Recipe</span>
+          <form id="technique-form" class="panel options" hidden>
+            <h2 class="panel-title">Options</h2>
             <div class="options-grid">
-              <label class="select-field">Platform
-                <select name="platform"><option value="">Best telemetry</option></select>
+              <label class="field"><span class="field-label">Platform</span>
+                <select name="platform"><option value="">Best available</option></select>
               </label>
-              <label class="select-field">Analytic
+              <label class="field"><span class="field-label">Analytic</span>
                 <select name="analytic"><option value="">Best ranked</option></select>
               </label>
-              <label class="select-field">Level
+              <label class="field"><span class="field-label">Level</span>
                 <select name="level"><option value="">From tactic</option></select>
               </label>
-              <label class="select-field">TLP
+              <label class="field"><span class="field-label">TLP</span>
                 <select name="tlp"></select>
               </label>
             </div>
-            <div class="toggles">
-              <label class="toggle" title="Attack chains and count thresholds"><input type="checkbox" name="chains" checked>
-                <span>Correlation rules <small>attack chains and count thresholds</small></span></label>
-              <label class="toggle" title="Skip telemetry SigmaHQ already covers"><input type="checkbox" name="gaps_only">
-                <span>Gaps only <small>skip telemetry SigmaHQ covers</small></span></label>
-              <label class="toggle" title="One rule per ATT&amp;CK analytic"><input type="checkbox" name="all_analytics">
-                <span>Every analytic <small>one rule per ATT&amp;CK analytic</small></span></label>
-              <label class="toggle" title="Write fill-in rules when ATT&amp;CK has no values"><input type="checkbox" name="include_skeletons">
-                <span>Skeletons <small>write fill-in rules when ATT&amp;CK has no values</small></span></label>
-              <label class="toggle" title="Reproducible IDs, identical output every run"><input type="checkbox" name="deterministic">
-                <span>Deterministic IDs <small>reproducible output</small></span></label>
-              <label class="toggle" title="Provenance and review notes in each file"><input type="checkbox" name="banner" checked>
-                <span>Provenance banner <small>review notes in each file</small></span></label>
+            <div class="checks">
+              <label class="check"><input type="checkbox" name="chains" checked>
+                <span>Correlation rules<small>Attack chains and count thresholds</small></span></label>
+              <label class="check"><input type="checkbox" name="gaps_only">
+                <span>Gaps only<small>Skip log sources SigmaHQ already covers</small></span></label>
+              <label class="check"><input type="checkbox" name="all_analytics">
+                <span>Every analytic<small>One rule per ATT&amp;CK analytic</small></span></label>
+              <label class="check"><input type="checkbox" name="include_skeletons">
+                <span>Skeletons<small>Write fill-in rules when ATT&amp;CK has no values</small></span></label>
+              <label class="check"><input type="checkbox" name="deterministic">
+                <span>Fixed rule IDs<small>Same output on every run</small></span></label>
+              <label class="check"><input type="checkbox" name="banner" checked>
+                <span>Provenance comments<small>Where each value came from</small></span></label>
             </div>
             <div class="actions">
-              <button type="submit" class="btn primary" id="generate-btn">Generate</button>
+              <button type="submit" class="btn primary" id="generate-btn">Generate rules</button>
               <button type="button" class="btn" id="save-technique-btn" disabled>Save to output folder</button>
             </div>
           </form>
+
           <div id="technique-output" class="output">
-            <div class="hero">
-              <h1>Start with a technique</h1>
-              <p>Rules are built from MITRE's own detection analytics - the log sources they name, the time
-                windows they suggest, the procedures real groups used - then graded by how much of that is
-                concrete enough to detect on. Nothing is invented, and nothing leaves this machine.</p>
-              <ol class="pipeline">
-                <li>
-                  <span class="lbl">ATT&amp;CK analytic</span>
-                  <span class="s">AN1030</span>
-                  <span class="small">a handle opened on lsass.exe</span>
-                </li>
-                <li>
-                  <span class="lbl">Log source it names</span>
-                  <span class="s">Sysmon EventCode 10</span>
-                  <span class="small">process access, confidence 0.95</span>
-                </li>
-                <li>
-                  <span class="lbl">What you get</span>
-                  <span class="s">process_access / windows</span>
-                  <span class="small">3 signals, graded strong</span>
-                </li>
-              </ol>
-              <p class="hero-note">T1003.001 with correlation rules on writes three files:
-                <code>t1003_001_process_access_lsass_memory.yml</code>,
-                <code>mr_t1003_001_an1030_lsass_memory.yml</code> and a STIX 2.1 bundle.</p>
+            <div class="intro">
+              <h1>Generate Sigma rules for an ATT&amp;CK technique</h1>
+              <p>Pick a technique. The generator reads MITRE's detection analytics for it, maps each log source
+                to a Sigma log source, and writes draft rules you can review, copy or download. Nothing leaves
+                this machine.</p>
+              <h2>How rules are graded</h2>
+              <dl class="grades">
+                <div><dt><span class="pill tier-strong">strong</span></dt>
+                  <dd>Two or more independent selections with specific values.</dd></div>
+                <div><dt><span class="pill tier-moderate">moderate</span></dt>
+                  <dd>One specific selection, such as a registry key or a target process.</dd></div>
+                <div><dt><span class="pill tier-weak">weak</span></dt>
+                  <dd>Broad matching. Tagged for threat hunting and kept at level low.</dd></div>
+              </dl>
+              <p class="muted">If ATT&amp;CK gives nothing concrete to match, no rule is written.</p>
             </div>
           </div>
         </div>
@@ -113,56 +106,65 @@
     <section id="view-pack" class="view" aria-label="Threat pack" hidden>
       <div class="layout">
         <aside class="sidebar">
-          <div class="segmented" role="radiogroup" aria-label="Threat type">
-            <button type="button" class="seg is-active" data-kind="group" role="radio" aria-checked="true">Group</button>
-            <button type="button" class="seg" data-kind="software" role="radio" aria-checked="false">Software</button>
-            <button type="button" class="seg" data-kind="campaign" role="radio" aria-checked="false">Campaign</button>
-          </div>
-          <label class="field-label" for="threat-search">Find a <span id="threat-kind-label">group</span></label>
-          <div class="search">
-            <input id="threat-search" type="search" autocomplete="off" spellcheck="false"
-                   placeholder="APT29, Cozy Bear, G0016&hellip;" aria-controls="threat-results">
-            <ul id="threat-results" class="results" role="listbox" hidden></ul>
-          </div>
-          <div id="threat-detail" class="detail empty-state">
-            <p>Pick a threat group, a piece of software or a campaign. Every technique ATT&amp;CK attributes to
-              it becomes a detection, with its documented procedures mined first.</p>
-            <div class="examples" id="threat-examples"></div>
+          <div class="panel">
+            <div class="segmented" role="radiogroup" aria-label="Threat type">
+              <button type="button" class="seg is-active" data-kind="group" role="radio" aria-checked="true">Group</button>
+              <button type="button" class="seg" data-kind="software" role="radio" aria-checked="false">Software</button>
+              <button type="button" class="seg" data-kind="campaign" role="radio" aria-checked="false">Campaign</button>
+            </div>
+            <label class="field-label" for="threat-search">Search by <span id="threat-kind-label">group</span></label>
+            <div class="search">
+              <input id="threat-search" type="search" autocomplete="off" spellcheck="false"
+                     placeholder="APT29, Cozy Bear, G0016&hellip;" aria-controls="threat-results">
+              <ul id="threat-results" class="results" role="listbox" hidden></ul>
+            </div>
+            <div id="threat-detail" class="detail empty-state">
+              <p>Every technique ATT&amp;CK attributes to the group, software or campaign gets a draft rule, using
+                its documented procedures first.</p>
+              <div class="examples" id="threat-examples"></div>
+            </div>
           </div>
         </aside>
 
         <div class="workspace">
-          <form id="pack-form" class="options card" hidden>
-            <span class="recipe-label">Recipe</span>
+          <form id="pack-form" class="panel options" hidden>
+            <h2 class="panel-title">Options</h2>
             <div class="options-grid">
-              <label class="select-field">Level
+              <label class="field"><span class="field-label">Level</span>
                 <select name="level"><option value="">From tactic</option></select>
               </label>
-              <label class="select-field">TLP
+              <label class="field"><span class="field-label">TLP</span>
                 <select name="tlp"></select>
               </label>
             </div>
-            <div class="toggles">
-              <label class="toggle" title="Attack chains and count thresholds"><input type="checkbox" name="chains" checked>
-                <span>Correlation rules <small>attack chains and count thresholds</small></span></label>
-              <label class="toggle" title="Skip telemetry SigmaHQ already covers"><input type="checkbox" name="gaps_only">
-                <span>Gaps only <small>skip techniques SigmaHQ fully covers</small></span></label>
-              <label class="toggle" id="with-campaigns-toggle" title="Techniques from attributed campaigns"><input type="checkbox" name="with_campaigns">
-                <span>Include campaigns <small>techniques from attributed campaigns</small></span></label>
-              <label class="toggle" title="Write fill-in rules when ATT&amp;CK has no values"><input type="checkbox" name="include_skeletons">
-                <span>Skeletons <small>write fill-in rules when ATT&amp;CK has no values</small></span></label>
-              <label class="toggle" title="Reproducible IDs, identical output every run"><input type="checkbox" name="deterministic">
-                <span>Deterministic IDs <small>reproducible output</small></span></label>
-              <label class="toggle" title="Provenance and review notes in each file"><input type="checkbox" name="banner" checked>
-                <span>Provenance banner <small>review notes in each file</small></span></label>
+            <div class="checks">
+              <label class="check"><input type="checkbox" name="chains" checked>
+                <span>Correlation rules<small>Attack chains and count thresholds</small></span></label>
+              <label class="check"><input type="checkbox" name="gaps_only">
+                <span>Gaps only<small>Skip techniques SigmaHQ fully covers</small></span></label>
+              <label class="check" id="with-campaigns-toggle"><input type="checkbox" name="with_campaigns">
+                <span>Include campaigns<small>Techniques from attributed campaigns</small></span></label>
+              <label class="check"><input type="checkbox" name="include_skeletons">
+                <span>Skeletons<small>Write fill-in rules when ATT&amp;CK has no values</small></span></label>
+              <label class="check"><input type="checkbox" name="deterministic">
+                <span>Fixed rule IDs<small>Same output on every run</small></span></label>
+              <label class="check"><input type="checkbox" name="banner" checked>
+                <span>Provenance comments<small>Where each value came from</small></span></label>
             </div>
             <div class="actions">
-              <button type="submit" class="btn primary" id="pack-btn">Build detection pack</button>
+              <button type="submit" class="btn primary" id="pack-btn">Build pack</button>
               <button type="button" class="btn" id="pack-zip-btn" disabled>Download ZIP</button>
               <button type="button" class="btn" id="pack-save-btn" disabled>Save to output folder</button>
             </div>
           </form>
-          <div id="pack-output" class="output"></div>
+          <div id="pack-output" class="output">
+            <div class="intro">
+              <h1>Build a detection pack</h1>
+              <p>Choose a threat group, a piece of software or a campaign. The pack has a rule for each technique
+                ATT&amp;CK attributes to it, correlation rules where ATT&amp;CK describes several steps, a SigmaHQ
+                coverage check and a STIX 2.1 bundle.</p>
+            </div>
+          </div>
         </div>
       </div>
     </section>
