@@ -63,6 +63,28 @@ python -m tools.score report      # writes output\round1-scores\ and prints the 
 the `python` on the lab host is older, add `--converter-python C:\Path\To\python3.11.exe` to `fetch` or `all`.
 Scoring reads files and runs no ART test, so it can be repeated, for example after phase 1 and again after phase 2.
 
+### 4c. Substitute a rule whose tests could not run
+
+If every mapped test of a rule failed its prerequisites (`rules.csv` says so in its notes), protocol section 4
+replaces it with the next rule of its tier's queue. Do not pick the replacement by hand:
+
+```powershell
+python -m tools.substitute status   # every rule in the sample; "SUBSTITUTION DUE" where it applies
+python -m tools.substitute apply    # records it in output\round1\substitutions.json and prints the runner command
+```
+
+Run the command it prints (`-Execute -Technique '<replacement>'`), then score again (step 4b). The runner only
+plans a queued rule that `substitutions.json` names, and the scorer refuses any other.
+
+### 4d. Evaluate
+
+```powershell
+python -m tools.evaluate            # output\round1-evaluation\summary.md and summary.json
+```
+
+It prints the measures of protocol section 11. After the pilot it says **no verdict**: the verdict of section 12
+needs the whole sample and the benign data.
+
 ### 5. Copy the outputs back into the repository
 
 ```powershell
@@ -70,10 +92,11 @@ $dest = 'docs\validation\results\pilot'
 
 # Execution and scoring records: per test, result.json, hayabusa.json, alerts.jsonl and any
 # harness-error.json. robocopy exit codes below 8 mean success.
-robocopy output\round1 $dest result.json hayabusa.json alerts.jsonl harness-error.json /S /XD lab-record
+robocopy output\round1 $dest result.json hayabusa.json alerts.jsonl harness-error.json substitutions.json /S /XD lab-record
 
-# The scoring tables (step 4b).
+# The scoring tables (step 4b) and the evaluation (step 4d).
 robocopy output\round1-scores "$dest\scores" /S
+robocopy output\round1-evaluation "$dest\evaluation" /S
 
 # The lab record (text files).
 robocopy output\round1\lab-record "$dest\lab-record" /S
@@ -105,6 +128,8 @@ Remove-PSSession $s
 | `<tier>-<rank>-<technique>/<test guid>/harness-error.json` | one per harness error, if any | pilot |
 | `<tier>-<rank>-<technique>/<test guid>/hayabusa.json`, `alerts.jsonl` | one each per executed test (`alerts.jsonl` only if Hayabusa wrote alerts) | step 4b |
 | `scores/rules.csv`, `tests.csv`, `alerts.csv`, `rules.md`, `conversion-manifest.json` | 5 | step 4b |
+| `substitutions.json` | 1, if any rule was substituted | step 4c |
+| `evaluation/summary.md`, `summary.json` | 2 | step 4d |
 | `lab-record/host-w32tm.txt` | 1 | `lab-build.md` step 1 |
 | `lab-record/virtualbox-version.txt` (VirtualBox) | 1 | step 1 |
 | `lab-record/snapshot.txt`, `lab-record/vm.txt` (VirtualBox) | 2 | step 6 |
@@ -141,6 +166,8 @@ that the pilot has run, with its UTC dates. That records status; it is not an am
 
 ## Substitutions
 
+Filled from `substitutions.json` (step 4c): each replaced rule, its replacement, and the failed prerequisites.
+
 None recorded.
 
 ## Detection
@@ -175,7 +202,28 @@ in `scores/tests.csv` and `scores/alerts.csv`. Telemetry absent is not computed 
 
 ## False positives
 
-Not part of the pilot (protocol section 10).
+Not part of the pilot (protocol section 10). Empty until the benign collection has run.
+
+**How to produce them.** Once `tools/lab/Export-BenignDay.ps1` has written at least 7 complete days on the real
+endpoint, copy each benign lab VM's `C:\round1-benign\<VM name>` folder into `C:\round1-benign` on the real
+endpoint, and run there, where its logs stay:
+
+```powershell
+python -m tools.benign all --benign C:\round1-benign --real-endpoint $env:COMPUTERNAME
+python -m tools.evaluate
+```
+
+`tools.benign` converts and load-checks the frozen population (`docs/validation/population/`), runs Hayabusa once per
+host, and writes `output\benign-scores\`: `host-days.csv` (every day, and every reason a day does not count),
+`alerts.csv` (every alert, without event contents), `rules.csv`, `benign.md` and the conversion manifest. Copy that
+folder to `docs\validation\results\benign\`. The lab VMs' full Hayabusa output is in
+`data\score\benign\runs\<VM name>\alerts.jsonl` and is published too. **Never** copy the real endpoint's
+`alerts.jsonl` or its `.evtx` files: they hold its event contents.
+
+The first run of `tools.benign` evaluates benign logs, which closes the amendment window (protocol section 14).
+
+All 91 correlation rules are conversion failures (amendment 4), so the correlation rows report conversion failures
+only.
 
 ## Deviations from the protocol
 

@@ -48,7 +48,8 @@ and points out the telemetry that no community rule watches yet.
 - **Validation:** a pre-registered protocol with a seeded 50-rule sample. **Not yet executed**
   ([status](#validation)).
 
-**Demo (60 seconds):** *link to be added.*
+**Live demo:** [kushagra-patel1011.github.io/sigma-generator](https://kushagra-patel1011.github.io/sigma-generator/),
+the full UI running in your browser, with nothing to install.
 
 ---
 
@@ -629,6 +630,9 @@ evaluated, so the quality tiers have not yet been checked against real attacks.
 | Pilot | the first 12 rules, with 125 tests ([plan](docs/validation/pilot-plan.md)) |
 | Run it | exact commands, and the files to copy back: [RESULTS.md](docs/validation/RESULTS.md) (a template, empty until run) |
 | Scoring | `tools/score.py` converts the rules with the pinned converter, runs the pinned Hayabusa per test, and applies the protocol's definition of "detected"; `make score` |
+| Substitution | `tools/substitute.py` replaces a rule none of whose tests could run with the next rule of its tier's queue; `make substitute` |
+| False positives | `tools/benign.py` counts alert-days per benign host-day for all 322 Windows rules and 91 correlation rules, frozen before any data in [`population/`](docs/validation/population/); `make benign` |
+| Verdict | `tools/evaluate.py` computes the measures per tier and applies the falsification criteria; `make evaluate` |
 | Lab | [build sheet](docs/validation/lab-build.md) for VirtualBox or Hyper-V. The scripts in `tools/lab/` have not been run yet. |
 
 Background: [case study](docs/case-study.md) · [architecture](docs/architecture.md)

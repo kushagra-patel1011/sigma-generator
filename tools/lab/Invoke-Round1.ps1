@@ -7,7 +7,8 @@
     kept only as part of the documented plan in docs/validation-protocol.md.
 
     Implements docs/validation-protocol.md, section 8, for every ART test of every sampled rule in
-    docs/validation/sample.json:
+    docs/validation/sample.json, and of every replacement recorded in <ResultsDir>\substitutions.json by
+    `python -m tools.substitute apply` (section 4):
 
       1. restore the clean snapshot, boot, settle 5 minutes
       2. -GetPrereqs, then -CheckPrereqs ("Prerequisites met" or the test is recorded as prerequisites failed)
@@ -68,17 +69,34 @@ $Channels = @(
     'Windows PowerShell'
 )
 
+function Get-Substitutions {
+    # Written by `python -m tools.substitute apply` (protocol section 4); the runner never writes it.
+    $replacements = @{}
+    $path = Join-Path $ResultsDir 'substitutions.json'
+    if (Test-Path $path) {
+        foreach ($entry in (Get-Content -Raw -Encoding UTF8 $path | ConvertFrom-Json).substitutions) {
+            $replacements[$entry.replacement.technique_id] = $entry.replacement
+        }
+    }
+    return $replacements
+}
+
 function Get-Plan {
     $sample = Get-Content -Raw -Encoding UTF8 $SamplePath | ConvertFrom-Json
+    $replacements = Get-Substitutions
     $plan = New-Object System.Collections.ArrayList
     foreach ($tier in @('strong', 'moderate', 'weak')) {
         foreach ($rule in $sample.strata.$tier) {
-            if (-not $rule.selected) { continue }
+            # A queued rule runs only once a recorded substitution has brought it into the sample.
+            $replacement = $replacements[$rule.technique_id]
+            if (-not $rule.selected -and -not $replacement) { continue }
             if ($Technique -and ($Technique -notcontains $rule.technique_id)) { continue }
+            $ruleId = $(if ($replacement) { $replacement.rule_id } else { $rule.rule_id })
+            $ruleFile = $(if ($replacement) { $replacement.rule_file } else { $rule.rule_file })
             foreach ($test in $rule.art_tests) {
                 [void]$plan.Add([pscustomobject]@{
                     tier = $tier; rank = [int]$rule.rank; technique_id = $rule.technique_id
-                    rule_id = $rule.rule_id; rule_file = $rule.rule_file
+                    rule_id = $ruleId; rule_file = $ruleFile
                     test_guid = $test.guid; test_name = $test.name; executor = $test.executor
                 })
             }

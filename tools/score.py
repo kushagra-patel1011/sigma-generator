@@ -155,16 +155,22 @@ def same_host(computer: str, attack_host: str) -> bool:
 # --------------------------------------------------------------------------- #
 # Conversion manifest
 # --------------------------------------------------------------------------- #
+def first_document(path: Path) -> dict[str, Any]:
+    """The rule a file defines: its only document, or for a correlation file the correlation rule, which
+    comes first and is followed by its base rules."""
+    return next(yaml.safe_load_all(path.read_text(encoding="utf-8"))) or {}
+
+
 def build_manifest(staged_rules: Path, converted: Path) -> dict[str, dict[str, Any]]:
     """Original rule ID -> its file and the rules the converter derived from it.
 
     Converted files are traced back by their ``related: {type: derived}`` entry, never by name."""
     rules: dict[str, dict[str, Any]] = {}
     for path in sorted(staged_rules.glob("*.yml")):
-        document = yaml.safe_load(path.read_text(encoding="utf-8"))
+        document = first_document(path)
         rules[str(document["id"])] = {"rule_file": path.name, "converted": []}
     for path in sorted(converted.rglob("*.yml")):
-        document = yaml.safe_load(path.read_text(encoding="utf-8"))
+        document = first_document(path)
         for related in document.get("related") or []:
             original = str(related.get("id"))
             if related.get("type") == "derived" and original in rules:
@@ -276,6 +282,7 @@ class RuleScore:
     missed: int = 0
     null_truncated: int = 0
     harness_errors: int = 0
+    sample_status: str = "sampled"   # sampled | substituted (replaced, section 4) | replacement
     notes: list[str] = field(default_factory=list)
 
     @property
@@ -285,18 +292,33 @@ class RuleScore:
 
 
 def score_rules(sample: dict[str, Any], tests: Sequence[ArtTestScore], conversion: dict[str, Optional[str]],
-                harness_errors: dict[str, int]) -> list[RuleScore]:
-    """One row per rule that has any record, in tier and draw order."""
+                harness_errors: dict[str, int], substitutions: Sequence[dict[str, Any]] = ()) -> list[RuleScore]:
+    """One row per rule that has any record, in tier and draw order: the sampled rules, and the queued rules
+    that a recorded substitution brought in (protocol section 4)."""
     by_rule: dict[str, list[ArtTestScore]] = {}
     for test in tests:
         by_rule.setdefault(test.rule_id, []).append(test)
+    replaced_by = {entry["replaced"]["technique_id"]: entry["replacement"]["technique_id"] for entry in substitutions}
+    replacing = {entry["replacement"]["technique_id"]: entry for entry in substitutions}
     rows: list[RuleScore] = []
     for tier in ("strong", "moderate", "weak"):
         for rule in sample["strata"][tier]:
-            rule_id = rule.get("rule_id")
+            substitution = replacing.get(rule["technique_id"])
+            if rule.get("selected"):
+                rule_id = rule.get("rule_id")
+            elif substitution:
+                rule_id = substitution["replacement"]["rule_id"]
+            else:
+                continue
             if not rule_id or (rule_id not in by_rule and not harness_errors.get(rule_id)):
                 continue
             row = RuleScore(tier, int(rule["rank"]), rule["technique_id"], rule_id, len(rule["art_tests"]))
+            if rule["technique_id"] in replaced_by:
+                row.sample_status = "substituted"
+                row.notes.append(f"substituted by {replaced_by[rule['technique_id']]} (protocol section 4)")
+            elif substitution:
+                row.sample_status = "replacement"
+                row.notes.append(f"replaces {substitution['replaced']['technique_id']} (protocol section 4)")
             if conversion.get(rule_id):
                 row.conversion = f"failed: {conversion[rule_id]}"
             row.harness_errors = harness_errors.get(rule_id, 0)
@@ -314,8 +336,9 @@ def score_rules(sample: dict[str, Any], tests: Sequence[ArtTestScore], conversio
                     row.confounded += 1
                 else:
                     row.missed += 1
-            if row.recorded and not row.executed:
-                row.notes.append("every recorded test failed prerequisites: substitute per protocol section 4")
+            if row.recorded and not row.executed and row.sample_status != "substituted":
+                row.notes.append("every recorded test failed prerequisites: substitute per protocol section 4 "
+                                 "(python -m tools.substitute apply) once every mapped test is recorded")
             if row.recorded + row.harness_errors < row.art_tests:
                 row.notes.append(f"{row.art_tests - row.recorded - row.harness_errors} mapped test(s) not run yet")
             rows.append(row)
@@ -430,32 +453,57 @@ def fetch(platform: str, converter_python: str) -> None:
     print(f"Converter environment at {venv.relative_to(ROOT)}")
 
 
-def convert(sample: dict[str, Any]) -> dict[str, Any]:
-    """Convert every rule under test (the sampled rules' frozen files) and write manifest.json."""
+def run_converter(sources: Iterable[Path], work: Path) -> dict[str, dict[str, Any]]:
+    """Convert ``sources`` in one run of the pinned converter; the manifest of what it derived from each.
+
+    The converter only converts files under a folder whose path contains "rule", so they are staged in
+    ``work/stage/rules``. It reads ignore-uuid-list.txt from its working directory, so it runs from its own
+    folder. Output goes to ``work/converted`` and its log to ``work/converter.log``."""
     conv, venv = converter_dir(), SCORE_DIR / "convenv"
     for name, digest in CONVERTER_FILES.items():
         if not (conv / name).is_file() or _sha256((conv / name).read_bytes()) != digest:
             raise ScoreError("the pinned converter is missing or altered. Run: python -m tools.score fetch")
-    # The converter only converts files under a folder whose path contains "rule".
-    staged = SCORE_DIR / "stage" / "rules"
-    converted = SCORE_DIR / "converted"
+    staged, converted = work / "stage" / "rules", work / "converted"
     for folder in (staged, converted):
         shutil.rmtree(folder, ignore_errors=True)
     staged.mkdir(parents=True)
+    for source in sources:
+        if (staged / source.name).exists():
+            raise ScoreError(f"two rules under test share the file name {source.name}")
+        shutil.copy2(source, staged / source.name)
+    run = subprocess.run([str(venv_python(venv)), "sigma-to-hayabusa-converter.py", "-r", str(staged.resolve()),
+                          "-o", str(converted.resolve())], cwd=str(conv), capture_output=True, text=True)
+    log = run.stdout + run.stderr
+    (work / "converter.log").write_text(log, encoding="utf-8")
+    if run.returncode != 0:
+        raise ScoreError(f"the converter exited with {run.returncode}; see {work / 'converter.log'}")
+    rules = build_manifest(staged, converted)
+    for entry in rules.values():
+        entry["converter_messages"] = [line for line in log.splitlines() if entry["rule_file"] in line]
+    return rules
+
+
+def rules_under_test(sample: dict[str, Any], population_dir: Path = VALIDATION_DIR / "population") -> list[Path]:
+    """The sampled rules' frozen files, and every queued rule's file from the frozen population (amendment 4),
+    so a substitution never needs a second conversion."""
+    from tools import population as pop
+
+    frozen = pop.rules_by_technique(pop.load_population(population_dir))
+    files = []
     for tier in ("strong", "moderate", "weak"):
         for rule in sample["strata"][tier]:
-            if rule.get("rule_file"):
-                shutil.copy2(VALIDATION_DIR / rule["rule_file"], staged / Path(rule["rule_file"]).name)
-    # The converter reads ignore-uuid-list.txt from the working directory, so it runs from its own folder.
-    run = subprocess.run([str(venv_python(venv)), "sigma-to-hayabusa-converter.py", "-r", str(staged),
-                          "-o", str(converted)], cwd=str(conv), capture_output=True, text=True)
-    log = run.stdout + run.stderr
-    (SCORE_DIR / "converter.log").write_text(log, encoding="utf-8")
-    if run.returncode != 0:
-        raise ScoreError(f"the converter exited with {run.returncode}; see data/score/converter.log")
-    rules = build_manifest(staged, converted)
+            if rule.get("selected"):
+                files.append(VALIDATION_DIR / rule["rule_file"])
+            else:
+                files.append(population_dir / frozen[rule["technique_id"]]["rule_file"])
+    return files
+
+
+def convert(sample: dict[str, Any]) -> dict[str, Any]:
+    """Convert every rule that can be under test (sampled and queued) and write manifest.json."""
+    rules = run_converter(rules_under_test(sample), SCORE_DIR)
+    converted = SCORE_DIR / "converted"
     for rule_id, entry in rules.items():
-        entry["converter_messages"] = [line for line in log.splitlines() if entry["rule_file"] in line]
         per_rule = SCORE_DIR / "per-rule" / rule_id
         shutil.rmtree(per_rule, ignore_errors=True)
         per_rule.mkdir(parents=True)
@@ -511,7 +559,7 @@ def run_hayabusa(results: Path, platform: str) -> None:
 # --------------------------------------------------------------------------- #
 # Report
 # --------------------------------------------------------------------------- #
-RULE_COLUMNS = ["tier", "rank", "technique_id", "rule_id", "conversion", "art_tests", "recorded",
+RULE_COLUMNS = ["tier", "rank", "technique_id", "rule_id", "sample_status", "conversion", "art_tests", "recorded",
                 "prerequisites_failed", "executed", "execution_failed", "detected", "confounded", "missed",
                 "detection_rate", "null_truncated", "harness_errors", "notes"]
 TEST_COLUMNS = ["technique_id", "rule_id", "test_guid", "test_name", "outcome", "execution_status",
@@ -521,10 +569,24 @@ ALERT_COLUMNS = ["technique_id", "rule_id", "test_guid", "converted_rule_id", "t
 
 
 def report(results: Path, out: Path, attack_host: Optional[str] = None,
-           sample: Optional[dict[str, Any]] = None, manifest: Optional[dict[str, Any]] = None) -> list[RuleScore]:
+           sample: Optional[dict[str, Any]] = None, manifest: Optional[dict[str, Any]] = None,
+           population: Optional[dict[str, Any]] = None) -> list[RuleScore]:
+    from tools import population as pop
+    from tools import substitute
+
     sample = sample if sample is not None else json.loads(SAMPLE_PATH.read_text(encoding="utf-8"))
     rules = (manifest if manifest is not None else load_manifest())["rules"]
     records, harness_errors = load_records(results)
+    substitutions = substitute.load_substitutions(results)
+    if substitutions:
+        try:
+            substitute.current_sample(sample, substitutions,
+                                      population if population is not None else pop.load_population())
+        except (substitute.SubstitutionError, pop.PopulationError) as exc:
+            raise ScoreError(f"{results / substitute.FILE_NAME}: {exc}") from exc
+    allowed = {str(rule.get("rule_id")) for tier in ("strong", "moderate", "weak")
+               for rule in sample["strata"][tier] if rule.get("selected")}
+    allowed |= {str(entry["replacement"]["rule_id"]) for entry in substitutions}
 
     conversion: dict[str, Optional[str]] = {}
     for rule_id, entry in rules.items():
@@ -543,8 +605,11 @@ def report(results: Path, out: Path, attack_host: Optional[str] = None,
         rule_id = str(record.get("rule_id", ""))
         entry = rules.get(rule_id)
         if entry is None:
-            raise ScoreError(f"{folder}: rule {rule_id} is not in the conversion manifest; only frozen rule "
-                             "files under docs/validation/rules/ can be scored")
+            raise ScoreError(f"{folder}: rule {rule_id} is not in the conversion manifest; only the frozen "
+                             "rule files can be scored. Run: python -m tools.score convert")
+        if rule_id not in allowed:
+            raise ScoreError(f"{folder}: rule {rule_id} is neither sampled nor brought in by a recorded "
+                             "substitution (python -m tools.substitute apply)")
         derived = {item["id"] for item in entry["converted"]}
         failure = conversion.get(rule_id)
         executed = record.get("prereq_status") == "met"
@@ -568,7 +633,7 @@ def report(results: Path, out: Path, attack_host: Optional[str] = None,
                                    "computer": alert.get("Computer"), "channel": alert.get("Channel"),
                                    "event_id": alert.get("EventID"), "placement": placement})
 
-    rows = score_rules(sample, tests, conversion, harness_errors)
+    rows = score_rules(sample, tests, conversion, harness_errors, substitutions)
     out.mkdir(parents=True, exist_ok=True)
     _write_csv(out / "rules.csv", RULE_COLUMNS, [_rule_dict(row) for row in rows])
     _write_csv(out / "tests.csv", TEST_COLUMNS, [vars(test) for test in tests])

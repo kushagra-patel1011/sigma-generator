@@ -3,11 +3,13 @@ protocol fixes eligibility, ordering and quotas, so each is pinned down here."""
 
 from __future__ import annotations
 
+import json
 import subprocess
+from datetime import datetime, timezone
 
 import pytest
 
-from tools import validation
+from tools import population, substitute, validation
 
 
 def _index():
@@ -167,3 +169,98 @@ def test_makefile_and_plan_list_the_pilot():
     plan = (pilot.ROOT / "docs" / "validation" / "pilot-plan.md").read_text(encoding="utf-8")
     for technique_id in first + second:
         assert f"| {technique_id} |" in plan
+
+
+# --------------------------------------------------------------------------- #
+# The frozen population (amendment 4) and substitution (protocol section 4)
+# --------------------------------------------------------------------------- #
+def test_frozen_population_matches_its_manifest_and_the_drawn_files():
+    assert population.check_frozen() == []
+
+
+def test_frozen_population_has_the_protocols_counts_and_every_queued_rule():
+    frozen, sample = population.load_population(), population.load_sample()
+    assert frozen["generated_at_commit"] == sample["seed"]
+    assert frozen["counts"]["rules"] == {tier: c["default_rules"] for tier, c in sample["population"].items()}
+    assert frozen["counts"]["correlations"] == population.EXPECTED_CORRELATIONS
+    by_technique = population.rules_by_technique(frozen)
+    for rules in sample["strata"].values():
+        for rule in rules:
+            entry = by_technique[rule["technique_id"]]
+            assert (entry["tier"], entry["analytic"], entry["logsource"], entry["level"]) == \
+                (rule["tier"], rule["analytic"], rule["logsource"], rule["level"])
+            assert entry["sample"] == ("sampled" if rule["selected"] else "queued")
+
+
+def _drawn(sample, tier, rank):
+    return next(r for r in sample["strata"][tier] if r["rank"] == rank)
+
+
+def _write_record(results, tier, rule, rule_id, guid, met):
+    folder = results / f"{tier}-{int(rule['rank']):02d}-{rule['technique_id']}" / guid
+    folder.mkdir(parents=True)
+    (folder / "result.json").write_text(json.dumps({
+        "tier": tier, "rank": rule["rank"], "technique_id": rule["technique_id"], "rule_id": rule_id,
+        "test_guid": guid, "test_name": "t", "prereq_status": "met" if met else "failed",
+        "prereq_check_output": "Prerequisites not met"}), encoding="utf-8")
+
+
+def test_substitution_takes_the_next_queued_rule_once_every_test_failed_prerequisites(tmp_path):
+    sample, frozen = population.load_sample(), population.load_population()
+    rule = _drawn(sample, "moderate", 1)                      # T1003.005, one ART test
+    assert substitute.apply(sample, frozen, tmp_path) == []
+    _write_record(tmp_path, "moderate", rule, rule["rule_id"], rule["art_tests"][0]["guid"], met=False)
+
+    added = substitute.apply(sample, frozen, tmp_path, now=datetime(2026, 10, 20, tzinfo=timezone.utc))
+
+    queued = _drawn(sample, "moderate", 18)
+    assert [(e["replaced"]["technique_id"], e["replacement"]["technique_id"]) for e in added] == \
+        [(rule["technique_id"], queued["technique_id"])]
+    assert added[0]["replacement"]["rule_file"].startswith("population/rules/")
+    assert added[0]["failed_tests"][0]["prereq_check_output"] == "Prerequisites not met"
+    current = substitute.current_sample(sample, substitute.load_substitutions(tmp_path), frozen)
+    assert current["moderate"][0]["technique_id"] == queued["technique_id"]
+    assert len(current["moderate"]) == 17
+    assert substitute.apply(sample, frozen, tmp_path) == []           # nothing further is due
+
+
+def test_substitution_is_not_due_while_a_test_ran_or_is_unrecorded(tmp_path):
+    sample, frozen = population.load_sample(), population.load_population()
+    rule = _drawn(sample, "moderate", 2)                      # T1112, 92 ART tests
+    for test in rule["art_tests"][:-1]:
+        _write_record(tmp_path, "moderate", rule, rule["rule_id"], test["guid"], met=False)
+    assert not any(row["due"] for row in substitute.status(sample, [], frozen, tmp_path))
+    _write_record(tmp_path, "moderate", rule, rule["rule_id"], rule["art_tests"][-1]["guid"], met=True)
+    assert substitute.apply(sample, frozen, tmp_path) == []
+
+
+def test_a_replacement_that_also_fails_is_replaced_by_the_next_in_queue(tmp_path):
+    sample, frozen = population.load_sample(), population.load_population()
+    first, second, third = _drawn(sample, "moderate", 1), _drawn(sample, "moderate", 18), _drawn(sample, "moderate", 19)
+    _write_record(tmp_path, "moderate", first, first["rule_id"], first["art_tests"][0]["guid"], met=False)
+    substitute.apply(sample, frozen, tmp_path)
+    second_id = population.rules_by_technique(frozen)[second["technique_id"]]["rule_id"]
+    for test in second["art_tests"]:
+        _write_record(tmp_path, "moderate", second, second_id, test["guid"], met=False)
+
+    added = substitute.apply(sample, frozen, tmp_path)
+
+    assert [e["replacement"]["technique_id"] for e in added] == [third["technique_id"]]
+    assert [e["replaced"]["technique_id"] for e in substitute.load_substitutions(tmp_path)] == \
+        [first["technique_id"], second["technique_id"]]
+
+
+def test_a_substitution_out_of_queue_order_or_with_another_rule_is_refused(tmp_path):
+    sample, frozen = population.load_sample(), population.load_population()
+    first, skipped = _drawn(sample, "moderate", 1), _drawn(sample, "moderate", 19)
+    entry = {"tier": "moderate", "replaced": {"technique_id": first["technique_id"]},
+             "replacement": {"technique_id": skipped["technique_id"],
+                             "rule_id": population.rules_by_technique(frozen)[skipped["technique_id"]]["rule_id"]}}
+    with pytest.raises(substitute.SubstitutionError, match="next moderate rule"):
+        substitute.current_sample(sample, [entry], frozen)
+    entry["replacement"] = {"technique_id": _drawn(sample, "moderate", 18)["technique_id"], "rule_id": "made-up"}
+    with pytest.raises(substitute.SubstitutionError, match="frozen population"):
+        substitute.current_sample(sample, [entry], frozen)
+    entry["replaced"] = {"technique_id": _drawn(sample, "strong", 1)["technique_id"]}
+    with pytest.raises(substitute.SubstitutionError, match="not in the moderate sample"):
+        substitute.current_sample(sample, [entry], frozen)

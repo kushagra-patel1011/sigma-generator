@@ -1,6 +1,6 @@
 PYTHON ?= python
 
-.PHONY: test lint typecheck corpus-fetch corpus corpus-bless pilot-plan pilot-smoke pilot score
+.PHONY: test lint typecheck corpus-fetch corpus corpus-bless pilot-plan pilot-smoke pilot score substitute benign evaluate
 
 # Offline unit tests (~10s).
 test:
@@ -58,3 +58,19 @@ RESULTS ?= output/round1
 SCORES ?= output/round1-scores
 score:
 	$(PYTHON) -m tools.score all --results $(RESULTS) --out $(SCORES)
+
+# Substitution (protocol section 4): record every rule all of whose tests failed prerequisites, and the next
+# rule of its tier's queue, in $(RESULTS)/substitutions.json. Prints the runner command for the replacement.
+substitute:
+	$(PYTHON) -m tools.substitute apply --results $(RESULTS)
+
+# False positives (protocol section 10): the frozen population over every benign host-day. BENIGN holds one
+# folder per host as Export-BenignDay.ps1 writes them; ENDPOINT is the real endpoint's COMPUTERNAME.
+BENIGN ?= output/benign
+BENIGN_SCORES ?= output/benign-scores
+benign:
+	$(PYTHON) -m tools.benign all --benign $(BENIGN) --out $(BENIGN_SCORES) --real-endpoint $(ENDPOINT)
+
+# Measures per tier and the falsification test (protocol sections 11 and 12), from the tables above.
+evaluate:
+	$(PYTHON) -m tools.evaluate --scores $(SCORES) --benign-scores $(BENIGN_SCORES) --results $(RESULTS)
