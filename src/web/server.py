@@ -46,7 +46,13 @@ STATIC_FILES = {
     "/": ("index.html", "text/html; charset=utf-8"),
     "/static/app.js": ("app.js", "text/javascript; charset=utf-8"),
     "/static/styles.css": ("styles.css", "text/css; charset=utf-8"),
+    # IBM Plex, bundled under the SIL Open Font License (static/fonts/OFL.txt): nothing loads from elsewhere.
+    "/static/fonts/IBMPlexSans-Variable.woff2": ("fonts/IBMPlexSans-Variable.woff2", "font/woff2"),
+    "/static/fonts/IBMPlexMono-Regular.woff2": ("fonts/IBMPlexMono-Regular.woff2", "font/woff2"),
+    "/static/fonts/IBMPlexMono-Medium.woff2": ("fonts/IBMPlexMono-Medium.woff2", "font/woff2"),
 }
+#: Techniques one /api/grades call may ask for.
+MAX_GRADE_IDS = 40
 MAX_BODY_BYTES = 64 * 1024
 #: How much of an oversized body is read and discarded before the error response.
 MAX_DRAIN_BYTES = 1024 * 1024
@@ -226,7 +232,23 @@ class WebApp:
     def technique(self, identifier: str) -> dict[str, Any]:
         with self._lock:
             technique = self.workspace.dataset.get_technique(identifier)
-            return self.workspace.technique_dict(technique, include_coverage=True)
+            payload = self.workspace.technique_dict(technique, include_coverage=True)
+            payload["grade"] = self.workspace.technique_grade(technique.id)
+            return payload
+
+    def grades(self, query: dict[str, list[str]]) -> dict[str, Any]:
+        """The default rule's grade for several techniques at once (the rail's pills, the worked examples)."""
+        ids = [i.strip() for i in (query.get("ids") or [""])[0].split(",") if i.strip()]
+        if len(ids) > MAX_GRADE_IDS:
+            raise ApiError(HTTPStatus.BAD_REQUEST, f"at most {MAX_GRADE_IDS} techniques per request")
+        grades: dict[str, Any] = {}
+        with self._lock:
+            for technique_id in ids:
+                try:
+                    grades[technique_id] = self.workspace.technique_grade(technique_id)
+                except SigmaGeneratorError as exc:
+                    grades[technique_id] = {"id": technique_id, "error": str(exc)}
+        return {"grades": grades}
 
     def threat(self, identifier: str, query: dict[str, list[str]]) -> dict[str, Any]:
         kinds = query.get("kind")
@@ -292,6 +314,7 @@ class WebApp:
         with self._lock:
             index = download_index(default_index_path(self.workspace.sigmahq_path))
             self.workspace._sigmahq = index
+            self.workspace.forget_grades()
         return {"release": index.release, "rules": len(index.rules)}
 
     # -- internals ------------------------------------------------------------ #
@@ -417,6 +440,9 @@ def make_handler(app: WebApp, allowed_hosts: set[str]) -> type[BaseHTTPRequestHa
                 return
             if path == "/api/search":
                 self._dispatch(lambda: app.search(query))
+                return
+            if path == "/api/grades":
+                self._dispatch(lambda: app.grades(query))
                 return
             technique_match = _TECHNIQUE_PATH.match(path)
             if technique_match:

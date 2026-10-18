@@ -167,6 +167,7 @@ def build(output: Path, check: bool = False, sigmahq: Optional[Path] = None) -> 
     print(f"  {wheel.name}")
 
     shutil.copy2(STATIC_DIR / "app.js", output / "app.js")
+    shutil.copytree(STATIC_DIR / "fonts", output / "fonts", dirs_exist_ok=True)
     shutil.copy2(WEBAPP_DIR / "runtime.js", output / "runtime.js")
     _write_lf(
         output / "styles.css",

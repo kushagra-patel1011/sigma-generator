@@ -41,7 +41,7 @@ packages = ["sigma_generator", "sigma_generator.templates", "sigma_generator.web
 [tool.setuptools.package-data]
 "sigma_generator" = ["data/*.yml"]
 "sigma_generator.templates" = ["*.yml"]
-"sigma_generator.web" = ["static/*.html", "static/*.js", "static/*.css"]
+"sigma_generator.web" = ["static/*.html", "static/*.js", "static/*.css", "static/fonts/*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

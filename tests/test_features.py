@@ -13,10 +13,12 @@ from __future__ import annotations
 
 import io
 import json
+import re
 import threading
 import urllib.error
 import urllib.request
 import zipfile
+from pathlib import Path
 
 import pytest
 
@@ -570,6 +572,22 @@ class TestWebApp:
         assert payload["sigmahq"]["status"] == "partial"
         assert payload["detection_strategies"][0]["analytics"][0]["log_sources"][0]["mappable"]
 
+    def test_technique_includes_grade(self, web_app):
+        payload = web_app.technique("T1003.001")
+        analytics = {a["id"] for s in payload["detection_strategies"] for a in s["analytics"]}
+        assert payload["grade"]["tier"] == "strong"
+        assert payload["grade"]["analytics"] and set(payload["grade"]["analytics"]) <= analytics
+
+    def test_grades(self, web_app):
+        grades = web_app.grades({"ids": ["T1003.001, T1059.001,T9999"]})["grades"]
+        lsass = grades["T1003.001"]
+        assert lsass["tier"] == "strong" and lsass["analytics"]["AN1030"] == {"tier": "strong", "signals": 3}
+        assert lsass["logsource"] == "process_access/windows" and lsass["coverage"]["status"] == "partial"
+        assert grades["T1059.001"]["status"] == "generated"
+        assert "error" in grades["T9999"]
+        with pytest.raises(ApiError, match="at most"):
+            web_app.grades({"ids": [",".join(f"T{1000 + n}" for n in range(41))]})
+
     def test_generate_payload(self, web_app):
         payload = web_app.generate({"technique": "T1003.001", "chains": True, "deterministic": True})
         assert payload["technique"]["id"] == "T1003.001"
@@ -643,6 +661,24 @@ class TestWebServerSecurity:
         assert self.request(base_url + "/static/app.js")[0] == 200
         assert self.request(base_url + "/static/../server.py")[0] == 404
         assert self.request(base_url + "/static/server.py")[0] == 404
+
+    def test_bundled_fonts(self, base_url):
+        status, headers, body = self.request(base_url + "/static/fonts/IBMPlexSans-Variable.woff2")
+        assert status == 200 and headers["Content-Type"] == "font/woff2" and body[:4] == b"wOF2"
+        assert self.request(base_url + "/static/fonts/OFL.txt")[0] == 404
+        assert self.request(base_url + "/static/fonts/../app.js")[0] == 404
+
+    def test_page_loads_nothing_from_elsewhere(self):
+        static = Path(__file__).resolve().parent.parent / "src" / "web" / "static"
+        external = re.compile(r"""(?:src|href)\s*=\s*["']?(?:https?:)?//|url\(\s*["']?(?:https?:)?//|@import""")
+        for name in ("index.html", "styles.css", "app.js"):
+            assert not external.search((static / name).read_text(encoding="utf-8")), name
+
+    def test_grades_endpoint(self, base_url):
+        status, _, body = self.request(base_url + "/api/grades?ids=T1003.001")
+        assert status == 200 and json.loads(body)["grades"]["T1003.001"]["tier"] == "strong"
+        too_many = ",".join(f"T{1000 + n}" for n in range(41))
+        assert self.request(base_url + "/api/grades?ids=" + too_many)[0] == 400
 
     def test_generate_happy_path(self, base_url):
         status, _, body = self.request(base_url + "/api/generate", {"technique": "T1059.001"})

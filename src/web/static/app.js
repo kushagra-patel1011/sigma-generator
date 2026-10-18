@@ -19,7 +19,6 @@ function h(tag, attrs = {}, ...children) {
     if (key === "class") el.className = value;
     else if (key === "dataset") Object.assign(el.dataset, value);
     else if (key.startsWith("on") && typeof value === "function") el.addEventListener(key.slice(2), value);
-    else if (key === "text") el.textContent = value;
     else if (key === "href" && !/^(https?:\/\/|blob:)/i.test(String(value))) continue; // no javascript: URLs
     else el.setAttribute(key, value === true ? "" : String(value));
   }
@@ -57,7 +56,7 @@ async function api(path, { method = "GET", body } = {}) {
   return response.blob();
 }
 
-function debounce(fn, wait = 180) {
+function debounce(fn, wait = 160) {
   let timer;
   return (...args) => { clearTimeout(timer); timer = setTimeout(() => fn(...args), wait); };
 }
@@ -67,11 +66,7 @@ function toast(message) {
   el.textContent = message;
   el.hidden = false;
   clearTimeout(toast.timer);
-  toast.timer = setTimeout(() => { el.hidden = true; }, 2200);
-}
-
-function downloadText(filename, text, type = "text/yaml") {
-  downloadBlob(filename, new Blob([text], { type: `${type};charset=utf-8` }));
+  toast.timer = setTimeout(() => { el.hidden = true; }, 2400);
 }
 
 function downloadBlob(filename, blob) {
@@ -83,179 +78,178 @@ function downloadBlob(filename, blob) {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
-async function copyText(text) {
-  try {
-    await navigator.clipboard.writeText(text);
-    toast("Copied to clipboard");
-  } catch {
-    toast("Copy failed - select the text manually");
-  }
+function downloadText(filename, text, type) {
+  downloadBlob(filename, new Blob([text], { type: `${type};charset=utf-8` }));
 }
 
 function loading(message) {
-  return h("div", { class: "loading" }, h("span", { class: "spinner", "aria-hidden": "true" }), message);
+  return h("p", { class: "loading" }, h("span", { class: "spinner", "aria-hidden": "true" }), message);
 }
 
-function alertBox(kind, message) {
-  return h("div", { class: `alert ${kind}`, role: kind === "error" ? "alert" : null }, message);
+function svgIcon(path) {
+  const ns = "http://www.w3.org/2000/svg";
+  const svg = document.createElementNS(ns, "svg");
+  const attrs = { width: 16, height: 16, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor",
+    "stroke-width": 2, "stroke-linecap": "round", "stroke-linejoin": "round", "aria-hidden": "true" };
+  for (const [key, value] of Object.entries(attrs)) svg.setAttribute(key, String(value));
+  const line = document.createElementNS(ns, "path");
+  line.setAttribute("d", path);
+  svg.append(line);
+  return svg;
 }
 
-function levelPill(level) {
-  return h("span", { class: `pill level-${level}` }, level);
-}
+const cap = (word) => (word ? word.charAt(0).toUpperCase() + word.slice(1) : "");
+const titleCase = (slug) => String(slug || "").split("-").map(cap).join(" ");
+const plural = (n, word, many = `${word}s`) => `${n} ${n === 1 ? word : many}`;
 
-const TIER_HELP = {
-  strong: "Two or more independent behavioural signals",
-  moderate: "One behavioural signal - review for noise",
-  weak: "Matches broad activity - for threat hunting, not alerting",
-  placeholder: "Skeleton - no concrete values yet; matches nothing until completed",
+const TIER_ORDER = { strong: 0, moderate: 1, weak: 2, placeholder: 3 };
+const GRADE_SENTENCE = {
+  strong: "Two or more independent signals. Level follows the tactic.",
+  moderate: "One concrete signal. Level is lowered one step. Review for noise.",
+  weak: "Broad activity only. Tagged for hunting and capped at low.",
+  placeholder: "No concrete values yet. Matches nothing until completed.",
 };
 
-function tierPill(tier, reasons) {
-  const title = [TIER_HELP[tier], ...(reasons || [])].filter(Boolean).join(" \u2014 ");
-  return h("span", { class: `pill tier-${tier}`, title }, tier === "placeholder" ? "skeleton" : tier);
+function gradePill(tier) {
+  if (!tier) return h("span", { class: "pill t-none" }, "No values");
+  return h("span", { class: `pill t-${tier}` }, tier === "placeholder" ? "Skeleton" : cap(tier));
 }
 
-function confidenceBar(value) {
-  const bar = h("span", { class: "conf", title: `confidence ${Math.round(value * 100)}%` }, h("i"));
-  bar.firstChild.style.width = `${Math.round(value * 100)}%`;
-  return bar;
+function bestTier(tiers) {
+  return [...tiers].sort((a, b) => TIER_ORDER[a] - TIER_ORDER[b])[0] || null;
 }
 
-/** Minimal YAML highlighting built from DOM nodes (no innerHTML). */
-function yamlBlock(text) {
-  const pre = h("pre", { class: "yaml", tabindex: "0" });
-  for (const line of text.split("\n")) {
-    if (line.trimStart().startsWith("#")) {
+/** YAML or JSON as highlighted DOM nodes: keys in the accent colour, comments muted. */
+function codeBlock(text, json, label) {
+  const pre = h("pre", { class: "code", tabindex: "0", "aria-label": label });
+  for (const line of text.replace(/\n$/, "").split("\n")) {
+    if (!json && /^\s*#/.test(line)) {
       pre.append(h("span", { class: "c" }, line), "\n");
       continue;
     }
-    if (line === "---") {
-      pre.append(h("span", { class: "sep" }, line), "\n");
-      continue;
-    }
-    const match = line.match(/^(\s*(?:- )?)([A-Za-z0-9_.|\-]+)(:)(.*)$/);
-    if (match) {
-      const [, indent, key, colon, rest] = match;
-      pre.append(indent, h("span", { class: "k" }, key), colon);
-      pre.append(/^\s*'.*'$/.test(rest) ? h("span", { class: "s" }, rest) : rest, "\n");
-    } else {
-      const item = line.match(/^(\s*- )('.*')$/);
-      if (item) pre.append(item[1], h("span", { class: "s" }, item[2]), "\n");
-      else pre.append(line, "\n");
-    }
+    const match = json ? line.match(/^(\s*)("[^"]+")(:)(.*)$/) : line.match(/^(\s*(?:- )?)([A-Za-z0-9_.|-]+)(:)(.*)$/);
+    if (match) pre.append(match[1], h("span", { class: "k" }, match[2]), match[3], match[4], "\n");
+    else pre.append(line, "\n");
   }
   return pre;
 }
 
-function setOptions(select, values, keepFirst = true) {
-  const first = keepFirst ? select.options[0] : null;
-  select.replaceChildren(...(first ? [first] : []));
-  for (const value of values) {
-    const [val, label] = Array.isArray(value) ? value : [value, value];
-    select.append(h("option", { value: val }, label));
-  }
-}
-
-function formValues(form) {
-  const values = {};
-  for (const el of form.elements) {
-    if (!el.name) continue;
-    values[el.name] = el.type === "checkbox" ? el.checked : el.value;
-  }
-  return values;
+function firstSentence(text, max = 170) {
+  const sentence = String(text || "").split(/(?<=\.)\s/)[0].trim();
+  return sentence.length > max ? `${sentence.slice(0, max - 1).trimEnd()}…` : sentence;
 }
 
 // ---------------------------------------------------------------------------
-// Search box with keyboard navigation
+// State
 // ---------------------------------------------------------------------------
-function attachSearch({ input, list, fetchResults, renderItem, onPick }) {
-  let items = [];
-  let active = -1;
+const STARTERS = ["T1003.001", "T1547.001", "T1621", "T1059.001", "T1110.003", "T1053.005",
+  "T1003.002", "T1047", "T1105", "T1112", "T1566.001", "T1078.004"];
+const EXAMPLES = ["T1003.001", "T1547.001", "T1621", "T1059.001"];
+const THREAT_STARTERS = {
+  group: ["G0016", "G0032", "G0034", "G0007", "G0046"],
+  software: ["S0002", "S0154", "S0029", "S0363"],
+  campaign: ["C0024", "C0025", "C0022"],
+};
+const PLACEHOLDERS = { group: "APT29, Cozy Bear, G0016", software: "Mimikatz, S0002", campaign: "SolarWinds, C0024" };
+/** Pack totals for the three example packs, as generated from ATT&CK v19.2 with SigmaHQ r2026-07-01. */
+const PUBLISHED_PACKS = {
+  attack: "19.2",
+  sigmahq: "r2026-07-01",
+  packs: [
+    { id: "G0016", kind: "group", name: "APT29", strong: 14, moderate: 39, weak: 31, gaps: 13 },
+    { id: "S0002", kind: "software", name: "Mimikatz", strong: 11, moderate: 3, weak: 9, gaps: 2 },
+    { id: "C0024", kind: "campaign", name: "SolarWinds Compromise", strong: 23, moderate: 48, weak: 29, gaps: 13 },
+  ],
+};
 
-  const close = () => { list.hidden = true; active = -1; input.setAttribute("aria-expanded", "false"); };
-  const highlight = () => {
-    [...list.children].forEach((li, index) => li.setAttribute("aria-selected", String(index === active)));
-  };
-  const pick = (item) => { close(); onPick(item); };
-
-  const run = debounce(async () => {
-    const query = input.value.trim();
-    if (!query) { close(); return; }
-    try {
-      items = await fetchResults(query);
-    } catch (error) {
-      items = [];
-      list.replaceChildren(h("li", { class: "empty" }, error.message));
-      list.hidden = false;
-      return;
-    }
-    active = items.length ? 0 : -1;
-    list.replaceChildren(...(items.length
-      ? items.map((item, index) => {
-          const li = renderItem(item);
-          li.setAttribute("role", "option");
-          li.addEventListener("mousedown", (event) => { event.preventDefault(); pick(items[index]); });
-          return li;
-        })
-      : [h("li", { class: "empty" }, "No matches")]));
-    highlight();
-    list.hidden = false;
-    input.setAttribute("aria-expanded", "true");
-  });
-
-  input.addEventListener("input", run);
-  input.addEventListener("focus", () => { if (input.value.trim()) run(); });
-  input.addEventListener("blur", () => setTimeout(close, 120));
-  input.addEventListener("keydown", (event) => {
-    if (list.hidden || !items.length) {
-      if (event.key === "Enter") { event.preventDefault(); run(); }
-      return;
-    }
-    if (event.key === "ArrowDown") { active = (active + 1) % items.length; highlight(); event.preventDefault(); }
-    else if (event.key === "ArrowUp") { active = (active - 1 + items.length) % items.length; highlight(); event.preventDefault(); }
-    else if (event.key === "Enter") { event.preventDefault(); if (active >= 0) pick(items[active]); }
-    else if (event.key === "Escape") close();
-  });
-}
-
-// ---------------------------------------------------------------------------
-// App state
-// ---------------------------------------------------------------------------
 const state = {
+  mode: "technique",
+  runtime: "server",
   status: null,
-  technique: null,       // detail payload for the selected technique
-  lastTechniqueRequest: null,
-  threatKind: "group",
-  threat: null,
-  lastPackRequest: null,
+  grades: {},               // technique ID -> grade summary from /api/grades
+  tech: {
+    query: "",
+    results: [],            // [{id, name, tactics}]
+    selected: null,
+    detail: null,
+    draft: null,
+    activeFile: null,
+    recipe: { chains: true, gaps_only: false, all_analytics: false, banner: true, level: "", tlp: "clear" },
+    request: 0,
+  },
+  threat: {
+    kind: "group",
+    query: "",
+    results: [],
+    selected: null,
+    pack: null,
+    deployable: false,
+    gaps: {},               // threat ID -> techniques with no SigmaHQ rule, once its pack is built
+    request: 0,
+  },
 };
 
 // ---------------------------------------------------------------------------
-// Header / dataset status
+// Views
+// ---------------------------------------------------------------------------
+const VIEWS = ["view-tech-overview", "view-tech-open", "view-pack-overview", "view-pack-open"];
+let currentView = "view-tech-overview";
+
+function showView(id) {
+  for (const name of VIEWS) $(`#${name}`).hidden = name !== id;
+  const el = $(`#${id}`);
+  if (id !== currentView) {
+    el.classList.remove("enter");
+    void el.offsetWidth;     // restart the animation
+    el.classList.add("enter");
+    $("#main").scrollTop = 0;
+  }
+  currentView = id;
+}
+
+function setMode(mode) {
+  state.mode = mode;
+  for (const tab of document.querySelectorAll(".tab")) {
+    const on = tab.dataset.view === mode;
+    tab.classList.toggle("on", on);
+    tab.setAttribute("aria-pressed", String(on));
+  }
+  $("#rail-technique").hidden = mode !== "technique";
+  $("#rail-pack").hidden = mode !== "pack";
+  if (mode === "technique") showView(state.tech.selected ? "view-tech-open" : "view-tech-overview");
+  else showView(state.threat.selected ? "view-pack-open" : "view-pack-overview");
+  history.replaceState(null, "", `#${mode}`);
+}
+
+// ---------------------------------------------------------------------------
+// Header and dataset status
 // ---------------------------------------------------------------------------
 async function loadStatus() {
   const status = await api("/api/status");
   state.status = status;
   const sigmahq = status.sigmahq;
-  $("#datasets").replaceChildren(
-    h("span", { class: "badge" }, h("span", { class: "dot" }), `ATT&CK v${status.attack.version}`),
-    h("span", { class: `badge ${sigmahq.available ? "" : "off"}` }, h("span", { class: "dot" }),
-      sigmahq.available ? `SigmaHQ ${sigmahq.release}` : "SigmaHQ not downloaded"),
-    h("span", { class: "badge" }, `v${status.version}`),
-  );
+  // The spaces are where the line may wrap; each part itself never breaks.
+  const sep = () => [" ", h("span", { class: "sep" }, "/"), " "];
+  const part = (text, cls = "v") => h("span", { class: cls }, text);
+  fill($("#datasets"),
+    part(`ATT&CK v${status.attack.version}`), sep(),
+    sigmahq.available ? part(`SigmaHQ ${sigmahq.release}`) : part("SigmaHQ not downloaded", "v off"), sep(),
+    part(`v${status.version}`), sep(), part("Local"));
 
   const notice = $("#sigmahq-notice");
   if (!sigmahq.available) {
-    const button = h("button", { class: "btn small", type: "button", disabled: status.offline }, "Download SigmaHQ index (3 MB)");
+    const button = h("button", { class: "btn btn-outline", type: "button", disabled: status.offline }, "Download SigmaHQ index (3 MB)");
     button.addEventListener("click", async () => {
       button.disabled = true;
-      button.textContent = "Downloading...";
+      button.textContent = "Downloading…";
       try {
         const result = await api("/api/sigmahq/update", { method: "POST", body: {} });
         toast(`SigmaHQ ${result.release}: ${result.rules} rules indexed`);
+        state.grades = {};
         await loadStatus();
-        if (state.technique) selectTechnique(state.technique.id);
+        searchTechniques();
+        renderExamples();
+        if (state.tech.selected) selectTechnique(state.tech.selected);
       } catch (error) {
         button.disabled = false;
         button.textContent = "Retry download";
@@ -264,506 +258,629 @@ async function loadStatus() {
     });
     fill(notice,
       h("span", {}, status.offline
-        ? "SigmaHQ gap checks are unavailable offline. Run `python -m src.main update --sigmahq-only` once."
-        : "Gap checks compare ATT&CK's recommended telemetry with SigmaHQ's community rules."),
-      status.offline ? null : button,
-    );
+        ? "SigmaHQ coverage is off: the index is not downloaded and the UI was started offline. Run `python -m src.main update --sigmahq-only` once."
+        : "SigmaHQ coverage is off until its rule index is downloaded."),
+      status.offline ? null : button);
     notice.hidden = false;
   } else {
     notice.hidden = true;
   }
-  for (const form of [$("#technique-form"), $("#pack-form")]) {
-    const gaps = form.elements.gaps_only;
-    gaps.disabled = !sigmahq.available && status.offline;
-    setOptions(form.elements.level, status.choices.levels);
-    setOptions(form.elements.tlp, status.choices.tlp.filter((t) => t !== "white").map((t) => [t, `TLP:${t.toUpperCase()}`]), false);
-    form.elements.tlp.value = "amber";
+
+  const levels = $("#level-select");
+  levels.replaceChildren(h("option", { value: "" }, "From tactic"),
+    ...status.choices.levels.map((level) => h("option", { value: level }, level)));
+  levels.value = state.tech.recipe.level;
+  // "clear" and "white" are the same marking; offer the current name only.
+  const tlpChoices = status.choices.tlp.filter((tlp) => tlp !== "white" || !status.choices.tlp.includes("clear"));
+  const tlps = $("#tlp-select");
+  tlps.replaceChildren(...tlpChoices.map((tlp) => h("option", { value: tlp }, tlp.toUpperCase())));
+  tlps.value = state.tech.recipe.tlp;
+  renderPackCards();
+}
+
+// ---------------------------------------------------------------------------
+// Grades (the pills in the rail and the worked examples)
+// ---------------------------------------------------------------------------
+async function ensureGrades(ids) {
+  const missing = [...new Set(ids)].filter((id) => !state.grades[id]);
+  for (let i = 0; i < missing.length; i += 40) {
+    const chunk = missing.slice(i, i + 40);
+    try {
+      const result = await api(`/api/grades?ids=${encodeURIComponent(chunk.join(","))}`);
+      Object.assign(state.grades, result.grades);
+    } catch (error) {
+      for (const id of chunk) state.grades[id] = { id, error: error.message };
+    }
   }
 }
 
 // ---------------------------------------------------------------------------
-// Technique view
+// Technique rail
 // ---------------------------------------------------------------------------
-function coverageFor(detail) {
-  const map = new Map();
+async function searchTechniques() {
+  const query = state.tech.query;
+  if (!query.trim()) {
+    if (STARTERS.some((id) => !state.grades[id])) fill($("#technique-list"), loading("Grading starters…"));
+    await ensureGrades(STARTERS);
+    if (state.tech.query !== query) return;
+    state.tech.results = STARTERS.map((id) => state.grades[id]).filter((grade) => grade && !grade.error)
+      .map((grade) => ({ id: grade.id, name: grade.name, tactics: grade.tactics }));
+    renderTechniqueList();
+    return;
+  }
+  let results;
+  try {
+    results = (await api(`/api/search?kind=technique&limit=25&q=${encodeURIComponent(query.trim())}`)).results;
+  } catch (error) {
+    if (state.tech.query === query) fill($("#technique-list"), h("p", { class: "empty-list" }, error.message));
+    return;
+  }
+  if (state.tech.query !== query) return;
+  state.tech.results = results;
+  renderTechniqueList();
+  await ensureGrades(results.map((technique) => technique.id));
+  if (state.tech.query === query) renderTechniqueList();
+}
+
+function renderTechniqueList() {
+  const { results, selected, query } = state.tech;
+  const n = results.length;
+  $("#technique-count").textContent = query.trim()
+    ? `${n} ${n === 1 ? "match" : "matches"} · on this machine only`
+    : `${n} to start with · on this machine only`;
+  fill($("#technique-list"), n ? results.map((technique) => {
+    const grade = state.grades[technique.id];
+    const pill = !grade ? h("span", { class: "pill pending", "aria-hidden": "true" })
+      : grade.error ? null : gradePill(grade.tier);
+    const isSelected = technique.id === selected;
+    return h("button", {
+      class: isSelected ? "row sel" : "row", type: "button", "aria-current": isSelected ? "true" : null,
+      onclick: () => selectTechnique(technique.id),
+    },
+    h("span", { class: "row-top" }, h("span", { class: "rid mono" }, technique.id), pill),
+    h("span", { class: "rname" }, technique.name),
+    h("span", { class: "rmeta" }, (technique.tactics || []).map(titleCase).join(", ")));
+  }) : h("p", { class: "empty-list" }, "No technique matches."));
+}
+
+// ---------------------------------------------------------------------------
+// Technique overview
+// ---------------------------------------------------------------------------
+async function renderExamples() {
+  const container = $("#examples");
+  const draw = () => fill(container, EXAMPLES.map((id) => {
+    const grade = state.grades[id] || {};
+    const coverage = grade.coverage;
+    let facts = " ";
+    if (grade.tier) {
+      facts = [plural(grade.signals, "signal"), `confidence ${grade.confidence.toFixed(2)}`,
+        coverage ? `SigmaHQ ${coverage.status} (${Math.round(coverage.ratio * 100)}% of log sources, ${plural(coverage.rules, "rule")})`
+          : "SigmaHQ not downloaded"].join(" · ");
+    } else if (grade.status === "insufficient") {
+      facts = "ATT&CK gives no concrete values";
+    } else if (grade.status === "unmappable") {
+      facts = "Not expressible as Sigma";
+    } else if (grade.error) {
+      facts = grade.error;
+    }
+    return h("button", { class: "card", type: "button", onclick: () => selectTechnique(id) },
+      h("span", { class: "card-top" }, h("span", { class: "card-id mono" }, id),
+        grade.status ? gradePill(grade.tier) : h("span", { class: "pill pending", "aria-hidden": "true" })),
+      h("span", { class: "card-name" }, grade.name || id),
+      h("span", { class: "card-src mono" }, grade.logsource ? grade.logsource.replace("/", " / ") : " "),
+      h("span", { class: "card-facts" }, facts));
+  }));
+  draw();
+  await ensureGrades(EXAMPLES);
+  draw();
+}
+
+// ---------------------------------------------------------------------------
+// Open technique
+// ---------------------------------------------------------------------------
+async function selectTechnique(id) {
+  const tech = state.tech;
+  tech.selected = id;
+  tech.detail = null;
+  tech.draft = null;
+  tech.activeFile = null;
+  renderTechniqueList();
+  if (state.mode !== "technique") setMode("technique");
+  showView("view-tech-open");
+  fill($("#tech-meta"), h("span", { class: "mono" }, id));
+  $("#tech-name").textContent = (state.grades[id] && state.grades[id].name) || id;
+  $("#tech-note").textContent = "";
+  fill($("#telemetry"), loading("Reading what ATT&CK says to monitor…"));
+  $("#coverage-note").textContent = "";
+  fill($("#doc"), loading("Drafting…"));
+  setFileActions(null);
+  try {
+    const [detail] = await Promise.all([api(`/api/technique/${encodeURIComponent(id)}`), regenerate(true)]);
+    if (tech.selected !== id) return;
+    tech.detail = detail;
+    renderTechniqueHeader();
+    renderTelemetry();
+  } catch (error) {
+    if (tech.selected === id) fill($("#telemetry"), h("p", { class: "t-gap" }, error.message));
+  }
+}
+
+const scheduleRegenerate = debounce(() => regenerate(false), 120);
+
+async function regenerate(initial) {
+  const tech = state.tech;
+  const id = tech.selected;
+  if (!id) return;
+  const request = ++tech.request;
+  const doc = $("#doc");
+  if (!initial) doc.classList.add("updating");
+  try {
+    const draft = await api("/api/generate", { method: "POST", body: { technique: id, deterministic: true, ...tech.recipe } });
+    if (request !== tech.request || tech.selected !== id) return;
+    tech.draft = draft;
+    renderDraft();
+    if (tech.detail) renderTelemetry();
+  } catch (error) {
+    if (request === tech.request) {
+      setFileActions(null);
+      fill(doc, h("p", { class: "t-gap" }, error.message));
+    }
+  } finally {
+    if (request === tech.request) doc.classList.remove("updating");
+  }
+}
+
+function renderTechniqueHeader() {
+  const detail = state.tech.detail;
+  const strategy = detail.detection_strategies[0];
+  fill($("#tech-meta"), h("span", { class: "mono" }, detail.id),
+    detail.tactics.length ? ` · ${detail.tactics.map(titleCase).join(", ")}` : null,
+    strategy ? [" · ", h("span", { class: "mono" }, strategy.id)] : null);
+  $("#tech-name").textContent = detail.name;
+  $("#tech-note").textContent = `${detail.platforms.join(", ") || "No platform listed"}. `
+    + "Drafts stay status: experimental. Values are mined from ATT&CK, not from your telemetry.";
+}
+
+function draftFiles() {
+  const draft = state.tech.draft;
+  if (!draft) return [];
+  const files = [...draft.rules, ...draft.chains].map((rule) => ({ name: rule.filename, text: rule.yaml, json: false, rule }));
+  if (draft.bundle) files.push({ name: draft.bundle.filename, text: draft.bundle.json, json: true, bundle: draft.bundle });
+  return files;
+}
+
+function activeFile() {
+  const files = draftFiles();
+  return files.find((file) => file.name === state.tech.activeFile) || files[0] || null;
+}
+
+function setFileActions(file) {
+  $("#copy-btn").disabled = !file;
+  $("#download-btn").disabled = !file;
+}
+
+function coveragePill(coverage, sources) {
+  if (!coverage) return h("span", { class: "pill t-none" }, "No SigmaHQ index");
+  const usable = sources.filter((source) => source.coverage && source.coverage.usable);
+  if (!usable.length) return h("span", { class: "pill t-none" }, "Not in Sigma");
+  const covered = usable.filter((source) => source.coverage.covered_by.length).length;
+  if (covered === usable.length) return h("span", { class: "pill t-strong" }, "Covered");
+  if (covered) return h("span", { class: "pill t-moderate" }, "Partial");
+  return h("span", { class: "pill t-gap" }, "Gap");
+}
+
+function renderTelemetry() {
+  const { detail, draft } = state.tech;
+  const grades = (detail.grade && detail.grade.analytics) || {};
   const coverage = detail.sigmahq;
-  if (!coverage) return map;
-  for (const source of coverage.sources) {
-    map.set(`${source.analytic}|${source.attack_log_source}`, source);
-  }
-  return map;
-}
+  const covered = new Map();
+  for (const source of (coverage && coverage.sources) || []) covered.set(`${source.analytic}|${source.attack_log_source}`, source);
+  const inDraft = new Set(draft ? [...draft.rules, ...draft.chains].map((rule) => rule.analytic) : []);
 
-function renderTechniqueDetail(detail) {
-  const container = $("#technique-detail");
-  container.classList.remove("empty-state");
-  const coverage = coverageFor(detail);
-  const description = h("div", { class: "desc clamped" }, detail.description.split("\n")[0]);
-  const more = h("button", { class: "linkish", type: "button" }, "Show more");
-  more.addEventListener("click", () => {
-    description.classList.toggle("clamped");
-    more.textContent = description.classList.contains("clamped") ? "Show more" : "Show less";
-  });
-
-  const telemetry = h("div", { class: "telemetry" });
+  const blocks = [];
   for (const strategy of detail.detection_strategies) {
     for (const analytic of strategy.analytics) {
-      telemetry.append(h("div", { class: "analytic-head" },
-        h("code", {}, analytic.id), ` · ${analytic.platforms.join(", ") || "any platform"}`));
-      for (const source of analytic.log_sources) {
+      const sources = analytic.log_sources.map((source) => {
         const label = source.channel ? `${source.name} (${source.channel})` : source.name;
-        const verdict = coverage.get(`${analytic.id}|${label}`);
-        let pill;
-        if (!source.mappable) pill = h("span", { class: "pill" }, "not Sigma");
-        else if (!detail.sigmahq) pill = h("span", { class: "pill info" }, `${Math.round(source.confidence * 100)}%`);
-        else if (verdict && verdict.covered_by.length) pill = h("span", { class: "pill ok", title: "SigmaHQ rules watch this log source" }, `SigmaHQ ×${verdict.covered_by.length}`);
-        else pill = h("span", { class: "pill gap", title: "No SigmaHQ rule for this technique on this log source" }, "gap");
-        const logsource = Object.values(source.sigma_logsource).join(" / ") || "no Sigma logsource";
-        telemetry.append(h("div", { class: "tel-row" },
-          h("div", { class: "tel-src" }, label),
-          pill,
-          h("div", { class: "tel-map" }, "→ ", h("b", {}, logsource), source.mappable ? confidenceBar(source.confidence) : null),
-        ));
-      }
-    }
-  }
-
-  const coverageSummary = detail.sigmahq
-    ? h("div", { class: "status-line" },
-        h("span", { class: `pill ${detail.sigmahq.status === "covered" ? "ok" : detail.sigmahq.status === "partial" ? "warn" : "gap"}` },
-          detail.sigmahq.status),
-        h("span", { class: "aliases" },
-          `${detail.sigmahq.sigmahq_rules.length} SigmaHQ rule(s) tagged ${detail.id} · ${Math.round(detail.sigmahq.coverage_ratio * 100)}% of recommended telemetry covered`))
-    : null;
-
-  fill(container,
-    h("div", { class: "eyebrow" }, detail.id, detail.parent ? ` · sub-technique of ${detail.parent.id}` : ""),
-    h("h2", {}, detail.name),
-    h("div", { class: "chips" },
-      detail.tactics.map((t) => h("span", { class: "chip tactic" }, t)),
-      detail.platforms.map((p) => h("span", { class: "chip" }, p))),
-    detail.revoked ? alertBox("warn", `Revoked in ATT&CK${detail.revoked_by ? ` - replaced by ${detail.revoked_by}` : ""}.`) : null,
-    description, more, " ",
-    h("a", { href: detail.url, target: "_blank", rel: "noopener noreferrer", class: "linkish" }, "ATT&CK page ↗"),
-    h("div", { class: "section-title" }, "Telemetry ATT&CK recommends"),
-    coverageSummary,
-    telemetry.childElementCount ? telemetry : h("p", { class: "desc" }, "ATT&CK attaches no detection analytic to this technique."),
-  );
-
-  const form = $("#technique-form");
-  const analytics = detail.detection_strategies.flatMap((s) => s.analytics);
-  setOptions(form.elements.platform, detail.platforms);
-  setOptions(form.elements.analytic, analytics.map((a) => [a.id, `${a.id} · ${a.platforms.join(", ") || "any"}`]));
-  form.hidden = false;
-  $("#save-technique-btn").disabled = true;
-}
-
-async function selectTechnique(id) {
-  $("#technique-detail").replaceChildren(loading(`Loading ${id}...`));
-  try {
-    const detail = await api(`/api/technique/${encodeURIComponent(id)}`);
-    state.technique = detail;
-    $("#technique-search").value = `${detail.id} ${detail.name}`;
-    renderTechniqueDetail(detail);
-    $("#technique-output").replaceChildren(h("p", { class: "desc" },
-      `Choose options and press Generate to build rules for ${detail.id}.`));
-  } catch (error) {
-    $("#technique-detail").replaceChildren(alertBox("error", error.message));
-  }
-}
-
-function matchList(matches) {
-  if (!matches || !matches.length) return null;
-  const wrap = h("div", { class: "matches" },
-    h("div", { class: "field-label" }, "What it matches"));
-  for (const row of matches) {
-    const values = row.values.map((v, i) =>
-      [i ? h("span", { class: "or" }, "or") : null, h("code", {}, v)]).flat().filter(Boolean);
-    if (row.more) values.push(h("span", { class: "or" }, `+${row.more} more`));
-    wrap.append(h("div", { class: `match${row.optional ? " is-optional" : ""}${row.event ? " is-event" : ""}` },
-      h("span", { class: "mfield" }, row.field),
-      h("span", { class: "mvalues" }, ...values),
-      row.optional ? h("span", { class: "mnote" }, "any of these") : null));
-  }
-  return wrap;
-}
-
-function ruleCard(rule, technique) {
-  const isChain = rule.kind === "chain";
-  const isCount = isChain && rule.correlation_kind === "count";
-  const valid = rule.problems.length === 0;
-  const tier = rule.quality.tier;
-  const validity = valid
-    ? h("span", { class: "pill ok", title: rule.pysigma_checked ? "Passed the built-in validator and pySigma" : "Passed the built-in validator" },
-        rule.pysigma_checked ? "✓ valid (pySigma)" : "✓ valid")
-    : h("span", { class: "pill gap" }, `${rule.problems.length} problem(s)`);
-
-  const card = h("article", { class: `card rule-card tier-${tier}` },
-    h("div", { class: "rule-head" },
-      h("div", {},
-        h("div", { class: "rule-kind" }, isCount ? "Count threshold" : isChain ? "Attack chain" : "Sigma rule"),
-        h("div", { class: "verdict" },
-          h("span", { class: `tier-word tier-${tier}` }, tier === "placeholder" ? "skeleton" : tier),
-          h("span", { class: "verdict-why" }, rule.quality.reasons.join("; ") || rule.quality.meaning)),
-        h("h3", {}, rule.title),
-        h("div", { class: "meta" },
-          levelPill(rule.level), validity,
-          h("span", {}, h("span", { class: "k" }, "logsource "), h("code", {}, rule.logsource)),
-          rule.analytic ? h("span", {}, h("span", { class: "k" }, "analytic "), h("code", {}, rule.analytic)) : null,
-          h("span", {}, h("span", { class: "k" }, "confidence "), h("code", {}, `${Math.round(rule.confidence * 100)}%`)))),
-      h("div", { class: "rule-actions" },
-        h("button", { class: "btn small", type: "button", onclick: () => copyText(rule.yaml) }, "Copy"),
-        h("button", { class: "btn small", type: "button", onclick: () => downloadText(rule.filename, rule.yaml) }, "Download"))),
-  );
-
-  if (!isChain) card.append(matchList(rule.matches));
-
-  if (isCount) {
-    const condition = rule.condition || {};
-    const counted = condition.field ? `distinct ${condition.field}` : "matching events";
-    card.append(h("div", { class: "chain", "aria-label": "Threshold" },
-      h("div", { class: "step" },
-        h("span", { class: "lbl" }, "Counted event"),
-        h("span", { class: "s" }, rule.steps[0].logsource)),
-      h("span", { class: "arrow", "aria-hidden": "true" }, "≥"),
-      h("div", { class: "step" },
-        h("span", { class: "lbl" }, rule.correlation_type),
-        h("span", { class: "s" }, `${condition.gte} ${counted}`)),
-      h("span", { class: "chain-window" }, `within ${rule.timespan}`, h("br"), `per ${rule.group_by.join(", ")}`)));
-    card.append(matchList(rule.steps[0].matches));
-  } else if (isChain) {
-    const chain = h("div", { class: "chain", "aria-label": "Correlated steps" });
-    rule.steps.forEach((step, index) => {
-      if (index) chain.append(h("span", { class: "arrow", "aria-hidden": "true" }, "+"));
-      chain.append(h("div", { class: "step" },
-        h("span", { class: "lbl" }, `Step ${index + 1}`),
-        h("span", { class: "s" }, step.logsource),
-        h("span", { class: "small" }, (step.matches[0] && step.matches[0].values[0]) || "")));
-    });
-    chain.append(h("span", { class: "chain-window" }, `within ${rule.timespan}`, h("br"), `same ${rule.group_by.join(", ")}`));
-    card.append(chain);
-  }
-  if (!valid) card.append(h("div", { class: "notes" }, alertBox("error", rule.problems.join("; "))));
-  if (rule.notes.length) card.append(h("ul", { class: "notes" }, rule.notes.map((n) => h("li", {}, n))));
-
-  const lines = rule.yaml.split("\n").length;
-  const details = h("details", { class: "code" },
-    h("summary", { class: "file-head" }, rule.filename, h("span", { class: "small" }, `${lines} lines · YAML`)));
-  details.addEventListener("toggle", () => {
-    if (details.open && details.childElementCount === 1) details.append(yamlBlock(rule.yaml));
-  }, { once: false });
-  card.append(details);
-  return card;
-}
-
-function bundleCard(bundle) {
-  return h("article", { class: "card rule-card" },
-    h("div", { class: "rule-head" },
-      h("div", {},
-        h("div", { class: "rule-kind" }, "STIX 2.1 bundle"),
-        h("h3", {}, bundle.filename),
-        h("div", { class: "meta" },
-          bundle.problems.length ? h("span", { class: "pill gap" }, `${bundle.problems.length} problem(s)`)
-            : h("span", { class: "pill ok" }, "✓ valid STIX 2.1"),
-          h("span", {}, "indicator pattern_type ", h("code", {}, "sigma")))),
-      h("div", { class: "rule-actions" },
-        h("button", { class: "btn small", type: "button", onclick: () => copyText(bundle.json) }, "Copy"),
-        h("button", { class: "btn small", type: "button", onclick: () => downloadText(bundle.filename, bundle.json, "application/json") }, "Download"))),
-    h("div", { class: "stix-counts" },
-      Object.entries(bundle.objects).map(([type, count]) => h("span", { class: "chip" }, `${count} ${type}`))),
-  );
-}
-
-function renderTechniqueResult(result) {
-  const output = $("#technique-output");
-  const parts = [];
-  for (const warning of result.warnings) parts.push(alertBox("warn", warning));
-  if (result.status === "covered") parts.push(alertBox("ok", result.reason));
-  if (result.status === "insufficient") parts.push(alertBox("warn", result.reason));
-  if (result.status === "unmappable" || result.status === "error") parts.push(alertBox("error", result.reason));
-  if (result.saved.length) parts.push(alertBox("ok", `Saved ${result.saved.length} file(s) to the output folder.`));
-  for (const chain of result.chains) parts.push(ruleCard(chain, result.technique));
-  for (const rule of result.rules) parts.push(ruleCard(rule, result.technique));
-  if (result.bundle) parts.push(bundleCard(result.bundle));
-  if (!parts.length) parts.push(alertBox("warn", "Nothing was generated."));
-  output.replaceChildren(...parts);
-  $("#save-technique-btn").disabled = !(result.rules.length || result.chains.length);
-}
-
-async function generateTechnique(save = false) {
-  if (!state.technique) return;
-  const values = formValues($("#technique-form"));
-  const body = { technique: state.technique.id, ...values, save };
-  state.lastTechniqueRequest = body;
-  $("#generate-btn").disabled = true;
-  $("#technique-output").replaceChildren(loading(save ? "Saving..." : `Generating detections for ${state.technique.id}...`));
-  try {
-    renderTechniqueResult(await api("/api/generate", { method: "POST", body }));
-    if (save) toast("Saved to the output folder");
-  } catch (error) {
-    $("#technique-output").replaceChildren(alertBox("error", error.message));
-  } finally {
-    $("#generate-btn").disabled = false;
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Threat pack view
-// ---------------------------------------------------------------------------
-function renderThreatDetail(profile) {
-  const container = $("#threat-detail");
-  container.classList.remove("empty-state");
-  const techniques = h("div", { class: "chips" },
-    profile.techniques.slice(0, 40).map((t) => h("span", { class: "chip", title: t.name }, t.id)),
-    profile.techniques.length > 40 ? h("span", { class: "chip" }, `+${profile.techniques.length - 40} more`) : null);
-  fill(container,
-    h("div", { class: "eyebrow" }, `${profile.id} · ${profile.kind}`),
-    h("h2", {}, profile.name),
-    profile.aliases.length ? h("div", { class: "aliases" }, `Also known as ${profile.aliases.slice(0, 10).join(", ")}`) : null,
-    h("p", { class: "desc" }, profile.description),
-    h("a", { href: profile.url, target: "_blank", rel: "noopener noreferrer", class: "linkish" }, "ATT&CK page ↗"),
-    h("div", { class: "section-title" }, `${profile.techniques.length} techniques attributed`),
-    techniques,
-    profile.campaigns.length ? h("div", { class: "aliases" }, `Attributed campaigns: ${profile.campaigns.join(", ")}`) : null,
-  );
-  $("#pack-form").hidden = false;
-  $("#with-campaigns-toggle").hidden = profile.kind !== "group" || !profile.campaigns.length;
-  $("#pack-zip-btn").disabled = true;
-  $("#pack-save-btn").disabled = true;
-  $("#pack-output").replaceChildren(h("p", { class: "desc" },
-    `Press "Build detection pack" to generate detections for all ${profile.techniques.length} techniques.`));
-}
-
-async function selectThreat(item) {
-  $("#threat-detail").replaceChildren(loading(`Loading ${item.id}...`));
-  try {
-    const profile = await api(`/api/threat/${encodeURIComponent(item.id)}?kind=${state.threatKind}`);
-    state.threat = profile;
-    $("#threat-search").value = `${profile.id} ${profile.name}`;
-    renderThreatDetail(profile);
-  } catch (error) {
-    $("#threat-detail").replaceChildren(alertBox("error", error.message));
-  }
-}
-
-function statTile(label, value, tone = "") {
-  return h("div", { class: `card stat ${tone}` }, h("div", { class: "num" }, String(value)), h("div", { class: "lbl" }, label));
-}
-
-function renderPack(pack) {
-  const summary = pack.summary;
-  const noSigmahq = pack.techniques.filter((t) => t.sigmahq && t.sigmahq.sources.some((s) => s.usable) && t.sigmahq.sigmahq_rules.length === 0).length;
-  const parts = [];
-  if (pack.saved_to) parts.push(alertBox("ok", `Saved to ${pack.saved_to}`));
-  if (pack.bundle_errors.length) parts.push(alertBox("error", `STIX bundle problems: ${pack.bundle_errors.join("; ")}`));
-
-  parts.push(h("div", { class: "stats" },
-    statTile("techniques attributed", summary.techniques),
-    statTile("Sigma rules", summary.rules, "accent"),
-    statTile("correlation rules", summary.correlation_rules, "accent"),
-    statTile("strong / moderate / weak", `${summary.quality.strong} / ${summary.quality.moderate} / ${summary.quality.weak}`),
-    pack.sigmahq_release ? statTile("with no SigmaHQ rule", noSigmahq, noSigmahq ? "danger" : "") : null,
-    pack.options.gaps_only ? statTile("fully covered, skipped", summary.covered_by_sigmahq) : null,
-    statTile("no concrete values in ATT&CK", summary.insufficient_evidence),
-    statTile("not expressible as Sigma", summary.unmappable),
-  ));
-
-  const tbody = h("tbody");
-  let filter = "all";
-  const rows = [];
-  for (const technique of pack.techniques) {
-    const cov = technique.sigmahq;
-    const sigmahqCell = !cov ? "-"
-      : !cov.sources.some((s) => s.usable) ? h("span", { class: "pill" }, "n/a")
-      : cov.sigmahq_rules.length === 0 ? h("span", { class: "pill gap" }, "no rules")
-      : h("span", { class: cov.gaps.length ? "pill warn" : "pill ok" }, `${cov.sigmahq_rules.length} rules · ${cov.gaps.length} gap(s)`);
-    const statusTone = technique.status === "generated" ? "ok" : technique.status.startsWith("covered") ? "info" : "";
-    const row = h("tr", { class: "row", tabindex: "0", "aria-expanded": "false" },
-      h("td", { class: "tid" }, technique.id),
-      h("td", {}, technique.name, h("div", { class: "aliases" }, technique.tactics.join(", "))),
-      h("td", {}, technique.rules.length ? technique.rules.map((r) => tierPill(r.quality)) : "-"),
-      h("td", { class: "num-cell" }, String(technique.chains.length)),
-      h("td", {}, sigmahqCell),
-      h("td", {}, h("span", { class: `pill ${statusTone}` }, technique.status)));
-    const filesRow = h("tr", { class: "expanded", hidden: true }, h("td", { class: "files", colspan: "6" }));
-
-    const toggle = () => {
-      const open = filesRow.hidden;
-      filesRow.hidden = !open;
-      row.setAttribute("aria-expanded", String(open));
-      if (open && !filesRow.firstChild.childElementCount) {
-        const cell = filesRow.firstChild;
-        for (const procedure of technique.procedures.slice(0, 2)) {
-          cell.append(h("div", { class: "procedure" }, procedure));
-        }
-        if (technique.reason) cell.append(h("div", { class: "procedure" }, technique.reason));
-        for (const file of [...technique.chains, ...technique.rules]) {
-          const path = `sigma/${file.file}`;
-          const text = pack.rule_files[path] || "";
-          cell.append(h("div", { class: "file-block" },
-            h("div", { class: "file-head" }, tierPill(file.quality), levelPill(file.level), file.file,
-              h("div", { class: "rule-actions" },
-                h("button", { class: "btn small", type: "button", onclick: () => copyText(text) }, "Copy"),
-                h("button", { class: "btn small", type: "button", onclick: () => downloadText(file.file, text) }, "Download"))),
-            yamlBlock(text)));
-        }
-      }
-    };
-    row.addEventListener("click", toggle);
-    row.addEventListener("keydown", (event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); toggle(); } });
-    rows.push({ technique, row, filesRow });
-    tbody.append(row, filesRow);
-  }
-
-  const applyFilter = () => {
-    for (const { technique, row, filesRow } of rows) {
-      const cov = technique.sigmahq;
-      const show = filter === "all"
-        || (filter === "generated" && (technique.rules.length || technique.chains.length))
-        || (filter === "chains" && technique.chains.length)
-        || (filter === "deployable" && technique.rules.some((r) => r.quality === "strong" || r.quality === "moderate"))
-        || (filter === "gaps" && cov && cov.sources.some((s) => s.usable) && cov.sigmahq_rules.length === 0)
-        || (filter === "skipped" && technique.status !== "generated");
-      row.hidden = !show;
-      if (!show) filesRow.hidden = true;
-    }
-  };
-  const filters = [["all", "All"], ["generated", "With rules"], ["deployable", "Strong or moderate"], ["chains", "With correlations"],
-    ...(pack.sigmahq_release ? [["gaps", "No SigmaHQ rule"]] : []), ["skipped", "Not generated"]];
-  const filterBar = h("div", { class: "filter-bar" },
-    filters.map(([key, label]) => {
-      const button = h("button", { class: `chip-btn${key === filter ? " is-active" : ""}`, type: "button" }, label);
-      button.addEventListener("click", () => {
-        filter = key;
-        filterBar.querySelectorAll(".chip-btn").forEach((b) => b.classList.toggle("is-active", b === button));
-        applyFilter();
+        return { ...source, label, coverage: covered.get(`${analytic.id}|${label}`) };
       });
-      return button;
-    }),
-    h("span", { class: "spacer" }),
-    h("span", { class: "aliases" }, `ATT&CK v${pack.attack_version}${pack.sigmahq_release ? ` · SigmaHQ ${pack.sigmahq_release}` : ""}`));
-
-  parts.push(h("div", { class: "card" }, filterBar, h("div", { class: "table-wrap" },
-    h("table", { class: "pack" },
-      h("thead", {}, h("tr", {}, ["Technique", "Name", "Rule quality", "Correlations", "SigmaHQ", "Status"].map((c) => h("th", { scope: "col" }, c)))),
-      tbody))));
-  $("#pack-output").replaceChildren(...parts);
+      const primary = sources.filter((source) => source.mappable).sort((a, b) => b.confidence - a.confidence)[0] || sources[0];
+      const grade = grades[analytic.id];
+      const confidence = primary ? primary.confidence : 0;
+      const bar = h("span", { class: "fill" });
+      bar.style.width = `${Math.round(confidence * 100)}%`;
+      const logsource = primary && Object.values(primary.sigma_logsource || {}).join(" / ");
+      const more = sources.length > 1 ? `  (+${sources.length - 1} more)` : "";
+      blocks.push(h("div", { class: "tel" },
+        h("div", { class: "tel-top" }, h("span", { class: "tel-id mono" }, analytic.id), gradePill(grade ? grade.tier : null)),
+        h("p", { class: "tel-sum" }, firstSentence(analytic.description) || `${analytic.platforms.join(", ")} analytic.`),
+        h("p", { class: "tel-src mono" }, primary
+          ? `${primary.label} → ${logsource || "no Sigma log source"}${more}`
+          : "No log source named"),
+        h("div", { class: "conf" }, h("span", { class: "track", "aria-hidden": "true" }, bar),
+          h("span", { class: "conf-n mono", title: "Mapping confidence" }, confidence.toFixed(2))),
+        h("div", { class: "tel-foot" }, coveragePill(coverage, sources),
+          h("span", {}, grade ? plural(grade.signals, "signal") : "No concrete values"),
+          inDraft.has(analytic.id) ? h("span", { class: "indraft" }, "in this draft") : null)));
+    }
+  }
+  fill($("#telemetry"), blocks.length ? blocks : h("p", { class: "cov-note" }, "ATT&CK attaches no detection analytic to this technique."));
+  $("#coverage-note").textContent = coverage
+    ? `SigmaHQ ${coverage.sigmahq_release} has ${plural(coverage.sigmahq_rules.length, "rule")} tagged ${detail.id}. `
+      + `${Math.round(coverage.coverage_ratio * 100)}% of the log sources MITRE names are covered (${coverage.status.replace("-", " ")}).`
+    : "SigmaHQ coverage is off until its rule index is downloaded.";
 }
 
-function packBody(save = false) {
-  return { query: state.threat.id, kind: state.threatKind, ...formValues($("#pack-form")), save };
+function renderDraft() {
+  const draft = state.tech.draft;
+  const doc = $("#doc");
+  const files = draftFiles();
+  const file = activeFile();
+  setFileActions(file);
+
+  if (!file) {
+    const id = draft.technique ? draft.technique.id : state.tech.selected;
+    const messages = {
+      covered: ["Gaps only", "SigmaHQ already covers this",
+        `Every log source ATT&CK names for ${id} already has a SigmaHQ rule, so there is no gap to fill. Turn Gaps only off to see the draft.`],
+      insufficient: ["No draft", "ATT&CK gives no concrete values", draft.reason],
+      unmappable: ["No draft", "Not expressible as Sigma", draft.reason],
+    };
+    const [kind, title, text] = messages[draft.status] || ["No draft", "Nothing was generated", draft.reason || ""];
+    fill(doc, h("p", { class: "doc-kind" }, kind), h("h2", { class: "doc-title" }, title), h("p", { class: "doc-foot" }, text));
+    return;
+  }
+
+  let header;
+  if (file.json) {
+    const indicators = file.bundle.objects.indicator || 0;
+    header = [h("p", { class: "doc-kind" }, "STIX 2.1 bundle"),
+      h("h2", { class: "doc-title" }, `${plural(indicators, "indicator")} for ${draft.technique.id}`),
+      h("p", { class: "doc-grade" }, `Each indicator carries one rule as pattern_type sigma, marked TLP:${state.tech.recipe.tlp.toUpperCase()}.`),
+      file.bundle.problems.length ? h("p", { class: "doc-check bad" }, file.bundle.problems.join("; ")) : null];
+  } else {
+    const rule = file.rule;
+    const kind = rule.kind === "chain"
+      ? `${rule.correlation_kind === "count" ? "Count threshold" : "Attack chain"} · ${rule.correlation_type}`
+      : "Sigma rule";
+    header = [h("p", { class: "doc-kind" }, kind), h("h2", { class: "doc-title" }, rule.title),
+      h("div", { class: "doc-grade" }, gradePill(rule.quality.tier), h("span", {}, GRADE_SENTENCE[rule.quality.tier] || "")),
+      rule.problems.length
+        ? h("p", { class: "doc-check bad" }, rule.problems.join("; "))
+        : h("p", { class: "doc-check" }, rule.pysigma_checked ? "Valid Sigma, checked with pySigma." : "Valid Sigma.")];
+  }
+
+  const chips = h("div", { class: "chips", role: "group", "aria-label": "Files" }, files.map((entry) => h("button", {
+    class: entry.name === file.name ? "chip on" : "chip", type: "button", title: entry.name,
+    "aria-pressed": String(entry.name === file.name),
+    onclick: () => { state.tech.activeFile = entry.name; renderDraft(); },
+  }, entry.name)));
+
+  // A browser tab has no output folder to write to.
+  const saveRow = state.runtime === "browser" ? null : h("p", { class: "doc-save" },
+    h("button", { class: "linkish", type: "button", id: "save-technique-btn", onclick: saveTechnique }, "Save every file to the output folder"));
+
+  fill(doc, header,
+    draft.warnings.length ? h("ul", { class: "doc-notes" }, draft.warnings.map((warning) => h("li", {}, warning))) : null,
+    chips, codeBlock(file.text, file.json, file.name),
+    h("p", { class: "doc-foot" }, "Check field names, replace mined values with what you have actually seen, then measure false positives."),
+    saveRow);
 }
 
-async function buildPack(save = false) {
-  if (!state.threat) return;
-  const body = packBody(save);
-  state.lastPackRequest = body;
-  $("#pack-btn").disabled = true;
-  $("#pack-output").replaceChildren(loading(`${save ? "Saving" : "Building"} the detection pack for ${state.threat.name}...`));
+async function saveTechnique() {
+  const tech = state.tech;
   try {
-    const pack = await api("/api/pack", { method: "POST", body });
-    renderPack(pack);
-    $("#pack-zip-btn").disabled = !pack.summary.techniques_with_rules;
-    $("#pack-save-btn").disabled = !pack.summary.techniques_with_rules;
-    if (save) toast("Pack saved to the output folder");
+    const result = await api("/api/generate", { method: "POST", body: { technique: tech.selected, deterministic: true, ...tech.recipe, save: true } });
+    toast(result.saved.length ? `Saved ${plural(result.saved.length, "file")} to the output folder` : "Nothing to save");
   } catch (error) {
-    $("#pack-output").replaceChildren(alertBox("error", error.message));
-  } finally {
-    $("#pack-btn").disabled = false;
+    toast(error.message);
   }
 }
 
-async function downloadPackZip() {
-  if (!state.threat) return;
+async function copyActive() {
+  const file = activeFile();
+  if (!file) return;
+  const button = $("#copy-btn");
+  try {
+    await navigator.clipboard.writeText(file.text);
+  } catch (error) {
+    toast("Copy failed: select the text in the draft instead");
+    return;
+  }
+  button.replaceChildren(svgIcon("m5 12 5 5L20 7"), "Copied");
+  clearTimeout(copyActive.timer);
+  copyActive.timer = setTimeout(() => { button.replaceChildren("Copy"); }, 1600);
+}
+
+function downloadActive() {
+  const file = activeFile();
+  if (file) downloadText(file.name, file.text, file.json ? "application/json" : "text/yaml");
+}
+
+// ---------------------------------------------------------------------------
+// Threat rail
+// ---------------------------------------------------------------------------
+async function searchThreats() {
+  const { kind, query } = state.threat;
+  let results;
+  try {
+    if (!query.trim()) {
+      const lists = await Promise.all(THREAT_STARTERS[kind].map((id) =>
+        api(`/api/search?kind=${kind}&limit=1&q=${encodeURIComponent(id)}`).then((response) => response.results)));
+      results = lists.flat();
+    } else {
+      results = (await api(`/api/search?kind=${kind}&limit=25&q=${encodeURIComponent(query.trim())}`)).results;
+    }
+  } catch (error) {
+    if (state.threat.kind === kind && state.threat.query === query) fill($("#threat-list"), h("p", { class: "empty-list" }, error.message));
+    return;
+  }
+  if (state.threat.kind !== kind || state.threat.query !== query) return;
+  state.threat.results = results;
+  renderThreatList();
+}
+
+function renderThreatList() {
+  const { results, selected, query } = state.threat;
+  const n = results.length;
+  $("#threat-count").textContent = query.trim()
+    ? `${n} ${n === 1 ? "match" : "matches"} · on this machine only`
+    : `${n} to start with · on this machine only`;
+  fill($("#threat-list"), n ? results.map((profile) => {
+    const gaps = state.threat.gaps[profile.id];
+    const isSelected = profile.id === selected;
+    return h("button", {
+      class: isSelected ? "row sel" : "row", type: "button", "aria-current": isSelected ? "true" : null,
+      onclick: () => selectThreat(profile.id),
+    },
+    h("span", { class: "rname" }, profile.name),
+    h("span", { class: "rid mono" }, profile.id),
+    h("span", { class: "rmeta" }, plural(profile.techniques, "technique")
+      + (gaps === undefined ? "" : ` · ${plural(gaps, "SigmaHQ gap")}`)));
+  }) : h("p", { class: "empty-list" }, "Nothing matches."));
+}
+
+function setKind(kind) {
+  state.threat.kind = kind;
+  state.threat.query = "";
+  for (const seg of document.querySelectorAll(".kind")) {
+    const on = seg.dataset.kind === kind;
+    seg.classList.toggle("on", on);
+    seg.setAttribute("aria-pressed", String(on));
+  }
+  $("#threat-kind-label").textContent = kind;
+  const input = $("#threat-search");
+  input.value = "";
+  input.placeholder = PLACEHOLDERS[kind];
+  searchThreats();
+}
+
+// ---------------------------------------------------------------------------
+// Threat pack overview and open pack
+// ---------------------------------------------------------------------------
+function renderPackCards() {
+  const status = state.status;
+  // The totals are only true for the dataset versions they were measured on.
+  const published = Boolean(status && status.attack.version === PUBLISHED_PACKS.attack
+    && status.sigmahq.available && status.sigmahq.release === PUBLISHED_PACKS.sigmahq);
+  fill($("#pack-cards"), PUBLISHED_PACKS.packs.map((pack) => h("button", {
+    class: "card", type: "button", onclick: () => { setKind(pack.kind); selectThreat(pack.id); },
+  },
+  h("span", { class: "card-top" }, h("span", { class: "card-id mono" }, pack.id), h("span", { class: "pill" }, cap(pack.kind))),
+  h("span", { class: "card-name" }, pack.name),
+  published
+    ? h("span", { class: "card-facts" }, h("span", { class: "t-strong" }, `${pack.strong} strong`), " · ",
+      h("span", { class: "t-moderate" }, `${pack.moderate} moderate`), " · ", h("span", { class: "t-weak" }, `${pack.weak} weak`))
+    : h("span", { class: "card-facts" }, "Open to build the pack"),
+  published ? h("span", { class: "card-src" }, `${plural(pack.gaps, "technique")} with no SigmaHQ rule`) : null)));
+  $("#pack-cards-caption").textContent = published
+    ? `Published pack totals for ATT&CK v${PUBLISHED_PACKS.attack} and SigmaHQ ${PUBLISHED_PACKS.sigmahq}.`
+    : "";
+}
+
+function packGaps(pack) {
+  return pack.techniques.filter((technique) => technique.sigmahq
+    && technique.sigmahq.sources.some((source) => source.usable) && !technique.sigmahq.sigmahq_rules.length).length;
+}
+
+async function selectThreat(id) {
+  const threat = state.threat;
+  threat.selected = id;
+  threat.pack = null;
+  threat.deployable = false;
+  if (state.mode !== "pack") setMode("pack");
+  renderThreatList();
+  showView("view-pack-open");
+  const request = ++threat.request;
+  const known = threat.results.find((result) => result.id === id);
+  fill($("#view-pack-open"), loading(`Building the pack for ${known ? known.name : id}…`));
+  try {
+    const pack = await api("/api/pack", { method: "POST", body: { query: id, kind: threat.kind, chains: true, deterministic: true } });
+    if (request !== threat.request) return;
+    threat.pack = pack;
+    threat.gaps[id] = packGaps(pack);
+    renderThreatList();
+    renderPack();
+  } catch (error) {
+    if (request === threat.request) fill($("#view-pack-open"), h("p", { class: "t-gap" }, error.message));
+  }
+}
+
+/** A pack technique's grade: the best of its rules and correlation rules. */
+function techniqueTier(technique) {
+  return bestTier(technique.rules.map((rule) => rule.quality).concat(technique.chains.map((chain) => chain.quality)));
+}
+
+function packRow(technique) {
+  const coverage = technique.sigmahq;
+  const usable = coverage && coverage.sources.some((source) => source.usable);
+  let sigmahq;
+  if (!coverage) sigmahq = h("span", { class: "t-none" }, "-");
+  else if (!usable) sigmahq = h("span", { class: "t-none" }, "Not in Sigma");
+  else if (!coverage.sigmahq_rules.length) sigmahq = h("span", { class: "t-gap" }, "No rules");
+  else sigmahq = h("span", {}, plural(coverage.sigmahq_rules.length, "rule") + (coverage.gaps.length ? `, ${plural(coverage.gaps.length, "gap")}` : ""));
+  return h("tr", {},
+    h("td", {}, h("span", { class: "td-id mono" }, technique.id), h("span", { class: "td-name" }, technique.name)),
+    h("td", {}, gradePill(techniqueTier(technique))),
+    h("td", {}, sigmahq),
+    h("td", { class: "num mono" }, String(technique.rules.length + technique.chains.length)),
+    h("td", {}, h("button", { class: "btn btn-outline", type: "button", onclick: () => openDraft(technique.id) }, "Open draft")));
+}
+
+function renderPack() {
+  const pack = state.threat.pack;
+  const profile = pack.profile;
+  const summary = pack.summary;
+  const quality = summary.quality;
+  const segment = (cls, n) => { const el = h("span", { class: cls }); el.style.flex = `${n} 1 0`; return el; };
+  const stat = (label, value) => h("div", { class: "stat" }, h("span", { class: "stat-l" }, label), h("span", { class: "stat-v mono" }, String(value)));
+
+  const rows = pack.techniques.filter((technique) => !state.threat.deployable
+    || ["strong", "moderate"].includes(techniqueTier(technique)));
+  const deployable = h("button", {
+    class: state.threat.deployable ? "tog on" : "tog", type: "button", "aria-pressed": String(state.threat.deployable),
+    onclick: () => { state.threat.deployable = !state.threat.deployable; renderPack(); },
+  }, "Deployable only");
+
+  const aliases = profile.aliases.filter((alias) => alias !== profile.name).slice(0, 6);
+  const unmatched = summary.insufficient_evidence + summary.unmappable;
+  const saveButton = state.runtime === "browser" ? null
+    : h("button", { class: "btn btn-outline", type: "button", id: "pack-save-btn", onclick: savePack }, "Save to output folder");
+
+  fill($("#view-pack-open"),
+    h("div", { class: "title-row" },
+      h("div", {},
+        h("p", { class: "title-meta" }, h("span", { class: "mono" }, profile.id),
+          ` · ${aliases.length ? aliases.join(", ") : cap(profile.kind)}`),
+        h("h1", { class: "h1" }, profile.name),
+        h("p", { class: "title-note" }, firstSentence(profile.description, 320))),
+      h("div", { class: "title-actions" }, saveButton,
+        h("button", { class: "btn btn-primary", type: "button", id: "pack-zip-btn", onclick: downloadPack }, "Download pack"))),
+    h("div", { class: "stats" },
+      stat("Techniques", summary.techniques), stat("Sigma rules", summary.rules),
+      stat("Correlations", summary.correlation_rules), stat("SigmaHQ gaps", pack.sigmahq_release ? packGaps(pack) : "-")),
+    h("div", { class: "section" },
+      h("h2", { class: "h2" }, "Quality split"),
+      h("div", { class: "qbar", role: "img", "aria-label": `${quality.strong} strong, ${quality.moderate} moderate, ${quality.weak} weak` },
+        segment("q-s", quality.strong), segment("q-m", quality.moderate), segment("q-w", quality.weak)),
+      h("div", { class: "q-counts" },
+        h("span", {}, h("span", { class: "t-strong mono" }, String(quality.strong)), " strong"),
+        h("span", {}, h("span", { class: "t-moderate mono" }, String(quality.moderate)), " moderate"),
+        h("span", {}, h("span", { class: "mono" }, String(quality.weak)), " weak")),
+      h("p", { class: "caption" }, "Pack totals, generated on this machine. Rules and correlation rules are graded alike."),
+      summary.insufficient_evidence
+        ? h("p", { class: "sub" }, `${plural(summary.insufficient_evidence, "technique")} skipped — ATT&CK gives no concrete values.`)
+        : null),
+    h("div", { class: "section panel" },
+      h("div", { class: "tbl-head" }, h("h2", { class: "h2" }, "Techniques in this pack"), deployable),
+      h("div", { class: "tbl-wrap" },
+        h("table", { class: "pack" },
+          h("thead", {}, h("tr", {},
+            h("th", { scope: "col" }, "Technique"), h("th", { scope: "col" }, "Grade"), h("th", { scope: "col" }, "SigmaHQ"),
+            h("th", { scope: "col", class: "num" }, "Rules"), h("th", { scope: "col" }, h("span", { class: "sr-only" }, "Open")))),
+          h("tbody", {}, rows.map(packRow)))),
+      h("p", { class: "tbl-foot" }, unmatched
+        ? `${plural(unmatched, "attributed technique")} ${unmatched === 1 ? "has" : "have"} no rule: `
+          + `${summary.insufficient_evidence} with no concrete values in ATT&CK, ${summary.unmappable} not expressible as Sigma.`
+        : "Every attributed technique has a rule.")));
+}
+
+function openDraft(id) {
+  state.tech.query = "";
+  $("#technique-search").value = "";
+  setMode("technique");
+  searchTechniques();
+  selectTechnique(id);
+}
+
+function packBody(save) {
+  return { query: state.threat.selected, kind: state.threat.kind, chains: true, deterministic: true, save };
+}
+
+async function downloadPack() {
   const button = $("#pack-zip-btn");
   button.disabled = true;
-  button.textContent = "Preparing ZIP...";
+  button.textContent = "Preparing ZIP…";
   try {
     const blob = await api("/api/pack.zip", { method: "POST", body: packBody(false) });
-    const slug = `${state.threat.id}_${state.threat.name}`.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "");
-    downloadBlob(`${slug}.zip`, blob);
+    downloadBlob(`${state.threat.pack.slug}.zip`, blob);
   } catch (error) {
     toast(error.message);
   } finally {
     button.disabled = false;
-    button.textContent = "Download ZIP";
+    button.textContent = "Download pack";
+  }
+}
+
+async function savePack() {
+  try {
+    const pack = await api("/api/pack", { method: "POST", body: packBody(true) });
+    toast(pack.saved_to ? `Saved to ${pack.saved_to}` : "Nothing to save");
+  } catch (error) {
+    toast(error.message);
   }
 }
 
 // ---------------------------------------------------------------------------
 // Wiring
 // ---------------------------------------------------------------------------
-function switchView(view) {
-  for (const tab of document.querySelectorAll(".tab")) {
-    const active = tab.dataset.view === view;
-    tab.classList.toggle("is-active", active);
-    tab.setAttribute("aria-selected", String(active));
-  }
-  $("#view-technique").hidden = view !== "technique";
-  $("#view-pack").hidden = view !== "pack";
-  history.replaceState(null, "", `#${view}`);
-}
-
-function exampleButtons(container, examples, onPick) {
-  container.replaceChildren(h("span", { class: "aliases" }, "Try: "),
-    ...examples.map(([id, label]) => h("button", { class: "chip-btn", type: "button", onclick: () => onPick(id) }, label)));
+function goHome() {
+  state.tech.selected = null;
+  state.tech.query = "";
+  $("#technique-search").value = "";
+  setMode("technique");
+  searchTechniques();
 }
 
 function init() {
-  for (const tab of document.querySelectorAll(".tab")) {
-    tab.addEventListener("click", () => switchView(tab.dataset.view));
+  state.runtime = document.body.dataset.wheel ? "browser" : "server";
+  for (const tab of document.querySelectorAll(".tab")) tab.addEventListener("click", () => setMode(tab.dataset.view));
+  $("#brand").addEventListener("click", goHome);
+  for (const button of document.querySelectorAll("[data-open-technique]")) {
+    button.addEventListener("click", () => selectTechnique(button.dataset.openTechnique));
   }
-  if (location.hash === "#pack") switchView("pack");
 
-  attachSearch({
-    input: $("#technique-search"),
-    list: $("#technique-results"),
-    fetchResults: async (q) => (await api(`/api/search?kind=technique&q=${encodeURIComponent(q)}`)).results,
-    renderItem: (t) => h("li", {}, h("span", { class: "rid" }, t.id), h("span", { class: "rname" }, t.name),
-      h("span", { class: "rmeta" }, t.tactics.join(", "))),
-    onPick: (t) => selectTechnique(t.id),
+  const runTechniqueSearch = debounce(searchTechniques, 160);
+  $("#technique-search").addEventListener("input", (event) => { state.tech.query = event.target.value; runTechniqueSearch(); });
+  $("#technique-search").addEventListener("keydown", (event) => {
+    if (event.key === "Enter" && state.tech.results[0]) { event.preventDefault(); selectTechnique(state.tech.results[0].id); }
   });
-  exampleButtons($("#technique-examples"),
-    [["T1003.001", "LSASS dumping"], ["T1547.001", "Run keys"], ["T1621", "MFA fatigue"], ["T1059.001", "PowerShell"]],
-    selectTechnique);
-
-  attachSearch({
-    input: $("#threat-search"),
-    list: $("#threat-results"),
-    fetchResults: async (q) => (await api(`/api/search?kind=${state.threatKind}&q=${encodeURIComponent(q)}`)).results,
-    renderItem: (p) => h("li", {}, h("span", { class: "rid" }, p.id), h("span", { class: "rname" }, p.name),
-      h("span", { class: "rmeta" }, `${p.techniques} techniques`)),
-    onPick: selectThreat,
+  const runThreatSearch = debounce(searchThreats, 160);
+  $("#threat-search").addEventListener("input", (event) => { state.threat.query = event.target.value; runThreatSearch(); });
+  $("#threat-search").addEventListener("keydown", (event) => {
+    if (event.key === "Enter" && state.threat.results[0]) { event.preventDefault(); selectThreat(state.threat.results[0].id); }
   });
-  const threatExamples = {
-    group: [["G0016", "APT29"], ["G0032", "Lazarus Group"], ["G0034", "Sandworm Team"]],
-    software: [["S0002", "Mimikatz"], ["S0154", "Cobalt Strike"]],
-    campaign: [["C0024", "SolarWinds Compromise"]],
-  };
-  const setKind = (kind) => {
-    state.threatKind = kind;
-    for (const seg of document.querySelectorAll(".seg")) {
-      const active = seg.dataset.kind === kind;
-      seg.classList.toggle("is-active", active);
-      seg.setAttribute("aria-checked", String(active));
-    }
-    $("#threat-kind-label").textContent = kind;
-    $("#threat-search").value = "";
-    $("#threat-search").placeholder = { group: "APT29, Cozy Bear, G0016...", software: "Mimikatz, S0002...", campaign: "SolarWinds, C0024..." }[kind];
-    exampleButtons($("#threat-examples"), threatExamples[kind], (id) => selectThreat({ id }));
-  };
-  for (const seg of document.querySelectorAll(".seg")) seg.addEventListener("click", () => setKind(seg.dataset.kind));
-  setKind("group");
+  for (const seg of document.querySelectorAll(".kind")) seg.addEventListener("click", () => setKind(seg.dataset.kind));
 
-  $("#technique-form").addEventListener("submit", (event) => { event.preventDefault(); generateTechnique(false); });
-  $("#save-technique-btn").addEventListener("click", () => generateTechnique(true));
-  $("#pack-form").addEventListener("submit", (event) => { event.preventDefault(); buildPack(false); });
-  $("#pack-save-btn").addEventListener("click", () => buildPack(true));
-  $("#pack-zip-btn").addEventListener("click", downloadPackZip);
+  for (const toggle of document.querySelectorAll("#recipe .tog")) {
+    toggle.addEventListener("click", () => {
+      const key = toggle.dataset.option;
+      state.tech.recipe[key] = !state.tech.recipe[key];
+      toggle.classList.toggle("on", state.tech.recipe[key]);
+      toggle.setAttribute("aria-pressed", String(state.tech.recipe[key]));
+      scheduleRegenerate();
+    });
+  }
+  $("#level-select").addEventListener("change", (event) => { state.tech.recipe.level = event.target.value; scheduleRegenerate(); });
+  $("#tlp-select").addEventListener("change", (event) => { state.tech.recipe.tlp = event.target.value; scheduleRegenerate(); });
+  $("#copy-btn").addEventListener("click", copyActive);
+  $("#download-btn").addEventListener("click", downloadActive);
 
-  loadStatus().catch((error) => {
-    $("#datasets").replaceChildren(h("span", { class: "badge off" }, h("span", { class: "dot" }), error.message));
+  // "/" focuses the active search, unless the user is already typing somewhere.
+  document.addEventListener("keydown", (event) => {
+    if (event.key !== "/" || event.metaKey || event.ctrlKey || event.altKey) return;
+    const target = event.target;
+    if (target && (target.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName))) return;
+    event.preventDefault();
+    $(state.mode === "technique" ? "#technique-search" : "#threat-search").focus();
   });
+
+  if (location.hash === "#pack") setMode("pack");
+  loadStatus().catch((error) => { fill($("#datasets"), h("span", { class: "off" }, error.message)); });
+  searchTechniques();
+  searchThreats();
+  renderExamples();
+  renderPackCards();
 }
 
 document.addEventListener("DOMContentLoaded", init);
