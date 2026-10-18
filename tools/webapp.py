@@ -15,6 +15,8 @@ What it assembles:
 * ``*.whl``         - the package itself, installed into Pyodide with micropip.
 * the UI files from ``src/web/static``, plus ``runtime.js``, which answers the
   page's ``/api/...`` calls from Python instead of from an HTTP server.
+* ``preview.png``   - ``docs/images/web-ui.png``, the image link previews show.
+  Only the hosted page carries the preview tags that point at it.
 """
 
 from __future__ import annotations
@@ -23,8 +25,10 @@ import argparse
 import gzip
 import json
 import shutil
+import struct
 import subprocess
 import sys
+from html import escape
 from pathlib import Path
 from typing import Any, Optional
 
@@ -39,6 +43,14 @@ from tools.corpus import PINNED_ATTACK, fetch_bundle  # noqa: E402
 STATIC_DIR = ROOT / "src" / "web" / "static"
 WEBAPP_DIR = Path(__file__).resolve().parent / "webapp"
 DEFAULT_OUTPUT = ROOT / "docs"
+#: Where CI publishes the build; preview tags need absolute URLs.
+SITE_URL = "https://kushagra-patel1011.github.io/sigma-generator/"
+PREVIEW_IMAGE = ROOT / "docs" / "images" / "web-ui.png"
+PREVIEW_TITLE = "Sigma Generator: MITRE ATT&CK to graded Sigma rules"
+PREVIEW_DESCRIPTION = (
+    "Turn ATT&CK techniques and threat groups into quality-graded draft Sigma rules, correlation rules "
+    "and STIX 2.1 bundles, with a SigmaHQ gap check. Runs entirely in your browser."
+)
 
 #: STIX objects the generator reads.  Everything else (mitigations, data
 #: sources' prose, identities, markings, matrices) is dropped.
@@ -100,6 +112,37 @@ def check_identical(full_path: Path, slim_path: Path) -> None:
     print(f"  identical output for {len(full['techniques'])} techniques")
 
 
+def png_size(path: Path) -> tuple[int, int]:
+    """Width and height from a PNG's IHDR chunk."""
+    header = path.read_bytes()[:24]
+    if header[:8] != b"\x89PNG\r\n\x1a\n" or header[12:16] != b"IHDR":
+        raise SystemExit(f"{path} is not a PNG")
+    width, height = struct.unpack(">II", header[16:24])
+    return width, height
+
+
+def preview_tags() -> str:
+    """Open Graph and Twitter tags, so a shared link shows a card instead of a bare URL."""
+    width, height = png_size(PREVIEW_IMAGE)
+    image = SITE_URL + "preview.png"
+    tags = [
+        ("name", "description", PREVIEW_DESCRIPTION),
+        ("property", "og:type", "website"),
+        ("property", "og:url", SITE_URL),
+        ("property", "og:title", PREVIEW_TITLE),
+        ("property", "og:description", PREVIEW_DESCRIPTION),
+        ("property", "og:image", image),
+        ("property", "og:image:width", str(width)),
+        ("property", "og:image:height", str(height)),
+        ("property", "og:image:alt", "The Sigma Generator web UI with LSASS Memory (T1003.001) open"),
+        ("name", "twitter:card", "summary_large_image"),
+        ("name", "twitter:title", PREVIEW_TITLE),
+        ("name", "twitter:description", PREVIEW_DESCRIPTION),
+        ("name", "twitter:image", image),
+    ]
+    return "\n".join(f'  <meta {attr}="{key}" content="{escape(value)}">' for attr, key, value in tags)
+
+
 def build_page(wheel_name: str) -> str:
     """The server's own page, rewired to load the in-browser runtime.
 
@@ -108,6 +151,7 @@ def build_page(wheel_name: str) -> str:
     """
     page = (STATIC_DIR / "index.html").read_text(encoding="utf-8")
     replacements = [
+        ("<title>Sigma Generator</title>", "<title>Sigma Generator</title>\n" + preview_tags()),
         ('href="/static/styles.css"', 'href="styles.css"'),
         # runtime.js answers the page's /api/ calls, then loads app.js itself.
         ('<script src="/static/app.js"></script>', '<script src="runtime.js"></script>'),
@@ -168,6 +212,7 @@ def build(output: Path, check: bool = False, sigmahq: Optional[Path] = None) -> 
 
     shutil.copy2(STATIC_DIR / "app.js", output / "app.js")
     shutil.copytree(STATIC_DIR / "fonts", output / "fonts", dirs_exist_ok=True)
+    shutil.copy2(PREVIEW_IMAGE, output / "preview.png")
     shutil.copy2(WEBAPP_DIR / "runtime.js", output / "runtime.js")
     _write_lf(
         output / "styles.css",
@@ -183,7 +228,7 @@ def build(output: Path, check: bool = False, sigmahq: Optional[Path] = None) -> 
         "wheel": wheel.name,
     }
     (output / "manifest.json").write_text(json.dumps(manifest, indent=1) + "\n", encoding="utf-8")
-    print("  index.html, app.js, styles.css, runtime.js, manifest.json")
+    print("  index.html, app.js, styles.css, runtime.js, fonts, preview.png, manifest.json")
     total = sum(p.stat().st_size for p in output.rglob("*") if p.is_file())
     print(f"Done: {total/1e6:.1f} MB on disk. Serve it with: python -m http.server -d {output}")
 

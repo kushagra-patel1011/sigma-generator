@@ -43,4 +43,5 @@ docs/*
 !docs/validation/
 !docs/case-study.md
 !docs/architecture.md
+!docs/images/
 site/

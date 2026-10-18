@@ -51,6 +51,21 @@ class TestPage:
         assert "/static/app.js" not in page and "/static/styles.css" not in page
         assert 'id="boot"' in page and 'id="boot-bar"' in page
 
+    def test_hosted_page_has_link_preview_tags(self):
+        page = webapp.build_page("x.whl")
+        width, height = webapp.png_size(webapp.PREVIEW_IMAGE)
+        assert f'<meta property="og:image" content="{webapp.SITE_URL}preview.png">' in page
+        assert f'<meta property="og:image:width" content="{width}">' in page
+        assert f'<meta property="og:image:height" content="{height}">' in page
+        assert '<meta name="twitter:card" content="summary_large_image">' in page
+        assert "MITRE ATT&amp;CK" in page and webapp.SITE_URL.startswith("https://")
+        # LinkedIn and others crop previews to about 1.91:1.
+        assert abs(width / height - 1.91) < 0.02
+
+    def test_served_page_has_no_preview_tags(self):
+        # The local server is not at SITE_URL, so its page must not claim to be.
+        assert "og:" not in (webapp.STATIC_DIR / "index.html").read_text(encoding="utf-8")
+
     def test_it_fails_loudly_if_the_page_changes(self, monkeypatch, tmp_path):
         rewritten = tmp_path / "index.html"
         rewritten.write_text("<html><body>no markers here</body></html>", encoding="utf-8")
