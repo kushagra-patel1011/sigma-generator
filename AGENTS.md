@@ -68,8 +68,10 @@ passes; the tests that need it skip themselves.
 fresh clone can run everything immediately.
 
 Generated output goes to `output/` and is ignored by git. `docs/` is the browser build's output folder and is
-ignored too, except for `docs/validation-protocol.md`, `docs/validation/`, `docs/case-study.md` and
-`docs/architecture.md`. A new tracked file under `docs/` needs its own exception in `.gitignore`.
+ignored too, except for `docs/validation-protocol.md`, `docs/validation/`, `docs/case-study.md`,
+`docs/architecture.md` and `docs/images/`. A new tracked file under `docs/` needs its own exception in `.gitignore`.
+`docs/images/web-ui.png` is both the README screenshot and the demo's link preview (the browser build publishes it
+as `preview.png`); retake it from the real UI, at about 1.91:1, when the UI changes.
 
 ## Conventions
 

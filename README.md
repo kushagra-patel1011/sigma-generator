@@ -6,6 +6,10 @@ SigmaHQ's community rules**, and STIX 2.1 bundles ready for a threat-intel platf
 quality**, so you know which drafts are worth tuning into alerts and which are hunting queries. Use it from the
 command line or a local web UI.
 
+[![The web UI with LSASS Memory (T1003.001) open: the techniques graded strong, moderate or weak on the left, the telemetry MITRE names for the technique with its mapping confidence and SigmaHQ coverage, and the generated Sigma rule with its grade.](docs/images/web-ui.png)](https://kushagra-patel1011.github.io/sigma-generator/)
+
+<sub>The web UI on LSASS Memory (T1003.001). [Try it in your browser](https://kushagra-patel1011.github.io/sigma-generator/): nothing to install, and nothing you type leaves your machine.</sub>
+
 ```bash
 python -m src.main generate --group APT29 --chains
 ```
